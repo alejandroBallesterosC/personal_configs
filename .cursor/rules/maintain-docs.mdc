@@ -1,0 +1,36 @@
+---
+description: Maintain README.md documentation when making changes that affect public APIs, configuration, features, installation procedures, or module dependencies
+globs: 
+alwaysApply: true
+---
+
+# Documentation Maintenance Rule
+
+When making code changes, ALWAYS check if documentation updates are needed and update relevant README.md files if the change affects:
+
+1. **Public APIs or interfaces** - Update module README and potentially root README
+2. **Configuration requirements** - Update setup sections in relevant READMEs  
+3. **New features or capabilities** - Document new functionality and usage
+4. **Installation/setup procedures** - Update installation guides
+5. **Module dependencies or data flow** - Update architecture documentation
+
+## Documentation Structure
+- Each major component/module directory contains its own README.md
+- Root directory contains project-wide README.md
+- Update both module-specific and root documentation as needed
+
+## When NOT to update documentation
+- Minor bug fixes that don't change user-facing behavior
+- Internal refactoring that doesn't affect public interfaces  
+- Code cleanup that doesn't change functionality
+- Any prototyping in jupyter notebooks within the notebooks directory
+
+## Action Required
+When documentation updates are needed:
+1. Identify the affected module's README.md file
+2. Update the relevant sections with clear, accurate information
+3. Check if root README.md needs updates for project-wide changes
+4. Ensure documentation stays current with code changes
+description: In this codebase each major component/module is a directory in the root project directory. Within each module there is a README.md file that serves as documentation specific to that module. There is also a README.md in the root project directory. These documentation files should help people quickly get acquainted with the codebase and stay up to date. When making changes, update the relevant README.md files if the change affects: 1) Public APIs or interfaces, 2) Configuration requirements, 3) New features or capabilities, 4) Installation/setup procedures, 5) Module dependencies or data flow. Minor bug fixes and internal refactoring typically don't require documentation updates unless they change functionality substantially.
+alwaysApply: true
+---

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "notion": {
+      "command": "npx",
+      "args": ["envmcp", "--env-file", ".env", "npx", "-y", "@notionhq/notion-mcp-server"]
+    },
+    "browser-tools": {
+      "command": "npx",
+      "args": ["-y", "@agentdeskai/browser-tools-mcp@latest"]
+    }
+  }
+}

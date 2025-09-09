@@ -1,0 +1,67 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile & Run Current File",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/run_file.sh",
+            "args": ["${file}"],
+            "options": {
+                "env": {
+                    "WORKSPACE_FOLDER": "${workspaceFolder}"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+
+        {
+            "label": "Compile Frontend Typescript",
+            "type": "shell",
+            "command": "npx tsc --noEmit -p tsconfig.app.json",
+            "options": {
+                "cwd": "${workspaceFolder}/I_frontend"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Run App",
+            "type": "shell",
+            "command": "./scripts/run_app.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+    ],
+   "inputs": [
+        {
+            "id": "configPath",
+            "description": "Path to HoPF config file",
+            "type": "promptString"
+        }
+    ]
+}
