@@ -55,7 +55,18 @@ Pre-written command templates for common development tasks:
 you can copy this to ~/.claude/commands for global use across all your claude-code projects and then call them with/{command}
 
 ### Utility Scripts (`scripts/`)
-- this folder contains utility scripts ive found useful when developing.
+
+**File Runner** (`run_file.sh`)
+- Universal file runner supporting C++ and Python
+- Triggered by VS Code's Cmd+Shift+B shortcut
+
+**Claude Code Sync Scripts**
+- `sync_commands_from_global.sh`: Copy commands from `~/.claude/commands/` → `claude-code/commands/`
+- `sync_commands_to_global.sh`: Copy commands from `claude-code/commands/` → `~/.claude/commands/`
+- `sync_docs_from_global.sh`: Copy docs from `~/.claude/docs/` → `claude-code/docs/`
+- `sync_docs_to_global.sh`: Copy docs from `claude-code/docs/` → `~/.claude/docs/`
+
+All sync scripts support `--overwrite` flag to clear destination before copying (default: overwrites only matching filenames)
 
 ---
 
