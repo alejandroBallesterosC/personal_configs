@@ -22,7 +22,6 @@
                 "panel": "shared"
             }
         },
-
         {
             "label": "Compile Frontend Typescript",
             "type": "shell",
@@ -45,6 +44,90 @@
             "label": "Run App",
             "type": "shell",
             "command": "./scripts/run_app.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Sync Commands to Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_commands_to_global.sh",
+            "args": ["${file}"],
+            "options": {
+                "env": {
+                    "WORKSPACE_FOLDER": "${workspaceFolder}"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+                {
+            "label": "Sync Commands from Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_commands_from_global.sh",
+            "args": ["${file}"],
+            "options": {
+                "env": {
+                    "WORKSPACE_FOLDER": "${workspaceFolder}"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Sync Docs to Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_docs_to_global.sh",
+            "args": ["${file}"],
+            "options": {
+                "env": {
+                    "WORKSPACE_FOLDER": "${workspaceFolder}"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Sync Docs from Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_docs_from_global.sh",
+            "args": ["${file}"],
+            "options": {
+                "env": {
+                    "WORKSPACE_FOLDER": "${workspaceFolder}"
+                }
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
