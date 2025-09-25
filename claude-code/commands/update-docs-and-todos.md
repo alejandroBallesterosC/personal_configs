@@ -9,3 +9,4 @@ Do this by first reviewing the progress we have made and the current state of th
 - The documentation should help someone new to the repo understand it and self-serve easily, keep only information that does this and do not be overly verbose. The docs should be concise while still going into enough detail to be helpful for people to self-serve.
 - Only use emojis sparingly.
 - If a central README.md does not exist in the root of this repo please create one. If a CLAUDE.md does not exist in the root of this repo please create one.
+- If the CLAUDE.md file in the root of the repo is longer than the recommended limit please remove old updates and/or summarize older or less relevant information in the CLAUDE.md as necessary. As of 9/24/2025 this limit was 40k characters but please validate this is still true today.
