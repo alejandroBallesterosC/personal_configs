@@ -53,40 +53,23 @@ uv python pin 3.12                 # writes .python-version
 uv run --python 3.10 script.py
 ```
 
-### 1.5 Legacy Pip Interface
+### 1.5 Dependencies
+- Add runtime: `uv add <pkg>`
+- Add to group: `uv add --group dev <pkg>` (groups: `dev`, `test`, `docs`, etc.)
+- Remove: `uv remove <pkg>`
+- Declare deps in `pyproject.toml` (`[project]`, `[project.optional-dependencies]`, and `[dependency-groups]`)
 
-```bash
-uv venv .venv
-source .venv/bin/activate
-uv pip install -r requirements.txt
-uv pip sync   -r requirements.txt   # deterministic install
-```
+### 1.6 Environment
+- Create: `uv venv` (writes `.venv/`; add to `.gitignore`)
+- Activate: `source .venv/bin/activate` (Linux/macOS) or `.venv\Scripts\activate` (Windows)
 
----
-
-## 2 — Performance‑Tuning Knobs
-
-| Env Var                   | Purpose                 | Typical Value |
-| ------------------------- | ----------------------- | ------------- |
-| `UV_CONCURRENT_DOWNLOADS` | saturate fat pipes      | `16` or `32`  |
-| `UV_CONCURRENT_INSTALLS`  | parallel wheel installs | `CPU_CORES`   |
-| `UV_OFFLINE`              | enforce cache‑only mode | `1`           |
-| `UV_INDEX_URL`            | internal mirror         | `https://…`   |
-| `UV_PYTHON`               | pin interpreter in CI   | `3.11`        |
-| `UV_NO_COLOR`             | disable ANSI coloring   | `1`           |
-
-Other handy commands:
-
-```bash
-uv cache dir && uv cache info      # show path + stats
-uv cache clean                     # wipe wheels & sources
-```
 
 ---
 
-## 3 — CI/CD Recipes
 
-### 3.1 GitHub Actions
+## 2 — CI/CD Recipes
+
+### 2.1 GitHub Actions
 
 ```yaml
 # .github/workflows/test.yml
@@ -103,7 +86,7 @@ jobs:
       - run: uv run pytest -q
 ```
 
-### 3.2 Docker
+### 2.2 Docker
 
 ```dockerfile
 FROM ghcr.io/astral-sh/uv:0.7.4 AS uv
@@ -119,20 +102,19 @@ CMD ["uv", "run", "python", "-m", "myapp"]
 
 ---
 
-## 4 — Migration Matrix
+## 3 — Migration Matrix
 
 | Legacy Tool / Concept | One‑Shot Replacement        | Notes                 |
 | --------------------- | --------------------------- | --------------------- |
 | `python -m venv`      | `uv venv`                   | 10× faster create     |
-| `pip install`         | `uv pip install`            | same flags            |
+| `pip install`         | `uv add` + `uv sync`        |                       |
 | `pip-tools compile`   | `uv pip compile` (implicit) | via `uv lock`         |
 | `pipx run`            | `uvx` / `uv tool run`       | no global Python req. |
 | `poetry add`          | `uv add`                    | pyproject native      |
-| `pyenv install`       | `uv python install`         | cached tarballs       |
 
 ---
 
-## 5 — Troubleshooting Fast‑Path
+## 4 — Troubleshooting Fast‑Path
 
 | Symptom                    | Resolution                                                     |
 | -------------------------- | -------------------------------------------------------------- |
@@ -144,7 +126,7 @@ CMD ["uv", "run", "python", "-m", "myapp"]
 
 ---
 
-## 6 — Exec Pitch (30 s)
+## 5 — Exec Pitch (30 s)
 
 ```text
 • 10–100× faster dependency & env management in one binary.
@@ -154,11 +136,23 @@ CMD ["uv", "run", "python", "-m", "myapp"]
 
 ---
 
-## 7 — Agent Cheat‑Sheet (Copy/Paste)
+## 6 — Agent Cheat‑Sheet (Copy/Paste)
 
 ```bash
 # new project
 a=$PWD && uv init myproj && cd myproj && uv add requests rich
+
+# add deps
+uv add <pkg>
+
+# remove deps
+uv remove <pkg>
+
+# create venv
+uv venv
+
+# sync reqs to venv
+uv sync
 
 # test run
 uv run python -m myproj ...
