@@ -25,11 +25,11 @@ Respond to me with this plan and await my explicit approval before executing.
 
 EXECUTION (after approval):
 After I've given explicit approval:
-A) Confirm we’re on Claude 4 Opus. If not, STOP and ask to switch to Claude 4 Opus.
+A) Confirm we’re on Claude 4 Sonnet with 1M Token Context Window. If not, STOP and ask to switch to Claude 4 Sonnet with 1M Token Context Window.
 B) Enforce the No-Conflict Rule: each subagent may only write within its declared scope.
 C) Launch components for the first wave in TRUE PARALLEL. IMPORTANT: Run multiple Task invocations in a SINGLE message.
    - Each Task = one subagent
-   - Use Claude 4 Opus
+   - Use Claude 4 Sonnet with 1M Token Context Window
    - Provide each subagent with:
        - a brief of the overall goal + interfaces/contracts they must respect
        - its component-specific TODO list
