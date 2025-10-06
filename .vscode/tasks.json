@@ -139,6 +139,36 @@
                 "panel": "shared"
             }
         },
+        {
+            "label": "Sync MCP Servers from Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_mcp_servers_from_global.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Sync MCP Servers to Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_mcp_servers_to_global.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        }
     ],
    "inputs": [
         {
