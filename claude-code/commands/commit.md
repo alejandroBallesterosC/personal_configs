@@ -1,0 +1,1 @@
+Commit all of the changes we've made in this branch of this repo with a very informative commit message. Do not be overly verbose, instead be as concise as you can while still going into the necessary level of detail about the changes to be useful in the commit message. DO NOT USE ANY EMJOIs.
