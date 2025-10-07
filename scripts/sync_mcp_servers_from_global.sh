@@ -1,6 +1,6 @@
 #!/bin/bash
 # ABOUTME: Extracts mcpServers from global Claude config (~/.claude.json) to this repo
-# ABOUTME: Replaces API keys in env fields with variable references and stores actual values in .env file
+# ABOUTME: Replaces API keys in env/headers fields with variable references and stores actual values in .env file
 
 set -e
 
@@ -21,7 +21,7 @@ mkdir -p "$REPO_CLAUDE_DIR"
 
 # Extract mcpServers key, replace API keys with variable references, and save them to .env
 echo "Extracting mcpServers from $GLOBAL_CLAUDE_FILE..."
-echo "Extracting API keys from env fields to $REPO_ENV_FILE..."
+echo "Extracting API keys from env/headers fields to $REPO_ENV_FILE..."
 
 if command -v python3 &> /dev/null; then
     # Export environment variables for Python script
@@ -39,6 +39,50 @@ global_file = os.environ['GLOBAL_CLAUDE_FILE']
 repo_file = os.environ['REPO_MCP_SETTINGS_FILE']
 env_file = os.environ['REPO_ENV_FILE']
 
+def create_env_key(server_name, field_key):
+    """Create a clean environment variable name"""
+    # Convert server name to uppercase
+    server_upper = server_name.upper().replace('-', '_')
+    field_upper = field_key.upper().replace('-', '_')
+
+    # Check if the field key already starts with server name (to avoid duplication)
+    # e.g., if server is "context7" and field is "CONTEXT7_API_KEY", don't duplicate
+    if field_upper.startswith(server_upper + '_'):
+        return field_upper
+    else:
+        return f"{server_upper}_{field_upper}"
+
+def extract_and_replace_secrets(obj, server_name, env_vars, path=""):
+    """Recursively find and replace API keys/tokens in nested dictionaries"""
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            current_path = f"{path}.{key}" if path else key
+
+            if isinstance(value, str):
+                # Check if this looks like a secret (contains keywords)
+                secret_keywords = ['key', 'token', 'secret', 'password', 'auth', 'bearer', 'api']
+                if any(keyword in key.lower() for keyword in secret_keywords):
+                    # Handle "Bearer TOKEN" pattern
+                    bearer_match = re.match(r'^Bearer\s+(.+)$', value, re.IGNORECASE)
+                    if bearer_match:
+                        actual_token = bearer_match.group(1)
+                        # Don't re-extract if already a variable reference
+                        if not actual_token.startswith('${'):
+                            env_key = create_env_key(server_name, key)
+                            env_vars[env_key] = actual_token
+                            obj[key] = f"Bearer ${{{env_key}}}"
+                    # Handle direct values that aren't already variable references
+                    elif not value.startswith('${'):
+                        env_key = create_env_key(server_name, key)
+                        env_vars[env_key] = value
+                        obj[key] = f"${{{env_key}}}"
+            elif isinstance(value, dict):
+                extract_and_replace_secrets(value, server_name, env_vars, current_path)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        extract_and_replace_secrets(item, server_name, env_vars, current_path)
+
 try:
     # Read global Claude config
     with open(global_file, 'r') as f:
@@ -50,14 +94,13 @@ try:
     env_vars = {}
 
     for server_name, server_config in mcp_servers.items():
+        # Process env field
         if 'env' in server_config and isinstance(server_config['env'], dict):
-            for key, value in server_config['env'].items():
-                # Create env var name with server name prefix for clarity
-                env_key = f"{server_name.upper()}_{key}"
-                env_vars[env_key] = value
+            extract_and_replace_secrets(server_config['env'], server_name, env_vars)
 
-                # Replace the actual value with a variable reference ${ENV_VAR_NAME}
-                server_config['env'][key] = f"${{{env_key}}}"
+        # Process headers field
+        if 'headers' in server_config and isinstance(server_config['headers'], dict):
+            extract_and_replace_secrets(server_config['headers'], server_name, env_vars)
 
     # Write the MCP servers config with variable references
     with open(repo_file, 'w') as f:

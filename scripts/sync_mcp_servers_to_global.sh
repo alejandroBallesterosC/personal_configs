@@ -49,6 +49,41 @@ repo_file = os.environ['REPO_MCP_SETTINGS_FILE']
 env_file = os.environ['REPO_ENV_FILE']
 global_file = os.environ['GLOBAL_CLAUDE_FILE']
 
+def resolve_variable_references(obj, env_vars):
+    """Recursively resolve ${VAR} references in nested dictionaries and strings"""
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if isinstance(value, str):
+                # Handle "Bearer ${TOKEN}" pattern
+                bearer_match = re.match(r'^(Bearer\s+)?\$\{([^}]+)\}$', value, re.IGNORECASE)
+                if bearer_match:
+                    prefix = bearer_match.group(1) or ""
+                    var_name = bearer_match.group(2)
+                    if var_name in env_vars:
+                        if prefix:
+                            obj[key] = f"{prefix}{env_vars[var_name]}"
+                        else:
+                            obj[key] = env_vars[var_name]
+                    else:
+                        print(f"Warning: Environment variable {var_name} not found in .env file", file=sys.stderr)
+                else:
+                    # Handle inline ${VAR} references within strings
+                    def replace_var(match):
+                        var_name = match.group(1)
+                        if var_name in env_vars:
+                            return env_vars[var_name]
+                        else:
+                            print(f"Warning: Environment variable {var_name} not found in .env file", file=sys.stderr)
+                            return match.group(0)
+
+                    obj[key] = re.sub(r'\$\{([^}]+)\}', replace_var, value)
+            elif isinstance(value, dict):
+                resolve_variable_references(value, env_vars)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        resolve_variable_references(item, env_vars)
+
 try:
     # Read .env file if it exists
     env_vars = {}
@@ -66,21 +101,27 @@ try:
 
     mcp_servers = repo_data.get('mcpServers', {})
 
-    # Resolve environment variable references in env fields
+    # Resolve environment variable references in all fields
     resolved_count = 0
+    original_count = 0
+
     for server_name, server_config in mcp_servers.items():
+        # Count original variable references
+        config_str = json.dumps(server_config)
+        original_count += len(re.findall(r'\$\{[^}]+\}', config_str))
+
+        # Process env field
         if 'env' in server_config and isinstance(server_config['env'], dict):
-            for key, value in server_config['env'].items():
-                # Check if value is a variable reference like ${VAR_NAME}
-                if isinstance(value, str):
-                    match = re.match(r'\$\{([^}]+)\}', value)
-                    if match:
-                        var_name = match.group(1)
-                        if var_name in env_vars:
-                            server_config['env'][key] = env_vars[var_name]
-                            resolved_count += 1
-                        else:
-                            print(f"Warning: Environment variable {var_name} not found in .env file", file=sys.stderr)
+            resolve_variable_references(server_config['env'], env_vars)
+
+        # Process headers field
+        if 'headers' in server_config and isinstance(server_config['headers'], dict):
+            resolve_variable_references(server_config['headers'], env_vars)
+
+    # Count resolved references
+    config_str = json.dumps(mcp_servers)
+    remaining_count = len(re.findall(r'\$\{[^}]+\}', config_str))
+    resolved_count = original_count - remaining_count
 
     # Read global Claude config
     with open(global_file, 'r') as f:
@@ -95,6 +136,8 @@ try:
 
     if resolved_count > 0:
         print(f'Successfully resolved {resolved_count} environment variable(s)')
+    if remaining_count > 0:
+        print(f'Warning: {remaining_count} variable reference(s) could not be resolved', file=sys.stderr)
     print('Successfully merged mcpServers configuration using python')
 
 except Exception as e:
