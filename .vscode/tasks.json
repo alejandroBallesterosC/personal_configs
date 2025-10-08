@@ -168,6 +168,36 @@
                 "focus": true,
                 "panel": "shared"
             }
+        },
+        {
+            "label": "Sync Claude to Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_claude_to_global.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Sync Claude from Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_claude_from_global.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
         }
     ],
    "inputs": [

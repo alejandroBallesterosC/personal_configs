@@ -39,12 +39,11 @@
 
 # Specific Technologies
 
-- @~/.claude/docs/python.md
-- @~/.claude/docs/using-uv.md
-- @~/.claude/docs/docker-uv.md
+- When using Python always follow best practices in: @~/.claude/docs/python.md
+- When using UV (Python dependency management tool) always follow best practices in: @~/.claude/docs/using-uv.md
+- When using Docker with UV (Docker + Python dependency management tool) always follow best practices in: @~/.claude/docs/docker-uv.md
 
-
-1. Learning-Focused Error Response
+# Learning-Focused Error Response
 
 When encountering tool failures (biome, ruff, pytest, etc.):
 
