@@ -1,1 +1,0 @@
-I'm trying to understand how this repo works. Please explain to me what the goals of this codebase are, what the architeture is, how code/files are organized, where the most useful documentation for understanding the codebase is, what the components of the repo are, and what the major architectural decisions were made in this codebase.
