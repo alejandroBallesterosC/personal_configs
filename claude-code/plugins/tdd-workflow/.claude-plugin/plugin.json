@@ -1,0 +1,10 @@
+{
+  "name": "tdd-workflow",
+  "description": "Planning-heavy, TDD-driven development workflow with user interviews and autonomous implementation",
+  "version": "1.0.0",
+  "author": {
+    "name": "jandro"
+  },
+  "repository": "https://github.com/jandro/personal_configs",
+  "keywords": ["tdd", "planning", "interview", "workflow", "opus"]
+}

@@ -1,12 +1,32 @@
 ---
 description: Iteratively explore and document codebase understanding across multiple passes
 argument-hint: [iterations=3] [output=CODEBASE.md]
-allowed-tools: Read, Grep, Glob, Bash, Task, Write, Edit
+allowed-tools: Read, Grep, Glob, Bash, Task, Write, Edit, Skill
 ---
 
 # Iterative Codebase Understanding
 
-You will perform **${1:-3} iterations** of codebase exploration, persisting all findings to **${2:-CODEBASE.md}**.
+You will perform **${1:-3} iterations** of codebase exploration using parallel subagents, persisting all findings to **${2:-CODEBASE.md}**. You will also update CLAUDE.md files using the claude-md-guide skill.
+
+## Phase 0: Launch Parallel Code Explorers
+
+**Immediately launch 3 agents in parallel** (in a single message with multiple Task tool calls) to explore different aspects of the codebase simultaneously:
+
+### Agent 1: Structure & Stack Explorer
+Launch with `subagent_type: "Explore"` and prompt:
+> Explore the codebase structure and technology stack. Map directory structure (exclude node_modules/vendor/target/.git). Identify all dependency files (package.json, requirements.txt, go.mod, Cargo.toml). List all entry points (main.*, index.*, app.*, Dockerfile). Identify build/CI config files. Catalog environment/config files. Output a structured report.
+
+### Agent 2: Architecture & Patterns Explorer
+Launch with `subagent_type: "Explore"` and prompt:
+> Explore the codebase architecture and patterns. Identify the architectural pattern (monolith, microservices, modular). Map module/package boundaries and imports. Find key interfaces, contracts, abstractions. Identify data models, schemas, type definitions. Analyze error handling and logging patterns. Output a structured report.
+
+### Agent 3: Testing & Quality Explorer
+Launch with `subagent_type: "Explore"` and prompt:
+> Explore the testing strategy and code quality. Find all test files and frameworks. Analyze test patterns (unit, integration, e2e). Check linting/formatting config. Identify CI/CD workflows. Find documentation (README, docs/). Check recent git activity. Output a structured report.
+
+**Wait for all agents to complete**, then synthesize their findings into ${2:-CODEBASE.md}.
+
+---
 
 ## Critical: Context Survival
 
@@ -22,51 +42,50 @@ Write findings to the markdown file immediately as you discover them. The file i
 
 ## Iteration Protocol
 
-### Iteration 1: Discovery (The Map)
-*Action: Use the task tool for parallelized exploration by running terminal commands or file searches to build your mental map.*
-1.  **Create ${2:-CODEBASE.md}** for writing your findings to it as you go.
-2.  **Map the Territory:** Run `ls -R` or `tree` (excluding node_modules/vendor/target) to understand the physical structure of the project.
-3.  **Verify the Stack:** Explore build system, dependencies (e.g., `package.json`, `go.mod`, `pom.xml`, `requirements.txt`), and tooling to confirm the libraries and versions used.
-4.  **Locate Entry Points** Find the *actual* production entry points (e.g., `index.ts`, `main.go`, `wsgi.py`, Dockerfiles).
-5.  **Explore External Integrations and APIs**
-6.  **End With "Open Questions"** - list 5-10 high priority questions you have about the codebase that would most improve your understanding in ${2:-CODEBASE.md}
+### Iteration 1: Discovery Synthesis
 
-Example Discovery Commands:
-```bash
-# Structure (exclude noise)
-tree -L 3 -I "node_modules|vendor|target|dist|.git|__pycache__|*.pyc"
-
-# Dependencies
-cat package.json 2>/dev/null || cat requirements.txt 2>/dev/null || cat go.mod 2>/dev/null || cat Cargo.toml 2>/dev/null
-
-# Entry points
-find . -name "main.*" -o -name "index.*" -o -name "app.*" | grep -v node_modules
-
-# Recent activity (what's being worked on)
-git log --oneline -20 2>/dev/null
-
-# Test patterns
-find . -type f \( -name "*test*" -o -name "*spec*" \) | head -20
-```
+1. **Create ${2:-CODEBASE.md}** with initial structure
+2. **Synthesize agent findings** into the required sections
+3. **Identify gaps** - what didn't the agents cover?
+4. **End with "Open Questions"** - list 5-10 high priority questions
 
 ### Iteration 2: Deep Dive (The Logic)
-*Action: Select the most important core workflows to understand (e.g., "Data Ingestion" or the main business logic) and trace them end-to-end.*
-1. **Read ${2:-CODEBASE.md}** to restore context if context was compacted.
-2.  **Architecture Pattern:** Determine if this is Monolithic, Microservices, Hexagonal, or Event-Driven based on how modules import each other.
-3.  **Boundaries & Contracts:** Identify the key interfaces. Are they strict (e.g., TypeScript interfaces, gRPC protos) or loose? How do modules communicate (HTTP, Message Bus, Direct calls)?
-4.  **Data Strategy:** Where is the state? (DB, Cache, In-memory). Verify the ORM or database access patterns.
-5.  **End With "Open Questions"** - Add 5-10 high priority questions you have about the codebase that would most improve your understanding in ${2:-CODEBASE.md}
+
+1. **Read ${2:-CODEBASE.md}** to restore context
+2. **Trace key workflows** end-to-end (auth, main business logic, data flow)
+3. **Verify boundaries** - are contracts strict or loose?
+4. **Analyze data strategy** - where is state? How does it flow?
+5. **Update Open Questions** - add new, mark answered
 
 ### Iterations 3 through ${1:-3}: Explore Open Questions
-*Action: Investigate open questions.*
-1. **Read ${2:-CODEBASE.md}** to restore context if context was compacted.
-2. **Select the 3-5 highest priority open questions** to investigate
-3. **Trace execution paths** - follow actual code flow, not documentation claims
-4. **Refresh Open Questions** - remove answered, add newly discovered
 
-### Final: Synthesis
-1. **Read ${2:-CODEBASE.md}** completely
-2. **Present summary** to user in CLI with key insights
+1. **Read ${2:-CODEBASE.md}** to restore context
+2. **Select 3-5 highest priority open questions**
+3. **Trace execution paths** - follow actual code, not documentation claims
+4. **Launch additional subagents** if needed for deep dives
+5. **Refresh Open Questions** - remove answered, add newly discovered
+
+---
+
+## Final Phase: CLAUDE.md Update
+
+After completing exploration, **invoke the claude-md-guide skill** and update CLAUDE.md:
+
+1. **Check if CLAUDE.md exists** at project root
+2. **If missing**: Create one following claude-md-guide best practices
+3. **If exists**: Update it to reflect current codebase state
+
+### CLAUDE.md Must Include (per claude-md-guide):
+- Project overview (2-3 sentences)
+- Architecture (key layers, boundaries)
+- Key patterns (when/how to use)
+- Code style conventions
+- Testing (framework, location, commands)
+- Common commands (build, lint, dev, test)
+- Key files and their purposes
+- Gotchas (learned from exploration)
+
+**Keep under 300 lines.** Use @imports for detailed docs.
 
 ---
 
@@ -81,7 +100,6 @@ find . -type f \( -name "*test*" -o -name "*spec*" \) | head -20
 3. **Explore by concept, not directory**: Search for "authentication" across the codebase, not "what's in src/auth/"
 
 4. **Verify, don't guess**: Find the definition. Read the implementation. Check the tests.
-
 
 ---
 
@@ -117,7 +135,7 @@ For each major boundary:
 ## 5. Key Design Decisions & Tradeoffs
 Identify the significant architectural choices and analyze:
 - What was chosen and what alternatives were likely considered
-- What tradeoffs does this create, what was sacrificed (performance, complexity, flexibility, etc.) 
+- What tradeoffs does this create, what was sacrificed (performance, complexity, flexibility, etc.)
 - Identify areas of high complexity, metaprogramming, or obvious hacks.
 - Identify any technical debt or constraints this creates
 
@@ -142,7 +160,7 @@ List specific discrepancies between docs/READMEs and actual implementation.
 - [ ] Question 2
 - [ ] ...
 
-## 9. Ambiguities:
+## 9. Ambiguities
 What couldn't you determine from the code alone? What would you ask the original authors?
 ```
 
@@ -151,8 +169,8 @@ What couldn't you determine from the code alone? What would you ask the original
 ## Constraints
 
 - **DO NOT** edit application code
-- **DO NOT** commit anything  
-- **ONLY** write to ${2:-CODEBASE.md}
+- **DO NOT** commit anything
+- **ONLY** write to ${2:-CODEBASE.md} and CLAUDE.md
 - Use **concrete file:line references** for every claim
 - Prioritize **insight density** in ${2:-CODEBASE.md}
 
@@ -168,3 +186,13 @@ If you see "Compacting context..." or your context feels fresh:
 4. Continue from where you left off
 
 The markdown file is your source of truth. Trust it.
+
+---
+
+## Summary of Execution
+
+1. **Launch 3 parallel subagents** (structure, architecture, testing)
+2. **Synthesize findings** into ${2:-CODEBASE.md}
+3. **Iterate** through deep dives and open questions
+4. **Update CLAUDE.md** using claude-md-guide skill
+5. **Present summary** to user

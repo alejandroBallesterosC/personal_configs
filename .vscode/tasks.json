@@ -198,6 +198,66 @@
                 "focus": true,
                 "panel": "shared"
             }
+        },
+        {
+            "label": "Sync Skills to Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_skills_to_global.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Sync Skills from Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_skills_from_global.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Sync Plugins to Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_plugins_to_global.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Sync Plugins from Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_plugins_from_global.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
         }
     ],
    "inputs": [
