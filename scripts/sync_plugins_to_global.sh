@@ -50,4 +50,14 @@ else
     echo "Successfully copied $plugin_count plugin(s)"
 fi
 
+# Copy marketplace manifest if it exists
+if [ -d "$REPO_PLUGINS_DIR/.claude-plugin" ]; then
+    mkdir -p "$GLOBAL_PLUGINS_DIR/.claude-plugin"
+    cp -r "$REPO_PLUGINS_DIR/.claude-plugin/"* "$GLOBAL_PLUGINS_DIR/.claude-plugin/"
+    echo "  - Copied marketplace manifest"
+fi
+
 echo "Sync complete!"
+echo ""
+echo "To load a plugin, run: claude --plugin-dir ~/.claude/plugins/<plugin-name>"
+echo "Or add a local marketplace: /plugin marketplace add ~/.claude/plugins"

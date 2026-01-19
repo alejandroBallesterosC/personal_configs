@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "local-plugins",
+  "description": "Local Claude Code plugins",
+  "owner": {
+    "name": "jandro"
+  },
+  "plugins": [
+    {
+      "name": "tdd-workflow",
+      "description": "Planning-heavy, TDD-driven development workflow with user interviews and autonomous implementation",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./tdd-workflow",
+      "category": "development"
+    }
+  ]
+}
