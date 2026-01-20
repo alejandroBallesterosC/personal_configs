@@ -29,6 +29,10 @@ Before debugging, I need to understand the relevant systems. Use the debug-explo
 Task: Use the debug-explorer agent to explore the codebase for context on: $ARGUMENTS
 ```
 
+### Relevant Commands:
+- `/debug-workflow:explore <area or bug description>` - Deep dive into specific code area
+
+
 ## Phase 2: DESCRIBE (Gather Bug Context)
 
 Collect complete information about the bug using AskUserQuestionTool:
@@ -70,6 +74,7 @@ Write bug description to: `docs/debug/$ARGUMENTS-bug.md`
 - [relevant conditions]
 ```
 
+
 ## Phase 3: HYPOTHESIZE (Generate Theories)
 
 Generate **3-5 hypotheses** ranked by likelihood. For each:
@@ -80,6 +85,10 @@ Generate **3-5 hypotheses** ranked by likelihood. For each:
 4. **How to test**: Specific instrumentation needed
 
 Write hypotheses to: `docs/debug/$ARGUMENTS-hypotheses.md`
+
+### Relevant Commands:
+- `/debug-workflow:hypothesize <bug-name>` - Generate hypotheses for current bug
+
 
 ## Phase 4: INSTRUMENT (Add Targeted Logging)
 
@@ -101,6 +110,10 @@ Add surgical instrumentation to test hypotheses:
 - Error handling paths
 - Return values
 
+### Relevant Commands:
+- `/debug-workflow:instrument <bug-name>` - Add instrumentation to test hypotheses
+
+
 ## Phase 5: REPRODUCE
 
 Guide the user to reproduce the bug:
@@ -114,6 +127,7 @@ If reproduction is difficult:
 - Add conditional instrumentation for specific users/data
 - Enable persistent logging
 - Consider adding metrics/counters
+
 
 ## Phase 6: ANALYZE
 
@@ -129,6 +143,10 @@ If all hypotheses rejected:
 - Add more instrumentation
 - Repeat the loop
 
+### Relevant Commands:
+- `/debug-workflow:analyze <bug-name>` - Analyze log output against hypotheses
+
+
 ## Phase 7: FIX
 
 Once root cause is identified:
@@ -138,6 +156,10 @@ Once root cause is identified:
 3. **Keep instrumentation** until verified
 4. **Write regression test** (TDD approach)
 
+### Relevant Commands:
+- `/debug-workflow:verify <bug-name>` - Apply fix, verify fix, cleanup, and commit
+
+
 ## Phase 8: VERIFY
 
 1. Apply the fix
@@ -145,6 +167,10 @@ Once root cause is identified:
 3. Confirm expected behavior
 4. Check for regressions
 5. If not fixed, return to HYPOTHESIZE
+
+### Relevant Commands:
+- `/debug-workflow:verify <bug-name>` - (Contn'd)
+
 
 ## Phase 9: CLEAN
 
@@ -161,6 +187,10 @@ Cleanup checklist:
 - Run tests
 - Commit fix (not debug logs)
 
+### Relevant Commands:
+- `/debug-workflow:verify <bug-name>` - (Contn'd)
+
+
 ## Key Principles
 
 > "Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result." - Boris Cherny
@@ -171,10 +201,5 @@ Cleanup checklist:
 4. **Verify always**: Confirm fix with reproduction
 5. **Clean up**: Never commit debug code
 
-## Related Commands
-
-- `/debug-workflow:explore <area>` - Deep dive into specific code area
-- `/debug-workflow:hypothesize` - Generate hypotheses for current bug
-- `/debug-workflow:instrument` - Add instrumentation to test hypotheses
-- `/debug-workflow:analyze <logs>` - Analyze log output against hypotheses
+## Help Command
 - `/debug-workflow:help` - Show all debug workflow commands

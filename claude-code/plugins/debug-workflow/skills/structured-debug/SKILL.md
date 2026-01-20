@@ -47,6 +47,10 @@ git log --oneline -10 -- path/to/relevant/
 git blame path/to/file.py -L 50,70
 ```
 
+#### Relevant Commands:
+- `/debug-workflow:explore <area or bug description>` - Deep dive into specific code area
+
+
 ### Phase 2: DESCRIBE
 
 Gather complete bug context:
@@ -82,6 +86,10 @@ Generate **3-5 hypotheses** about root cause BEFORE writing any code:
 ```
 
 **Key principle**: Generate hypotheses by reading code, not guessing.
+
+#### Relevant Commands:
+- `/debug-workflow:hypothesize <bug-name>` - Generate hypotheses for current bug
+
 
 ### Phase 4: INSTRUMENT
 
@@ -128,6 +136,10 @@ log.Printf("[DEBUG-H1] user=%+v config=%+v", user, config)
 | Return values | Result being returned |
 | Error paths | Exception type, context |
 
+#### Relevant Commands:
+- `/debug-workflow:instrument <bug-name>` - Add instrumentation to test hypotheses
+
+
 ### Phase 5: REPRODUCE
 
 Provide clear reproduction instructions:
@@ -163,6 +175,10 @@ Match logs against each hypothesis:
 2. Add more instrumentation
 3. Repeat the loop
 
+#### Relevant Commands:
+- `/debug-workflow:analyze <bug-name>` - Analyze log output against hypotheses
+
+
 ### Phase 7: FIX
 
 Once root cause is confirmed:
@@ -179,6 +195,10 @@ Once root cause is confirmed:
 **The fix**: [proposed change]
 ```
 
+#### Relevant Commands:
+- `/debug-workflow:verify <bug-name>` - Apply fix, verify fix, cleanup, and commit
+
+
 ### Phase 8: VERIFY
 
 1. Apply the fix
@@ -187,6 +207,10 @@ Once root cause is confirmed:
 4. Check for regressions
 
 If not fixed, return to HYPOTHESIZE with new information.
+
+#### Relevant Commands:
+- `/debug-workflow:verify <bug-name>` - (Contn'd)
+
 
 ### Phase 9: CLEAN
 
@@ -202,6 +226,10 @@ grep -rn "DEBUG-H[0-9]" --include="*.py" --include="*.js" --include="*.ts"
 - [ ] Remove debug imports if no longer needed
 - [ ] Run tests to ensure cleanup didn't break anything
 - [ ] Commit the fix (not the debug logs)
+
+#### Relevant Commands:
+- `/debug-workflow:verify <bug-name>` - (Contn'd)
+
 
 ## Quick Reference
 

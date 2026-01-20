@@ -113,6 +113,10 @@ For each hypothesis, add logs to capture:
 - [ ] **External calls**: Request and response data
 - [ ] **Exit point**: Return value or error
 
+### CRITICAL:
+ENSURE THE LOGS FROM YOUR INSTRUMENTATION WILL BE WRITTEN TO A STANDALONE LOG FILE IN LOGS/DEBUG/
+(Create this directory if it doesn't yet exist in the root of the repo)
+
 ## Output
 
 After adding instrumentation, provide reproduction instructions:

@@ -2,6 +2,14 @@
 
 A planning-heavy, TDD-driven development workflow for Claude Code based on best practices from Boris Cherny, Thariq Shihab, Mo Bitar, and Geoffrey Huntley.
 
+## Quick Start
+
+```bash
+/tdd-workflow:start user-authentication
+```
+
+This single command guides you through the entire workflow.
+
 ## Overview
 
 This plugin implements a 6-phase workflow that front-loads planning to eliminate ambiguity, then executes implementation with strict TDD and autonomous iteration.
@@ -23,6 +31,7 @@ ralph-loop with TDD agents          code-reviewer agent
 
 | Command | Purpose |
 |---------|---------|
+| `/tdd-workflow:start <feature>` | **Start full guided workflow** |
 | `/tdd-workflow:explore <feature>` | Deep codebase analysis + CLAUDE.md synthesis |
 | `/tdd-workflow:plan <feature>` | Interview-based spec development (40+ questions) |
 | `/tdd-workflow:architect <feature>` | Technical design from spec + exploration |
@@ -77,6 +86,7 @@ ralph-loop with TDD agents          code-reviewer agent
 
 | Skill | Purpose |
 |-------|---------|
+| tdd-workflow-guide | Guides you through each phase of the workflow |
 | tdd-guide | TDD cycle guidance (RED → GREEN → REFACTOR) |
 | writing-plans | Creating implementation plans with bite-sized tasks |
 | writing-claude-md | CLAUDE.md best practices and maintenance |

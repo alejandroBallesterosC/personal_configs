@@ -5,6 +5,14 @@ model: haiku
 
 # TDD Workflow Plugin Help
 
+## Quick Start
+
+```bash
+/tdd-workflow:start <feature>
+```
+
+This single command guides you through the entire workflow, phase by phase.
+
 ## Overview
 
 This plugin implements a planning-heavy, TDD-driven development workflow with 6 phases:
@@ -17,6 +25,12 @@ This plugin implements a planning-heavy, TDD-driven development workflow with 6 
 6. **Review** - Confidence-scored code review
 
 ## Commands
+
+### `/tdd-workflow:start <feature>`
+**Start the full guided workflow.** This is the recommended entry point.
+- Orchestrates all phases in sequence
+- Guides you through each step
+- Prompts for next phase when ready
 
 ### `/tdd-workflow:explore <feature>`
 Deep codebase analysis before planning.
@@ -62,6 +76,7 @@ The plugin includes these skills that activate automatically when relevant:
 
 | Skill | When It Activates |
 |-------|-------------------|
+| **tdd-workflow-guide** | When navigating workflow phases, using `/start` |
 | **tdd-guide** | During TDD workflows, writing tests, implementing features |
 | **writing-plans** | When creating implementation plans before coding |
 | **writing-claude-md** | When creating or modifying CLAUDE.md files |

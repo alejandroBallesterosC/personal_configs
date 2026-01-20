@@ -13,8 +13,6 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
-
 **Save plans to:** `docs/plans/<feature-name>-plan.md`
 
 ## Bite-Sized Task Granularity
@@ -32,8 +30,6 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 ```markdown
 # [Feature Name] Implementation Plan
-
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -100,4 +96,4 @@ After saving the plan, offer to start executing it:
 
 **"Plan complete and saved to `docs/plans/<filename>.md`. Execute with /implement?**
 
-if the user approves, invoke the /implement <feature> command
+if the user approves, invoke the /implement <feature> --max-iterations <N> command
