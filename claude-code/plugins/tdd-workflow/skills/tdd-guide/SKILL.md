@@ -9,11 +9,14 @@ This skill provides guidance for Test-Driven Development practices.
 
 ## When to Activate
 
-Activate when the user is:
+Activate when:
+- Engaging in a TDD workflow
 - Writing tests before implementation
 - Implementing code to pass tests
 - Refactoring code with tests
 - Asking about TDD practices
+  
+**Announce at start:** "I'm using the tdd-guide skill."
 
 ## TDD Core Principles
 

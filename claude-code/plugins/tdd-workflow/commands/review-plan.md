@@ -1,6 +1,7 @@
 ---
 description: Critical review of plan before implementation
 model: opus
+argument-hint: <feature>
 ---
 
 # Plan Review

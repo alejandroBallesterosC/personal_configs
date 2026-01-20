@@ -6,7 +6,7 @@ allowed-tools: Read, Grep, Glob, Bash, Task, Write, Edit, Skill
 
 # Iterative Codebase Understanding
 
-You will perform **${1:-3} iterations** of codebase exploration using parallel subagents, persisting all findings to **${2:-CODEBASE.md}**. You will also update CLAUDE.md files using the claude-md-guide skill.
+You will perform **${1:-3} iterations** of codebase exploration using parallel subagents, persisting all findings to **${2:-CODEBASE.md}**. You will also update CLAUDE.md files using the writing-claude-md skill.
 
 ## Phase 0: Launch Parallel Code Explorers
 
@@ -69,13 +69,13 @@ Write findings to the markdown file immediately as you discover them. The file i
 
 ## Final Phase: CLAUDE.md Update
 
-After completing exploration, **invoke the claude-md-guide skill** and update CLAUDE.md:
+After completing exploration, **invoke the writing-claude-md skill** and update CLAUDE.md:
 
 1. **Check if CLAUDE.md exists** at project root
 2. **If missing**: Create one following claude-md-guide best practices
 3. **If exists**: Update it to reflect current codebase state
 
-### CLAUDE.md Must Include (per claude-md-guide):
+### CLAUDE.md Must Include (per writing-claude-md skill):
 - Project overview (2-3 sentences)
 - Architecture (key layers, boundaries)
 - Key patterns (when/how to use)
@@ -194,5 +194,5 @@ The markdown file is your source of truth. Trust it.
 1. **Launch 3 parallel subagents** (structure, architecture, testing)
 2. **Synthesize findings** into ${2:-CODEBASE.md}
 3. **Iterate** through deep dives and open questions
-4. **Update CLAUDE.md** using claude-md-guide skill
+4. **Update CLAUDE.md** using writing-claude-md skill
 5. **Present summary** to user

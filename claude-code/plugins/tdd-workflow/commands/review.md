@@ -1,6 +1,7 @@
 ---
 description: Comprehensive code review of implementation
 model: opus
+argument-hint: <feature>
 ---
 
 # Code Review

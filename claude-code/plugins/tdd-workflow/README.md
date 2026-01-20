@@ -73,6 +73,17 @@ ralph-loop with TDD agents          code-reviewer agent
 | refactorer | Implement (REFACTOR) | Improve while keeping tests green |
 | code-reviewer | Review | Confidence-scored findings |
 
+## Skills
+
+| Skill | Purpose |
+|-------|---------|
+| tdd-guide | TDD cycle guidance (RED → GREEN → REFACTOR) |
+| writing-plans | Creating implementation plans with bite-sized tasks |
+| writing-claude-md | CLAUDE.md best practices and maintenance |
+| structured-debug | Hypothesis-driven debugging with instrumentation |
+| infrastructure-as-code | Terraform + AWS best practices |
+| using-git-worktrees | Isolated workspace creation for feature work |
+
 ## Philosophy
 
 Based on insights from:

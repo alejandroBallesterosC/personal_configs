@@ -13,12 +13,6 @@
       "args": ["mcp-server-fetch"],
       "env": {}
     },
-    "puppeteer": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
-      "env": {}
-    },
     "exa": {
       "command": "npx",
       "args": [
@@ -29,12 +23,6 @@
       "env": {
         "EXA_API_KEY": "${EXA_API_KEY}"
       }
-    },
-    "browser-dev-tools": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@agentdeskai/browser-tools-mcp@1.2.0"],
-      "env": {}
     },
     "playwright": {
       "command": "npx",

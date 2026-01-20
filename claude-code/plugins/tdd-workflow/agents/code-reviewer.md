@@ -41,7 +41,14 @@ Check:
 - [ ] Code style consistent
 - [ ] Patterns used correctly
 
-### 2. Test Coverage
+### 2. Spec/Plan Compliance
+Check:
+- [ ] All requirements and planned functionality implemented
+- [ ] Behavior matches specification / plan
+- [ ] No extra features added
+- [ ] Edge cases from spec handled
+
+### 3. Test Coverage
 ```bash
 # Find test files for changed code
 git diff HEAD~5 --name-only | grep -E '\.(py|ts|js|go|rs)$'
@@ -53,7 +60,7 @@ Check:
 - [ ] Error paths are tested
 - [ ] Tests are meaningful (not just for coverage)
 
-### 3. Security
+### 4. Security
 Check:
 - [ ] User input is validated
 - [ ] SQL queries are parameterized
@@ -61,21 +68,40 @@ Check:
 - [ ] Auth checks present where needed
 - [ ] Sensitive data not logged
 
-### 4. Code Quality
+### 5. Code Quality
 Check:
 - [ ] No obvious bugs
-- [ ] Error handling appropriate
+- [ ] Proper error handling
 - [ ] No code duplication
+- [ ] Type safety
+- [ ] Good maintainability, extensability, and modularity
+- [ ] Good readability
+- [ ] Adherence to established patterns and conventions
 - [ ] Functions not too long (<50 lines)
 - [ ] Clear variable names
 - [ ] No dead code
 
-### 5. Spec Compliance
+### 6.Architecture and Design Review
 Check:
-- [ ] All requirements implemented
-- [ ] Behavior matches specification
-- [ ] No extra features added
-- [ ] Edge cases from spec handled
+- [ ] Ensure the implementation follows SOLID principles and established architectural patterns
+- [ ] Check for proper separation of concerns and loose coupling
+- [ ] Verify that the code integrates well with existing systems
+- [ ] Assess scalability
+- [ ] Assess modularity and extensibility considerations
+
+### 7. Documentation Standards
+Check:
+- [ ] Verify that code includes appropriate comments and documentation
+- [ ] Check that file headers, function documentation, and inline comments are present and accurate
+- [ ] Ensure adherence to project-specific documentation conventions
+
+### 8. Issue Identification and Recommendations
+Check:
+- [ ] Clearly categorize issues as: Critical (must fix), Important (should fix), or Suggestions (nice to have)
+- [ ] For each issue, provide specific examples and actionable recommendations
+- [ ] When you identify plan deviations, explain whether they're problematic or beneficial
+- [ ] Suggest specific improvements with code examples when helpful
+
 
 ## Output Format
 
@@ -170,8 +196,9 @@ cat docs/specs/*.md
 - Provide specific fixes
 
 ## Important Notes
+Your output should be structured, actionable, and focused on helping maintain high code quality while ensuring project goals are met. Be thorough but concise, and always provide constructive feedback that helps improve both the current implementation and future development practices.
 
-- Be constructive, not critical
+- Be constructively critical
 - Provide evidence for every finding
 - Suggest specific fixes
 - Acknowledge what's done well

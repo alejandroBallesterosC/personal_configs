@@ -1,6 +1,7 @@
 ---
 description: TDD implementation of a planned feature using ralph-loop
 model: opus
+argument-hint: <feature> --max-iterations <N>
 ---
 
 # TDD Implementation

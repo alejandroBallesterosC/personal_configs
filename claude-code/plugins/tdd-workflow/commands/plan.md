@@ -1,6 +1,7 @@
 ---
 description: Deep planning through comprehensive user interview
 model: opus
+argument-hint: <feature>
 ---
 
 # Feature Planning Interview

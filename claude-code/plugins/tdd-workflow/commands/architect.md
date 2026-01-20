@@ -1,6 +1,7 @@
 ---
 description: Technical architecture design for planned feature
 model: opus
+argument-hint: <feature>
 ---
 
 # Technical Architecture Design

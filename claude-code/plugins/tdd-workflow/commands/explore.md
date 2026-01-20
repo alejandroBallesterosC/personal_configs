@@ -1,6 +1,7 @@
 ---
 description: Deep codebase exploration before planning
 model: opus
+argument-hint: <feature>
 ---
 
 # Codebase Exploration

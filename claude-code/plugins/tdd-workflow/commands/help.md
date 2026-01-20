@@ -56,6 +56,19 @@ Code review of implementation.
 - Confidence-scored findings (reports only ≥80%)
 - Checks: CLAUDE.md compliance, test coverage, security, spec compliance
 
+## Skills
+
+The plugin includes these skills that activate automatically when relevant:
+
+| Skill | When It Activates |
+|-------|-------------------|
+| **tdd-guide** | During TDD workflows, writing tests, implementing features |
+| **writing-plans** | When creating implementation plans before coding |
+| **writing-claude-md** | When creating or modifying CLAUDE.md files |
+| **structured-debug** | When debugging errors or unexpected behavior |
+| **infrastructure-as-code** | When working with Terraform or AWS resources |
+| **using-git-worktrees** | When setting up isolated workspaces for features |
+
 ## Dependencies
 
 - **Required**: `ralph-loop` plugin must be installed

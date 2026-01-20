@@ -1,11 +1,18 @@
 ---
-name: claude-md-guide
+name: writing-claude-md
 description: Guide for writing and maintaining effective CLAUDE.md files. Activates when creating, editing, reviewing CLAUDE.md, or when Claude makes a repeatable error that should become a rule.
 ---
 
-# CLAUDE.md Best Practices
+# CLAUDE.md Best Practices Skill
 
 Based on practices from Boris Cherny (Claude Code creator), Thariq Shihab (Anthropic), and official documentation.
+
+## When to Activate
+
+Activate when:
+- Creating or modifying CLAUDE.md files anywhere in the repo
+
+**Announce at start:** "I'm using the writing-claude-md skill."
 
 ## Why CLAUDE.md Matters
 
