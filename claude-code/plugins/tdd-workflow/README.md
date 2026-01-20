@@ -80,9 +80,10 @@ ralph-loop with TDD agents          code-reviewer agent
 | tdd-guide | TDD cycle guidance (RED → GREEN → REFACTOR) |
 | writing-plans | Creating implementation plans with bite-sized tasks |
 | writing-claude-md | CLAUDE.md best practices and maintenance |
-| structured-debug | Hypothesis-driven debugging with instrumentation |
 | infrastructure-as-code | Terraform + AWS best practices |
 | using-git-worktrees | Isolated workspace creation for feature work |
+
+> **Note**: For debugging, see the separate `debug-workflow` plugin.
 
 ## Philosophy
 

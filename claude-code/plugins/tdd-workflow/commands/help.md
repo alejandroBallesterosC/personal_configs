@@ -65,9 +65,10 @@ The plugin includes these skills that activate automatically when relevant:
 | **tdd-guide** | During TDD workflows, writing tests, implementing features |
 | **writing-plans** | When creating implementation plans before coding |
 | **writing-claude-md** | When creating or modifying CLAUDE.md files |
-| **structured-debug** | When debugging errors or unexpected behavior |
 | **infrastructure-as-code** | When working with Terraform or AWS resources |
 | **using-git-worktrees** | When setting up isolated workspaces for features |
+
+> **Note**: For debugging, use the separate `debug-workflow` plugin (`/debug-workflow:debug`).
 
 ## Dependencies
 

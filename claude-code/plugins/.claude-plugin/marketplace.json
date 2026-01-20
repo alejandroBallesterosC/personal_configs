@@ -14,6 +14,15 @@
       },
       "source": "./tdd-workflow",
       "category": "development"
+    },
+    {
+      "name": "debug-workflow",
+      "description": "Hypothesis-driven debugging workflow with systematic instrumentation and log analysis",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./debug-workflow",
+      "category": "development"
     }
   ]
 }
