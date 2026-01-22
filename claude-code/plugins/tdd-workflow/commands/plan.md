@@ -1,18 +1,19 @@
 ---
 description: Deep planning through comprehensive user interview
 model: opus
-argument-hint: <feature>
+argument-hint: <feature-name> "<feature description>"
 ---
 
 # Feature Planning Interview
 
-You are conducting a comprehensive planning interview for: **$ARGUMENTS**
+**Feature**: $1
+**Description**: $2
 
 This follows Thariq Shihab's spec-based development approach: interview first, then code.
 
 ## Before Starting
 
-Check if exploration exists at `docs/context/$ARGUMENTS-exploration.md`. If not, recommend running `/tdd-workflow:explore $ARGUMENTS` first.
+Check if exploration exists at `docs/context/$1-exploration.md`. If not, recommend running `/tdd-workflow:explore $1 "$2"` first.
 
 ## Interview Protocol
 
@@ -95,39 +96,75 @@ Be like a journalist or skeptical senior engineer:
 
 When the interview is complete (you have clarity on ALL domains):
 
-1. **Write specification** to `docs/specs/$ARGUMENTS.md`:
+1. **Write specification** to `docs/specs/$1.md`:
    - Complete requirements
    - Acceptance criteria
    - Non-functional requirements
    - Out of scope items
 
-2. **Write implementation plan** to `docs/plans/$ARGUMENTS-plan.md`:
+2. **Write implementation plan** to `docs/plans/$1-plan.md`:
    - Ordered implementation steps
+   - **Components designed for parallel implementation**
    - Dependencies between steps
-   - Estimated complexity per step
+   - Independent components that can be implemented in parallel
+   - Integration points between components
 
-3. **Write test cases** to `docs/plans/$ARGUMENTS-tests.md`:
+3. **Write test cases** to `docs/plans/$1-tests.md`:
    - Test cases for each requirement
    - Edge case tests
    - Integration tests
+   - E2E test scenarios
    - Acceptance tests
+
+## Plan Structure for Parallel Implementation
+
+The implementation plan MUST identify:
+
+```markdown
+## Independent Components
+
+### Component 1: [Name]
+- **Purpose**: [What it does]
+- **Dependencies**: [External deps only, not other components]
+- **Interface**: [Inputs/Outputs]
+- **Can run in parallel with**: [Other components]
+
+### Component 2: [Name]
+...
+
+## Build Order
+
+1. **Foundation** (must complete first):
+   - Shared types/interfaces
+   - Common utilities
+   - Configuration
+
+2. **Parallel Components** (can implement simultaneously):
+   - Component 1
+   - Component 2
+   - Component 3
+
+3. **Integration Layer** (after parallel components):
+   - Wire components together
+   - Coordination logic
+```
 
 ## Completion
 
 End with this message:
 
 ```
-Planning complete for: $ARGUMENTS
+Planning complete for: $1
 
 Artifacts created:
-- docs/specs/$ARGUMENTS.md (specification)
-- docs/plans/$ARGUMENTS-plan.md (implementation plan)
-- docs/plans/$ARGUMENTS-tests.md (test cases)
+- docs/specs/$1.md (specification)
+- docs/plans/$1-plan.md (implementation plan with parallel components)
+- docs/plans/$1-tests.md (test cases)
 
 Next steps:
-1. /tdd-workflow:architect $ARGUMENTS (design technical approach)
-2. /tdd-workflow:review-plan $ARGUMENTS (challenge the plan)
+1. /tdd-workflow:architect $1 (design technical approach)
+2. /tdd-workflow:review-plan $1 (challenge the plan)
 
-For best results, start a fresh session before implementation:
-/tdd-workflow:implement $ARGUMENTS --max-iterations N
+Or continue the full workflow:
+/tdd-workflow:start $1 "$2"
 ```

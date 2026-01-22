@@ -1,198 +1,1167 @@
 ---
-description: Start the full TDD workflow with guided phases
+description: Start the fully orchestrated TDD workflow with parallel subagents
 model: opus
-argument-hint: <feature description>
+argument-hint: <feature-name> "<feature description>"
 ---
 
-# TDD Workflow
+# TDD Workflow - Fully Orchestrated
 
-Feature: **$ARGUMENTS**
+**Feature**: $1
+**Description**: $2
 
-This command initiates a planning-heavy, TDD-driven development workflow based on best practices from Boris Cherny, Thariq Shihab, Mo Bitar, and Geoffrey Huntley.
+This command orchestrates a complete, planning-heavy TDD workflow that runs automatically from start to finish. You only need to respond when asked questions or approve plans.
 
 ## Workflow Overview
 
 ```
-EXPLORE → PLAN → ARCHITECT → REVIEW-PLAN → [FRESH SESSION] → IMPLEMENT → REVIEW
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 1: PARALLEL EXPLORATION (5 subagents)                                 │
+│   Architecture │ Patterns │ Boundaries │ Tests │ Dependencies              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+                    ══════ CONTEXT CHECKPOINT 1 ══════
+                    (Write state → User runs /clear)
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 2: SPECIFICATION INTERVIEW (40+ questions via AskUserQuestionTool)   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 3: PLAN CREATION (plan mode - parallelizable components)             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 4: PLAN REVIEW (clarifying questions + suggestions)                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 5: PLAN APPROVAL (user approves or requests changes)                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+                    ══════ CONTEXT CHECKPOINT 2 ══════
+                    (Write state → User runs /clear)
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 6: ORCHESTRATED TDD (main instance runs ralph-loop, owns feedback)   │
+│   ralph-loop → test-designer → RUN TESTS → implementer → RUN TESTS → ...   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 7: ORCHESTRATED E2E (main instance runs tests, subagents fix issues) │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+                    ══════ CONTEXT CHECKPOINT 3 ══════
+                    (Write state → User runs /clear)
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 8: PARALLEL REVIEW (5 subagents reviewing different aspects)         │
+│   Security │ Performance │ Code Quality │ Test Coverage │ Spec Compliance  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 9: ORCHESTRATED FIXES (main runs ralph-loop, subagents fix issues)   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 10: COMPLETION SUMMARY                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Phase 1: EXPLORE (Codebase Understanding)
+## CONTEXT MANAGEMENT STRATEGY
 
-Before planning, I need to understand the codebase context. Use the code-explorer agent to:
+This workflow includes **3 context checkpoints** where context should be cleared to maintain quality. At each checkpoint:
 
-1. **Analyze architecture** - Understand layers, boundaries, data flow
-2. **Identify patterns** - Find existing conventions and idioms
-3. **Find related code** - Locate similar features for reference
-4. **Check test coverage** - Understand testing approach
-5. **Review CLAUDE.md** - Synthesize or update if needed
+1. **State is written** to `docs/workflow/$1-state.md`
+2. **User is prompted** to run `/clear`
+3. **Context is restored** by reading essential files
+
+### Why Clear Context?
+
+> "Clear at 60k tokens or 30% context... The automatic compaction is opaque, error-prone, and not well-optimized." - Community Best Practices
+
+Long workflows degrade in quality as context fills. Strategic clearing with state preservation maintains high-quality outputs throughout.
+
+### Workflow State File
+
+All progress is tracked in `docs/workflow/$1-state.md`:
+
+```markdown
+# Workflow State: $1
+
+## Current Phase
+[Phase number and name]
+
+## Feature
+- **Name**: $1
+- **Description**: $2
+
+## Completed Phases
+- [x] Phase 1: Exploration
+- [ ] Phase 2: Interview
+...
+
+## Key Decisions
+- [Decision 1]
+- [Decision 2]
+
+## Context Restoration Files
+Read these files to restore context:
+1. docs/workflow/$1-state.md (this file)
+2. docs/context/$1-exploration.md
+3. docs/specs/$1.md
+4. docs/plans/$1-plan.md
+5. docs/plans/$1-arch.md
+6. CLAUDE.md
+
+## Resume Command
+/tdd-workflow:resume $1
+```
+
+---
+
+## AUTOMATIC EXECUTION BEGINS
+
+The workflow will now execute automatically. You'll be prompted only when:
+- Questions need your answers (AskUserQuestionTool)
+- Plan needs your approval
+- Context checkpoint reached (you'll run `/clear`)
+- Decisions require your input
+
+---
+
+## PHASE 1: PARALLEL CODEBASE EXPLORATION
+
+**Objective**: Understand the codebase from multiple angles simultaneously.
+
+Launch **5 parallel `code-explorer` agents** using the Task tool. Each uses **Sonnet with 1M context window** for comprehensive analysis.
+
+Use `subagent_type: "tdd-workflow:code-explorer"` for all 5 agents, each with a different focus:
+
+### Agent 1: Architecture Focus
+```
+Feature: $1
+Description: $2
+
+EXPLORATION FOCUS: Architecture
+
+Explore the codebase architecture relevant to implementing this feature:
+1. Identify architectural layers (presentation, business logic, data access, infrastructure)
+2. Map the component/module structure and organization
+3. Document data flow patterns - how data enters, transforms, and exits
+4. Identify entry points (main files, routers, handlers, CLI)
+5. Note key architectural decisions and their rationale
+
+Produce a comprehensive architecture exploration report.
+```
+
+### Agent 2: Patterns & Conventions Focus
+```
+Feature: $1
+Description: $2
+
+EXPLORATION FOCUS: Patterns & Conventions
+
+Explore coding patterns and conventions relevant to implementing this feature:
+1. Document naming conventions (files, classes, functions, variables)
+2. Identify code organization patterns within files and modules
+3. Find common abstractions (base classes, interfaces, utilities)
+4. Note error handling patterns used throughout
+5. Find similar existing features that can serve as templates
+
+Produce a comprehensive patterns exploration report.
+```
+
+### Agent 3: Boundaries & Interfaces Focus
+```
+Feature: $1
+Description: $2
+
+EXPLORATION FOCUS: Boundaries & Interfaces
+
+Explore module boundaries and interfaces relevant to implementing this feature:
+1. Map module boundaries and their contracts
+2. Identify public APIs and internal interfaces
+3. Document integration points with external systems
+4. Analyze coupling between components
+5. Note dependency directions and any circular dependencies
+
+Produce a comprehensive boundaries exploration report.
+```
+
+### Agent 4: Testing Strategy Focus
+```
+Feature: $1
+Description: $2
+
+EXPLORATION FOCUS: Testing Strategy
+
+Explore the testing approach relevant to implementing this feature:
+1. Identify test frameworks and tools in use
+2. **IDENTIFY THE EXACT TEST COMMAND** (e.g., `pytest`, `npm test`, `go test ./...`)
+3. Analyze existing test coverage and gaps
+4. Document testing conventions (naming, structure, organization)
+5. Find example tests for similar features to follow
+6. Note mocking patterns and test data approaches
+
+Produce a comprehensive testing exploration report.
+IMPORTANTLY: Report the exact command to run tests (this is critical for TDD).
+```
+
+### Agent 5: Dependencies & Environment Focus
+```
+Feature: $1
+Description: $2
+
+EXPLORATION FOCUS: Dependencies & Environment
+
+Explore dependencies and environment requirements for implementing this feature:
+1. Identify required packages/libraries and their versions
+2. Document external service integrations (APIs, databases, queues)
+3. List required environment variables and configuration
+4. CHECK IF API KEYS ARE AVAILABLE for any required external services
+5. Note any infrastructure or deployment requirements
+
+Produce a comprehensive dependencies exploration report. IMPORTANTLY: Report which API keys are available and which are missing.
+```
+
+**All 5 agents run IN PARALLEL using a single message with 5 Task tool calls.**
+
+### Synthesis
+
+After all 5 agents complete, synthesize their findings into:
+- `docs/context/$1-exploration.md` (comprehensive context document)
+- Update `CLAUDE.md` if key project info is missing
+
+Include these critical sections:
+- **Test Command**: The exact command to run tests (e.g., `pytest`, `npm test`)
+- **API Keys Status**: Which required services have keys available
+
+---
+
+## ══════ CONTEXT CHECKPOINT 1 ══════
+
+**Exploration complete. Time to clear context.**
+
+### Before Clearing
+
+1. **Ensure these files exist:**
+   - `docs/context/$1-exploration.md` (exploration synthesis)
+   - `CLAUDE.md` (updated if needed)
+
+2. **Write workflow state** to `docs/workflow/$1-state.md`:
+
+```markdown
+# Workflow State: $1
+
+## Current Phase
+Phase 2: Specification Interview
+
+## Feature
+- **Name**: $1
+- **Description**: $2
+
+## Completed Phases
+- [x] Phase 1: Parallel Exploration
+
+## Key Findings from Exploration
+- Architecture: [summary]
+- Patterns: [summary]
+- Testing: [summary]
+- API Keys: [available/missing]
+
+## Context Restoration Files
+1. docs/workflow/$1-state.md
+2. docs/context/$1-exploration.md
+3. CLAUDE.md
+
+## Resume Command
+After /clear, run:
+/tdd-workflow:resume $1 --phase 2
+```
+
+3. **Prompt user:**
+
+Using AskUserQuestionTool, ask:
+
+```
+Context Checkpoint 1 reached. Exploration is complete.
+
+To maintain quality, please clear context now:
+1. Run: /clear
+2. Then run: /tdd-workflow:resume $1 --phase 2
+
+This will restore context from saved files and continue with the Specification Interview.
+
+Ready to clear?
+```
+
+**STOP HERE. Wait for user to /clear and resume.**
+
+---
+
+## PHASE 2: SPECIFICATION INTERVIEW
+
+**Context Restoration** (if resuming after /clear):
+- Read `docs/workflow/$1-state.md`
+- Read `docs/context/$1-exploration.md`
+- Read `CLAUDE.md`
+
+**Objective**: Achieve complete clarity on requirements through exhaustive questioning.
+
+Using AskUserQuestionTool, conduct a thorough interview. Ask questions **ONE AT A TIME** across these domains:
+
+### Core Functionality (5-10 questions)
+- What exactly should "$1" do?
+- What is the primary user goal?
+- What inputs does it accept? What outputs does it produce?
+- What is the happy path flow?
+- What variations/modes should be supported?
+
+### Technical Constraints (5-8 questions)
+- What technologies must be used or avoided?
+- What are the performance requirements (latency, throughput)?
+- What scale must this handle (concurrent users, data volume)?
+- Are there backwards compatibility requirements?
+
+### Integration Points (5-8 questions)
+- What existing systems does this interact with?
+- What APIs will be called? Are API keys available?
+- What data stores are involved?
+- What events does this emit or consume?
+
+### Edge Cases & Error Handling (5-8 questions)
+- What happens with invalid input?
+- What happens when external services fail?
+- What are the boundary conditions (0, 1, many, max)?
+- How should errors be communicated to users?
+
+### Security Requirements (3-5 questions)
+- What authentication/authorization is needed?
+- What data needs protection?
+- What audit logging is required?
+
+### Testing Requirements (3-5 questions)
+- What defines "working correctly"?
+- What scenarios must have automated tests?
+- Are there E2E testing requirements?
+
+### External Dependencies (3-5 questions)
+- What external APIs or services are required?
+- Are API keys available? (Check environment or ask user to provide)
+- If integration isn't possible, can mocks be used as fallback?
+
+**Interview Attitude**: Be a skeptical senior engineer. Challenge vague answers. Push back on idealistic assumptions. Probe for unstated requirements.
 
 ### Output
 
-Write exploration findings to: `docs/context/$ARGUMENTS-exploration.md`
-
-### Relevant Commands
-- `/tdd-workflow:explore $ARGUMENTS` - Run exploration separately
+Write comprehensive specification to: `docs/specs/$1.md`
 
 ---
 
-## Phase 2: PLAN (Interview-Based Specification)
+## PHASE 3: PLAN CREATION
 
-Conduct a comprehensive planning interview using AskUserQuestionTool.
+**Objective**: Create an implementation plan with parallelizable, independent components.
 
-### Interview Domains (40+ questions)
+Enter **plan mode** and design the architecture and implementation plan.
 
-Ask ONE question at a time, covering:
+### Plan Requirements
 
-1. **Core Functionality** - What exactly should this feature do?
-2. **Technical Constraints** - Performance, compatibility, dependencies?
-3. **UI/UX Requirements** - User interactions, flows, states?
-4. **Edge Cases** - What could go wrong? Unusual inputs?
-5. **Security** - Authentication, authorization, data protection?
-6. **Testing Requirements** - What must be tested? Acceptance criteria?
-7. **Integration Points** - What systems does this interact with?
-8. **Performance Requirements** - Latency, throughput, scale?
-9. **Deployment Considerations** - Rollout strategy, feature flags?
+The plan MUST:
 
-### Key Principles
+1. **Define independent components** that can be implemented in parallel
+   - Each component should be self-contained
+   - Components should have clear interfaces
+   - Minimize dependencies between components
 
-- Ask **NON-OBVIOUS** questions - challenge assumptions
-- **Pushback on idealistic ideas** (Mo Bitar's approach)
-- Continue until **complete clarity** on ALL aspects
-- Record answers in the spec file
+2. **Specify component contracts**
+   - Input/output for each component
+   - How components will integrate
+   - Shared types/interfaces needed first
+
+3. **Order components by dependency**
+   - Foundation components first (shared types, interfaces)
+   - Independent components can be parallelized
+   - Integration layer last
+
+4. **Define test strategy per component**
+   - Unit tests for each component
+   - Integration tests for component interactions
+   - E2E tests for full workflow
+
+5. **Handle external integrations**
+   - Prefer real API implementations
+   - Document required API keys/credentials
+   - Define mock fallbacks only when real integration isn't possible
+
+### Plan Structure
+
+Write to `docs/plans/$1-plan.md`:
+
+```markdown
+# Implementation Plan: $1
+
+## Architecture Overview
+[High-level architecture diagram in ASCII/Mermaid]
+
+## Components (Parallelizable)
+
+### Component 1: [Name]
+- **Purpose**: [What it does]
+- **Dependencies**: [What it needs]
+- **Interface**: [Inputs/Outputs]
+- **Tests**: [What to test]
+- **Estimated complexity**: [S/M/L]
+
+### Component 2: [Name]
+... (repeat for each component)
+
+## Integration Layer
+- How components connect
+- Shared state/events
+- E2E test scenarios
+
+## External Integrations
+- APIs required
+- API keys needed (check availability)
+- Mock fallback strategy (if needed)
+
+## Implementation Order
+1. Foundation (shared types, interfaces)
+2. Parallel: [Component A, Component B, Component C]
+3. Integration layer
+4. E2E tests
+```
+
+Also write to `docs/plans/$1-arch.md` with detailed architecture.
+
+---
+
+## PHASE 4: PLAN REVIEW
+
+**Objective**: Challenge the plan and ensure completeness.
+
+Invoke the **plan-reviewer agent** to critically analyze the plan.
+
+### Review Focus
+
+The reviewer will:
+
+1. **Challenge assumptions**
+   - What are we assuming that might be wrong?
+   - Are component boundaries correct?
+   - Are interfaces well-defined?
+
+2. **Identify gaps**
+   - Missing requirements from spec?
+   - Missing error handling?
+   - Missing test scenarios?
+
+3. **Ask clarifying questions**
+   Using AskUserQuestionTool, ask NON-OBVIOUS questions about:
+   - Ambiguous requirements
+   - Edge cases not covered
+   - Integration concerns
+   - Performance implications
+
+4. **Provide suggestions**
+   - Alternative approaches
+   - Potential simplifications
+   - Risk mitigations
 
 ### Output
 
-Write specification to: `docs/specs/$ARGUMENTS.md`
-Write test cases to: `docs/plans/$ARGUMENTS-tests.md`
-
-### Relevant Commands
-- `/tdd-workflow:plan $ARGUMENTS` - Run planning separately
-
----
-
-## Phase 3: ARCHITECT (Technical Design)
-
-Design the technical architecture based on exploration + specification.
-
-### Design Components
-
-1. **Component breakdown** - What modules/classes/functions?
-2. **Interface design** - APIs, function signatures, data contracts
-3. **Data flow** - How does data move through the system?
-4. **State management** - Where is state stored? How is it updated?
-5. **Error handling** - What can fail? How to handle it?
-6. **Testing strategy** - Unit, integration, e2e approach
-
-### Output
-
-Write architecture to: `docs/plans/$ARGUMENTS-arch.md`
-Write implementation plan to: `docs/plans/$ARGUMENTS-plan.md`
-
-### Relevant Commands
-- `/tdd-workflow:architect $ARGUMENTS` - Run architecture separately
+Present to user:
+- List of concerns/questions
+- Suggestions for improvement
+- Overall assessment
 
 ---
 
-## Phase 4: REVIEW-PLAN (Challenge & Validate)
+## PHASE 5: PLAN APPROVAL
 
-Critically review the plan before implementation.
+**Objective**: Get user sign-off on the plan.
 
-### Review Areas
+Using AskUserQuestionTool, ask:
 
-1. **Assumption challenges** - What are we assuming that might be wrong?
-2. **Gap analysis** - What's missing from the spec or plan?
-3. **Risk identification** - What could go wrong during implementation?
-4. **Dependency validation** - Are all dependencies available?
-5. **Test coverage** - Do test cases cover all requirements?
+1. **Review the plan** - Present summary of proposed architecture and components
+2. **Address feedback** - Ask which suggestions to incorporate
+3. **Request approval** - Confirm user is ready to proceed
 
-### Process
+If user requests changes:
+- Update `docs/plans/$1-plan.md`
+- Update `docs/plans/$1-arch.md`
+- Re-validate with user
 
-- Ask follow-up questions for any gaps
-- Challenge architectural decisions
-- Verify all blockers are resolved
-- Get explicit user approval before proceeding
-
-### Relevant Commands
-- `/tdd-workflow:review-plan $ARGUMENTS` - Run review separately
+Continue only when user explicitly approves.
 
 ---
 
-## ⚠️ FRESH SESSION RECOMMENDED
+## ══════ CONTEXT CHECKPOINT 2 ══════
 
-> "Start a fresh session to execute the completed spec" - Thariq Shihab
+**Planning complete. Time to clear context before implementation.**
 
-Before implementation, recommend starting a fresh Claude Code session:
+### Before Clearing
 
-```
-/clear
-```
+1. **Ensure these files exist:**
+   - `docs/context/$1-exploration.md`
+   - `docs/specs/$1.md`
+   - `docs/plans/$1-plan.md`
+   - `docs/plans/$1-arch.md`
 
-This prevents context pollution and lets implementation start clean with just the spec files.
+2. **Update workflow state** in `docs/workflow/$1-state.md`:
 
----
+```markdown
+# Workflow State: $1
 
-## Phase 5: IMPLEMENT (TDD via Ralph Loop)
+## Current Phase
+Phase 6: Orchestrated TDD Implementation
 
-Execute strict Test-Driven Development using the ralph-loop plugin.
+## Feature
+- **Name**: $1
+- **Description**: $2
 
-### TDD Cycle
+## Completed Phases
+- [x] Phase 1: Parallel Exploration
+- [x] Phase 2: Specification Interview
+- [x] Phase 3: Plan Creation
+- [x] Phase 4: Plan Review
+- [x] Phase 5: Plan Approval
 
-For EACH requirement in the plan:
+## Components to Implement
+[List from plan]
 
-#### RED Phase
-1. Write ONE failing test that defines expected behavior
-2. Run tests, confirm failure
-3. Commit: `git commit -m "red: test for [requirement]"`
+## Key Decisions
+- [Decision from interview]
+- [Architecture choice]
+- [API key decisions]
 
-#### GREEN Phase
-1. Write MINIMAL code to pass the test
-2. No extra features, no optimization
-3. Run tests, confirm pass
-4. Commit: `git commit -m "green: [requirement]"`
+## Context Restoration Files
+1. docs/workflow/$1-state.md
+2. docs/specs/$1.md (ESSENTIAL - the spec)
+3. docs/plans/$1-plan.md (ESSENTIAL - the plan)
+4. docs/plans/$1-arch.md
+5. CLAUDE.md
 
-#### REFACTOR Phase
-1. Improve code quality
-2. Run tests after EACH change
-3. If tests fail, undo immediately
-4. Commit: `git commit -m "refactor: [description]"`
-
-### Execution
-
-```
-/tdd-workflow:implement $ARGUMENTS --max-iterations 25
+## Resume Command
+After /clear, run:
+/tdd-workflow:resume $1 --phase 6
 ```
 
-This invokes ralph-loop with the TDD prompt and iterates until complete.
+3. **Prompt user:**
 
-### Relevant Commands
-- `/tdd-workflow:implement $ARGUMENTS --max-iterations N` - Run implementation
+Using AskUserQuestionTool, ask:
+
+```
+Context Checkpoint 2 reached. Planning is complete and approved.
+
+Before starting implementation, clear context for best results:
+1. Run: /clear
+2. Then run: /tdd-workflow:resume $1 --phase 6
+
+This ensures implementation starts with fresh context focused on the plan.
+
+Ready to clear and start implementation?
+```
+
+**STOP HERE. Wait for user to /clear and resume.**
 
 ---
 
-## Phase 6: REVIEW (Code Quality Verification)
+## PHASE 6: COMPONENT IMPLEMENTATION (Orchestrated TDD)
 
-Comprehensive code review with confidence scoring.
+**Context Restoration** (if resuming after /clear):
+- Read `docs/workflow/$1-state.md`
+- Read `docs/specs/$1.md`
+- Read `docs/plans/$1-plan.md`
+- Read `docs/plans/$1-arch.md`
+- Read `CLAUDE.md`
 
-### Review Checks
+**Objective**: Implement all components using TDD with the **main instance owning the feedback loop**.
 
-1. **CLAUDE.md Compliance** - Does code follow project conventions?
-2. **Test Coverage** - Are all code paths tested?
-3. **Security Review** - Any vulnerabilities introduced?
-4. **Code Quality** - Clean, readable, maintainable?
-5. **Spec Compliance** - Does implementation match specification?
+### Why This Architecture?
 
-### Output Format
+The **main Claude Code instance runs ralph-loop** so that:
+- The feedback loop is visible and controllable
+- Context can be managed at the orchestrator level
+- Subagents are lightweight workers that do one task and return
+- The TDD cycle (RED → GREEN → REFACTOR) happens at the right level
 
-Report findings with confidence scores (only ≥80% reported):
+### Pre-Implementation Checks
 
-- **Critical** (must fix)
+1. **Identify test command** from exploration
+   - Check `docs/context/$1-exploration.md` for test framework
+   - Common commands: `pytest`, `npm test`, `go test ./...`, `cargo test`
+   - Verify the command works before starting TDD
+
+2. **Verify API keys** for external integrations
+   - Check environment variables
+   - Ask user if any are missing
+   - Only use mocks if real integration is truly impossible
+
+3. **Create foundation first**
+   - Shared types/interfaces
+   - Common utilities
+   - Must complete before component implementation
+
+### Implementation Process
+
+For **each component** in the plan (sequentially, or parallel for truly independent components):
+
+```
+/ralph-loop:ralph-loop "Implement [Component Name] for $1 using orchestrated TDD.
+
+## Your Role
+You are the TDD orchestrator. You own the feedback loop and spawn subagents for discrete tasks.
+
+## Context Files
+- docs/specs/$1.md (requirements)
+- docs/plans/$1-plan.md (implementation plan)
+- docs/plans/$1-arch.md (architecture)
+- CLAUDE.md (conventions)
+
+## Component Details
+- **Component**: [Component Name]
+- **Interface**: [Defined interface from plan]
+- **Requirements**: [List from spec]
+
+## TDD Cycle (Repeat for each requirement)
+
+### 1. RED PHASE - Spawn test-designer subagent
+Use Task tool with subagent_type='tdd-workflow:test-designer':
+
+'''
+Component: [Component Name]
+Requirement: [Current requirement]
+Interface: [Expected interface]
+
+Write ONE failing test for this requirement.
+Follow existing test patterns in the codebase.
+Return the test file path and test name.
+'''
+
+After subagent returns:
+- RUN THE TESTS YOURSELF to confirm RED (failure)
+- If test passes unexpectedly, ask subagent to write a more specific test
+- Commit: git commit -m 'red: [component] test for [requirement]'
+
+### 2. GREEN PHASE - Spawn implementer subagent
+Use Task tool with subagent_type='tdd-workflow:implementer':
+
+'''
+Component: [Component Name]
+Failing test: [test file:test name]
+Requirement: [Current requirement]
+
+Write MINIMAL code to make this ONE test pass.
+- Use REAL API implementations (not mocks)
+- API keys are in environment variables
+- Only mock if explicitly approved by user
+Return the implementation file path.
+'''
+
+After subagent returns:
+- RUN THE TESTS YOURSELF to confirm GREEN (pass)
+- If test still fails, spawn implementer again with error context
+- Commit: git commit -m 'green: [component] [requirement]'
+
+### 3. REFACTOR PHASE - Spawn refactorer subagent (if needed)
+Use Task tool with subagent_type='tdd-workflow:refactorer':
+
+'''
+Component: [Component Name]
+Files: [implementation files]
+
+Improve code quality while keeping tests green:
+- Remove duplication
+- Improve naming
+- Simplify logic
+- Follow CLAUDE.md conventions
+Return list of changes made.
+'''
+
+After subagent returns:
+- RUN THE TESTS YOURSELF to confirm still GREEN
+- If tests fail, revert and try smaller refactor
+- Commit: git commit -m 'refactor: [component] [description]'
+
+### 4. Move to Next Requirement
+- Update progress in docs/workflow/$1-state.md
+- Continue TDD cycle for next requirement
+
+## Completion
+When ALL requirements for this component pass tests:
+- Run full test suite one more time
+- Output COMPONENT_COMPLETE
+" --max-iterations 50 --completion-promise "COMPONENT_COMPLETE"
+```
+
+### Key Points
+
+1. **Main instance runs tests** - Not the subagents
+2. **Subagents do ONE task** - Write a test, write code, or refactor
+3. **Feedback loop is visible** - Main instance sees test results
+4. **Context managed at orchestrator** - Can checkpoint if needed
+
+### Parallel Components
+
+For **truly independent** components (no shared state, no integration dependencies):
+- Run separate ralph-loop instances in parallel
+- Each ralph-loop orchestrates its own TDD cycle
+- Merge results after all complete
+
+Wait for all components to complete before proceeding.
+
+---
+
+## PHASE 7: END-TO-END TESTING (Orchestrated)
+
+**Objective**: Verify all components work together correctly, with main instance owning the feedback loop.
+
+### Write Integration Tests
+
+First, spawn a test-designer subagent for E2E tests:
+
+Use Task tool with subagent_type='tdd-workflow:test-designer':
+```
+Feature: $1
+Context: docs/specs/$1.md, docs/plans/$1-plan.md
+
+Write END-TO-END integration tests covering:
+- Component interactions (full data flow)
+- External API integrations (real calls)
+- Error propagation across components
+- Happy path scenarios from spec
+- Edge cases from spec
+
+Return list of E2E test files created.
+```
+
+### Run and Fix E2E Tests
+
+The **main instance runs ralph-loop** to iterate until E2E tests pass:
+
+```
+/ralph-loop:ralph-loop "Fix E2E test failures for $1.
+
+## Your Role
+You are the E2E test orchestrator. You run tests and spawn subagents to fix issues.
+
+## Context Files
+- docs/specs/$1.md (expected behavior)
+- docs/plans/$1-plan.md (architecture)
+
+## Process
+
+### 1. Run E2E Tests Yourself
+Execute the E2E test suite and observe results.
+
+### 2. For Each Failure - Spawn implementer subagent
+Use Task tool with subagent_type='tdd-workflow:implementer':
+
+'''
+E2E Test Failure: [test name]
+Error: [error message]
+Stack trace: [relevant trace]
+
+Trace this failure to its root cause and fix it.
+- Check component interactions
+- Check data flow
+- Check external API calls
+- Return the fix and files modified.
+'''
+
+### 3. Validate Fix
+After subagent returns:
+- RUN THE E2E TESTS YOURSELF
+- If still failing, provide more context to subagent
+- If passing, commit: git commit -m 'fix: e2e [test name]'
+
+### 4. Repeat
+Continue until ALL E2E tests pass.
+
+## Completion
+When ALL E2E tests pass:
+- Run full test suite (unit + integration + E2E)
+- Output E2E_COMPLETE
+" --max-iterations 30 --completion-promise "E2E_COMPLETE"
+```
+
+### Key Points
+
+1. **Main instance runs tests** - Sees actual failures
+2. **Subagents fix one issue** - Focused, stateless fixes
+3. **Feedback loop at orchestrator** - Can track progress and intervene
+
+---
+
+## ══════ CONTEXT CHECKPOINT 3 ══════
+
+**Implementation and E2E testing complete. Time to clear context before review.**
+
+### Before Clearing
+
+1. **Verify all tests pass:**
+   - Run full test suite
+   - Confirm E2E tests pass
+
+2. **Update workflow state** in `docs/workflow/$1-state.md`:
+
+```markdown
+# Workflow State: $1
+
+## Current Phase
+Phase 8: Parallel Review
+
+## Feature
+- **Name**: $1
+- **Description**: $2
+
+## Completed Phases
+- [x] Phase 1: Parallel Exploration
+- [x] Phase 2: Specification Interview
+- [x] Phase 3: Plan Creation
+- [x] Phase 4: Plan Review
+- [x] Phase 5: Plan Approval
+- [x] Phase 6: Orchestrated TDD Implementation
+- [x] Phase 7: E2E Testing
+
+## Implementation Summary
+- Components implemented: [list]
+- Tests passing: [count]
+- E2E tests passing: [count]
+
+## Files Changed
+[List of new/modified files]
+
+## Context Restoration Files
+1. docs/workflow/$1-state.md
+2. docs/specs/$1.md
+3. docs/plans/$1-plan.md
+4. CLAUDE.md
+5. [List of implementation files to review]
+
+## Resume Command
+After /clear, run:
+/tdd-workflow:resume $1 --phase 8
+```
+
+3. **Prompt user:**
+
+Using AskUserQuestionTool, ask:
+
+```
+Context Checkpoint 3 reached. Implementation and E2E testing complete.
+
+Before starting review, clear context for fresh perspective:
+1. Run: /clear
+2. Then run: /tdd-workflow:resume $1 --phase 8
+
+Fresh context helps reviewers catch issues that accumulated context might miss.
+
+Ready to clear and start review?
+```
+
+**STOP HERE. Wait for user to /clear and resume.**
+
+---
+
+## PHASE 8: PARALLEL MULTI-ASPECT REVIEW
+
+**Context Restoration** (if resuming after /clear):
+- Read `docs/workflow/$1-state.md`
+- Read `docs/specs/$1.md`
+- Read `docs/plans/$1-plan.md`
+- Read `CLAUDE.md`
+
+**Objective**: Comprehensive review from multiple specialized perspectives.
+
+Launch **5 parallel review subagents** using `subagent_type: "tdd-workflow:code-reviewer"`:
+
+### Subagent 1: Security Reviewer
+```
+Feature: $1
+
+REVIEW FOCUS: Security
+
+## Files to Review
+1. Read docs/workflow/$1-state.md for list of implementation files
+2. Read docs/specs/$1.md for requirements
+3. Read docs/plans/$1-plan.md for architecture
+4. Review ALL implementation files listed in the state file
+
+Review the implementation for security concerns:
+- Input validation
+- Authentication/authorization
+- Data protection
+- Injection vulnerabilities
+- Secrets handling
+
+Report findings with severity (Critical/Warning/Suggestion).
+Only report findings with ≥80% confidence.
+Include file paths and line numbers for each finding.
+```
+
+### Subagent 2: Performance Reviewer
+```
+Feature: $1
+
+REVIEW FOCUS: Performance
+
+## Files to Review
+1. Read docs/workflow/$1-state.md for list of implementation files
+2. Read docs/specs/$1.md for requirements
+3. Read docs/plans/$1-plan.md for architecture
+4. Review ALL implementation files listed in the state file
+
+Review the implementation for performance:
+- Algorithmic complexity
+- Database query efficiency
+- Memory usage
+- API call patterns
+- Caching opportunities
+
+Report findings with impact assessment.
+Only report findings with ≥80% confidence.
+Include file paths and line numbers for each finding.
+```
+
+### Subagent 3: Code Quality Reviewer
+```
+Feature: $1
+
+REVIEW FOCUS: Code Quality
+
+## Files to Review
+1. Read docs/workflow/$1-state.md for list of implementation files
+2. Read CLAUDE.md for conventions
+3. Read docs/plans/$1-plan.md for architecture
+4. Review ALL implementation files listed in the state file
+
+Review the implementation for code quality:
+- CLAUDE.md compliance
+- Code organization
+- Naming conventions
+- Error handling
+- Documentation
+
+Report findings with confidence scores.
+Only report findings with ≥80% confidence.
+Include file paths and line numbers for each finding.
+```
+
+### Subagent 4: Test Coverage Reviewer
+```
+Feature: $1
+
+REVIEW FOCUS: Test Coverage
+
+## Files to Review
+1. Read docs/workflow/$1-state.md for list of implementation and test files
+2. Read docs/specs/$1.md for requirements
+3. Review ALL test files and implementation files listed in the state file
+
+Review the tests:
+- Code path coverage
+- Edge case coverage
+- Error scenario coverage
+- Integration test completeness
+- E2E test adequacy
+
+Report gaps and missing tests.
+Only report findings with ≥80% confidence.
+Include file paths for each finding.
+```
+
+### Subagent 5: Spec Compliance Reviewer
+```
+Feature: $1
+
+REVIEW FOCUS: Spec Compliance
+
+## Files to Review
+1. Read docs/workflow/$1-state.md for list of implementation files
+2. Read docs/specs/$1.md for requirements (ESSENTIAL)
+3. Review ALL implementation files listed in the state file
+
+Review implementation against docs/specs/$1.md:
+- All requirements addressed?
+- Behavior matches specification?
+- Edge cases handled as specified?
+- Non-functional requirements met?
+
+Report any deviations from spec.
+Only report findings with ≥80% confidence.
+Include file paths and specific requirement references for each finding.
+```
+
+**All 5 review subagents run IN PARALLEL.**
+
+### Consolidate Findings
+
+Merge all review findings into categories:
+- **Critical** (must fix before completion)
 - **Warnings** (should fix)
 - **Suggestions** (nice to have)
 
-### Relevant Commands
-- `/tdd-workflow:review` - Run code review
+Write consolidated review to `docs/workflow/$1-review.md`.
+
+---
+
+## PHASE 9: FINAL FIXES (Orchestrated)
+
+**Objective**: Address review feedback with main instance owning the verification loop.
+
+### Fix Critical Issues
+
+The **main instance runs ralph-loop** to address each critical finding:
+
+```
+/ralph-loop:ralph-loop "Fix critical review findings for $1.
+
+## Your Role
+You are the fix orchestrator. You verify fixes and spawn subagents to implement them.
+
+## Context Files
+- docs/specs/$1.md (requirements)
+- docs/workflow/$1-review.md (review findings)
+
+## Critical Issues to Fix
+[List from review - include all Critical findings]
+
+## Process for Each Issue
+
+### 1. Spawn implementer/refactorer subagent
+Use Task tool with appropriate subagent_type:
+
+'''
+Critical Issue: [Description from review]
+Location: [File and line if known]
+Review context: [Why this is critical]
+
+Fix this issue:
+- Maintain existing test coverage
+- Follow CLAUDE.md conventions
+- Return files modified and changes made.
+'''
+
+### 2. Validate Fix
+After subagent returns:
+- RUN THE FULL TEST SUITE YOURSELF
+- RUN E2E TESTS YOURSELF
+- If tests fail, provide error context and try again
+- If tests pass, commit: git commit -m 'fix: [issue summary]'
+
+### 3. Mark Issue Resolved
+Update docs/workflow/$1-review.md to mark issue as resolved.
+
+### 4. Next Issue
+Continue until all Critical issues are resolved.
+
+## Completion
+When ALL Critical issues are fixed and ALL tests pass:
+- Output FIX_COMPLETE
+" --max-iterations 20 --completion-promise "FIX_COMPLETE"
+```
+
+### Final Verification
+
+After ralph-loop completes:
+
+1. **Run full test suite** - Unit, integration, E2E
+2. **Verify all Critical issues resolved** - Check review document
+3. **Document deferred items** - Any Warnings/Suggestions not addressed go in `docs/workflow/$1-state.md`
+
+---
+
+## PHASE 10: COMPLETION SUMMARY
+
+**Objective**: Provide comprehensive summary of what was accomplished.
+
+### Update Final State
+
+Update `docs/workflow/$1-state.md`:
+
+```markdown
+# Workflow State: $1
+
+## Current Phase
+COMPLETE
+
+## Feature
+- **Name**: $1
+- **Description**: $2
+
+## Completed Phases
+- [x] Phase 1: Parallel Exploration
+- [x] Phase 2: Specification Interview
+- [x] Phase 3: Plan Creation
+- [x] Phase 4: Plan Review
+- [x] Phase 5: Plan Approval
+- [x] Phase 6: Orchestrated TDD Implementation
+- [x] Phase 7: E2E Testing
+- [x] Phase 8: Parallel Review
+- [x] Phase 9: Final Fixes
+- [x] Phase 10: Completion Summary
+
+## Status
+✅ COMPLETE
+```
+
+### Generate Summary
+
+Output a completion report:
+
+```markdown
+# Implementation Complete: $1
+
+## Summary
+[Brief description of what was implemented]
+
+## Components Implemented
+- [Component 1]: [Status]
+- [Component 2]: [Status]
+- ...
+
+## Test Coverage
+- Unit tests: [count]
+- Integration tests: [count]
+- E2E tests: [count]
+
+## External Integrations
+- [API/Service]: [Real/Mock] implementation
+
+## Review Status
+- Critical issues: [count resolved]
+- Warnings addressed: [count]
+- Deferred items: [list]
+
+## Files Changed
+[List of modified/created files]
+
+## Artifacts Created
+- docs/context/$1-exploration.md
+- docs/specs/$1.md
+- docs/plans/$1-plan.md
+- docs/plans/$1-arch.md
+- docs/workflow/$1-state.md
+- docs/workflow/$1-review.md
+
+## Next Steps
+- [Any follow-up items]
+- [Documentation updates needed]
+- [Deployment considerations]
+
+## Commits
+[Git log of implementation commits]
+```
+
+### Final Actions
+
+1. Present summary to user
+2. Offer to create PR: `/commit` then `/main-pr`
+3. Document any lessons learned in CLAUDE.md
 
 ---
 
@@ -200,34 +1169,20 @@ Report findings with confidence scores (only ≥80% reported):
 
 > "Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result." - Boris Cherny
 
-1. **Front-load planning** - 40+ questions eliminate ambiguity
-2. **Interview-first** - Claude asks YOU, not the other way around
-3. **Fresh sessions** - Start clean for implementation
-4. **Strict TDD** - RED → GREEN → REFACTOR, always
-5. **Verify everything** - Tests run after every change
+> "Clear at 60k tokens or 30% context... don't wait for limits." - Community Best Practices
+
+1. **Orchestrator owns the feedback loop** - Main instance runs ralph-loop and tests, subagents do discrete tasks
+2. **Strategic parallelization** - Parallel for read-only work (exploration, review), sequential for implementation
+3. **Real integrations first** - Only mock when real integration is truly impossible
+4. **Verify continuously** - Main instance runs tests after every subagent task
+5. **Front-load planning** - Thorough questioning eliminates implementation rework
+6. **Clear context strategically** - Preserve state, clear context at checkpoints
+7. **Automatic orchestration** - User only provides input when needed
 
 ---
 
-## Quick Reference
+## BEGINNING WORKFLOW NOW
 
-| Phase | Command | Output |
-|-------|---------|--------|
-| Explore | `/tdd-workflow:explore <feature>` | `docs/context/<feature>-exploration.md` |
-| Plan | `/tdd-workflow:plan <feature>` | `docs/specs/<feature>.md` |
-| Architect | `/tdd-workflow:architect <feature>` | `docs/plans/<feature>-arch.md` |
-| Review Plan | `/tdd-workflow:review-plan <feature>` | Approval to proceed |
-| Implement | `/tdd-workflow:implement <feature> --max-iterations N` | Working code + tests |
-| Review | `/tdd-workflow:review` | Review report |
+Starting **Phase 1: Parallel Codebase Exploration** for "$1"
 
----
-
-## Help Command
-- `/tdd-workflow:help` - Show all TDD workflow commands
-
----
-
-## Let's Begin!
-
-Starting Phase 1: EXPLORE for **$ARGUMENTS**
-
-I'll use the code-explorer agent to understand the codebase context before we begin planning.
+Launching 5 parallel exploration subagents to analyze the codebase from multiple angles...

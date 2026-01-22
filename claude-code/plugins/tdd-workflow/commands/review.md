@@ -1,95 +1,270 @@
 ---
-description: Comprehensive code review of implementation
+description: Parallel multi-aspect code review with 5 specialized reviewers
 model: opus
-argument-hint: <feature>
+argument-hint: <feature-name>
 ---
 
-# Code Review
+# Parallel Multi-Aspect Code Review
 
-Reviewing the implementation of the most recent feature.
+**Feature**: $ARGUMENTS
 
-## Process
+## Objective
 
-Use the `code-reviewer` agent to perform comprehensive review of:
-1. Changed files (from recent commits)
-2. New test coverage
-3. Spec compliance
-4. CLAUDE.md adherence
+Perform comprehensive code review using **5 parallel reviewer agents**, each focusing on a different aspect. Consolidate findings and address critical issues.
 
-## What Gets Reviewed
+---
 
-The code-reviewer will check:
+## LAUNCHING 5 PARALLEL REVIEW AGENTS
 
-### 1. CLAUDE.md Compliance
-- Does code follow project conventions?
-- Are patterns consistent with existing code?
-- Is naming appropriate?
+Launch all 5 agents **IN PARALLEL** using a single message with 5 Task tool calls.
 
-### 2. Test Coverage
-- Are all code paths tested?
-- Are edge cases covered?
-- Are error paths tested?
+Use `subagent_type: "tdd-workflow:code-reviewer"` for all 5 agents, each with a different focus:
 
-### 3. Security
-- Is input validated?
-- Are secrets protected?
-- Is authentication/authorization correct?
+### Agent 1: Security Review
 
-### 4. Code Quality
-- Is there code duplication?
-- Are functions too long?
-- Is error handling appropriate?
+```
+Feature: $ARGUMENTS
 
-### 5. Spec Compliance
-- Does implementation match specification?
-- Are all requirements addressed?
-- Are any features missing?
+REVIEW FOCUS: Security
 
-## Output
+Review the implementation for security concerns:
 
-The review produces confidence-scored findings:
+1. **Input Validation**
+   - Are all inputs validated?
+   - Are there injection vulnerabilities (SQL, XSS, command)?
+   - Are inputs sanitized before use?
 
-**Only findings with ≥80% confidence are reported.**
+2. **Authentication & Authorization**
+   - Are auth checks in place where needed?
+   - Are permissions properly verified?
+   - Are there authorization bypasses?
 
-Categories:
-- ❌ **Critical** - Must fix before merge
-- ⚠️ **Warning** - Should fix, but not blocking
-- 💡 **Suggestion** - Consider for improvement
+3. **Data Protection**
+   - Is sensitive data encrypted?
+   - Are secrets properly handled (not hardcoded)?
+   - Is PII protected?
 
-## Finding Changes
+4. **API Security**
+   - Are API keys protected?
+   - Are rate limits in place?
+   - Is CORS configured properly?
 
-To see what changed:
-
-```bash
-# Recent commits
-git log --oneline -10
-
-# Changed files
-git diff HEAD~[N] --name-only
-
-# Specific file diff
-git diff HEAD~[N] path/to/file
+Report findings with severity:
+- 🔴 CRITICAL: Must fix (security vulnerability)
+- 🟡 WARNING: Should fix (security concern)
+- 🔵 SUGGESTION: Consider (security improvement)
 ```
 
-## After Review
+### Agent 2: Performance Review
 
-If critical issues found:
-1. Fix each issue
-2. Run tests
-3. Commit fixes
-4. Re-run review
-
-If all clear:
-- Implementation is ready for merge
-- Create PR with `/commit` or manually
-
-## Next Steps
-
-After successful review:
-```bash
-# Commit if not already done
-/commit
-
-# Create PR
-/main-pr
 ```
+Feature: $ARGUMENTS
+
+REVIEW FOCUS: Performance
+
+Review the implementation for performance concerns:
+
+1. **Algorithmic Complexity**
+   - Are there O(n²) or worse algorithms?
+   - Can any operations be optimized?
+   - Are there unnecessary iterations?
+
+2. **Database/Storage**
+   - Are queries efficient (N+1 problems)?
+   - Are indexes used appropriately?
+   - Is data fetched efficiently?
+
+3. **Memory Usage**
+   - Are there memory leaks?
+   - Are large objects handled properly?
+   - Is streaming used where appropriate?
+
+4. **API Calls**
+   - Are external calls batched where possible?
+   - Is caching used appropriately?
+   - Are there unnecessary API calls?
+
+Report findings with impact:
+- 🔴 CRITICAL: Significant performance impact
+- 🟡 WARNING: Noticeable performance impact
+- 🔵 SUGGESTION: Minor optimization opportunity
+```
+
+### Agent 3: Code Quality Review
+
+```
+Feature: $ARGUMENTS
+
+REVIEW FOCUS: Code Quality
+
+Review the implementation for code quality:
+
+1. **CLAUDE.md Compliance**
+   - Does code follow project conventions?
+   - Are naming conventions followed?
+   - Is code style consistent?
+
+2. **Code Organization**
+   - Is code well-structured?
+   - Are responsibilities properly separated?
+   - Is there code duplication?
+
+3. **Error Handling**
+   - Are errors handled appropriately?
+   - Are error messages helpful?
+   - Is error propagation correct?
+
+4. **Maintainability**
+   - Is code readable?
+   - Are complex sections documented?
+   - Is the code easy to modify?
+
+Report findings with confidence scores (only report ≥80%):
+- 🔴 CRITICAL: Significant quality issue
+- 🟡 WARNING: Quality concern
+- 🔵 SUGGESTION: Quality improvement
+```
+
+### Agent 4: Test Coverage Review
+
+```
+Feature: $ARGUMENTS
+
+REVIEW FOCUS: Test Coverage
+
+Review the tests for completeness:
+
+1. **Code Path Coverage**
+   - Are all code paths tested?
+   - Are conditional branches covered?
+   - Are loops tested (0, 1, many)?
+
+2. **Edge Case Coverage**
+   - Are boundary conditions tested?
+   - Are null/empty inputs tested?
+   - Are error conditions tested?
+
+3. **Integration Coverage**
+   - Are component interactions tested?
+   - Are external integrations tested?
+   - Are E2E scenarios covered?
+
+4. **Test Quality**
+   - Are tests meaningful (not just for coverage)?
+   - Are assertions specific?
+   - Are tests independent?
+
+Report findings:
+- 🔴 CRITICAL: Missing critical test coverage
+- 🟡 WARNING: Incomplete test coverage
+- 🔵 SUGGESTION: Additional test opportunity
+```
+
+### Agent 5: Spec Compliance Review
+
+```
+Feature: $ARGUMENTS
+
+REVIEW FOCUS: Spec Compliance
+
+Review implementation against docs/specs/$ARGUMENTS.md:
+
+1. **Functional Requirements**
+   - Are all requirements implemented?
+   - Does behavior match specification?
+   - Are all user stories addressed?
+
+2. **Non-Functional Requirements**
+   - Are performance requirements met?
+   - Are security requirements met?
+   - Are scalability requirements met?
+
+3. **Edge Cases**
+   - Are specified edge cases handled?
+   - Is error handling per spec?
+   - Are boundary conditions correct?
+
+4. **API Contracts**
+   - Do interfaces match spec?
+   - Are data formats correct?
+   - Are error responses per spec?
+
+Report findings:
+- 🔴 CRITICAL: Spec violation
+- 🟡 WARNING: Partial compliance
+- 🔵 SUGGESTION: Spec enhancement opportunity
+```
+
+---
+
+## CONSOLIDATION
+
+After all 5 agents complete, consolidate findings:
+
+### Categorize All Findings
+
+```markdown
+## Code Review Summary: $ARGUMENTS
+
+### 🔴 CRITICAL Issues (Must Fix)
+
+#### Security
+- [Finding]: [Details]
+
+#### Performance
+- [Finding]: [Details]
+
+#### Code Quality
+- [Finding]: [Details]
+
+#### Test Coverage
+- [Finding]: [Details]
+
+#### Spec Compliance
+- [Finding]: [Details]
+
+### 🟡 WARNINGS (Should Fix)
+[Categorized list]
+
+### 🔵 SUGGESTIONS (Nice to Have)
+[Categorized list]
+
+### Summary
+- Critical issues: [count]
+- Warnings: [count]
+- Suggestions: [count]
+```
+
+### Present to User
+
+Show the consolidated review findings to the user.
+
+---
+
+## OUTPUT
+
+```markdown
+## Review Complete: $ARGUMENTS
+
+### Review Agents
+- ✅ Security Review: [N findings]
+- ✅ Performance Review: [N findings]
+- ✅ Code Quality Review: [N findings]
+- ✅ Test Coverage Review: [N findings]
+- ✅ Spec Compliance Review: [N findings]
+
+### Critical Issues: [count]
+[List with details]
+
+### Warnings: [count]
+[Summary]
+
+### Suggestions: [count]
+[Summary]
+```
+
+---
+
+## Next Step
+
+Review complete. Proceed automatically to **Phase 9: Final Fixes** to address Critical issues.
