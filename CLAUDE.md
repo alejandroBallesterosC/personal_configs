@@ -7,7 +7,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 ```
 claude-code/
 ├── plugins/           # Encapsulated workflows (TDD, Debug)
-│   ├── tdd-workflow/  # 7 agents, 8 commands, 6 skills
+│   ├── tdd-workflow/  # 7 agents, 10 commands, 6 skills, hooks
 │   └── debug-workflow/ # 4 agents, 7 commands, 1 skill
 ├── commands/          # Shared command templates
 ├── docs/              # Python, UV, Docker best practices
@@ -53,10 +53,12 @@ No dependencies, no build, no deployment.
 
 ## Gotchas
 
-- `README.md` is outdated - see `CODEBASE.md` for accurate docs
+- `README.md` is severely outdated - see `CODEBASE.md` for accurate docs
 - Plugins must be synced to `~/.claude/plugins/` before use
 - `ralph-loop` is external dependency, not included
-- `claude-code/CLAUDE.md` is a TEMPLATE, not this repo's CLAUDE.md
+- `claude-code/CLAUDE.md` is a TEMPLATE (syncs to ~/.claude/), not this repo's CLAUDE.md
+- Test auto-detection exits 0 when no framework found (non-fatal for repos without tests)
+- Context checkpoints are manual (/clear + /resume), not automatic
 
 ## Sync Usage
 
