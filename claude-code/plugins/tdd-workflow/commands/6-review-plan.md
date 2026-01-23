@@ -23,14 +23,49 @@ If any are missing, recommend running the previous workflow steps first.
 
 ## Process
 
-Use the `plan-reviewer` agent to:
-1. Evaluate each planning artifact against the checklist
+### Spawn Plan-Reviewer Subagent
+
+Use the Task tool to spawn a `plan-reviewer` agent:
+
+```
+Use Task tool with subagent_type: "tdd-workflow:plan-reviewer"
+
+Prompt:
+Feature: $ARGUMENTS
+
+Critically review the implementation plan for this feature.
+
+Context files to read:
+- docs/context/$ARGUMENTS-exploration.md (codebase context)
+- docs/specs/$ARGUMENTS.md (specification)
+- docs/plans/$ARGUMENTS-arch.md (architecture)
+- docs/plans/$ARGUMENTS-plan.md (implementation plan)
+- docs/plans/$ARGUMENTS-tests.md (test cases)
+
+Review Focus:
+1. Evaluate each planning artifact against the checklist below
 2. Identify gaps and unstated assumptions
 3. Challenge architectural decisions
-4. **Verify parallel implementation viability**
-5. Ask follow-up questions via AskUserQuestionTool
-6. Provide suggestions and feedback to user
-7. Update plan files based on user's decisions
+4. Verify parallel implementation viability
+5. Check for security, performance, and integration risks
+6. Verify API key requirements are identified
+
+For each finding, report:
+- Area: [Completeness/Feasibility/Edge Cases/etc.]
+- Rating: ✅ Good / ⚠️ Concern / ❌ Blocker
+- Details: [What the issue is]
+- Suggestion: [How to address it]
+
+Return a comprehensive review report with all findings.
+```
+
+### After Subagent Returns
+
+The main instance should:
+1. Present findings to user via AskUserQuestionTool
+2. Ask follow-up questions for any ⚠️ or ❌ items
+3. Update plan files based on user's decisions
+4. Get explicit user approval before proceeding to implementation
 
 ## Review Checklist
 
@@ -111,8 +146,11 @@ All blockers resolved. Plan is ready for implementation.
 - docs/plans/$ARGUMENTS-arch.md (if modified)
 
 Next step:
-/tdd-workflow:implement $ARGUMENTS "[description]"
+obtain explicit user approval to start implementation,
+then prompt the user to run /clear and /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1
+
+/tdd-workflow:7-implement $ARGUMENTS "[description]"
 
 Or continue the full workflow:
-/tdd-workflow:start $ARGUMENTS "[description]"
+/tdd-workflow:1-start $ARGUMENTS "[description]"
 ```

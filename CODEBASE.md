@@ -1,7 +1,7 @@
 # Personal Configs - Codebase Analysis
 
 > Last updated: 2026-01-23
-> Iteration: 4 (phase validation update)
+> Iteration: 5 (phase reordering - architecture before plan)
 
 ## 1. System Purpose & Domain
 
@@ -176,9 +176,9 @@ description: When to auto-activate
 **Context Checkpoint Pattern:**
 - Save progress to docs/ at strategic points
 - Prompt user to run /clear
-- /resume validates phase prerequisites before allowing continuation
-- /resume provides explicit execution sequences (not just "where to start" but "what phases to complete")
-- Phase validation prevents skipping (e.g., can't jump to Phase 6 without completing Phases 4-5)
+- /reinitialize-context-after-clear-and-continue-workflow validates phase prerequisites before allowing continuation
+- Provides explicit execution sequences (not just "where to start" but "what phases to complete")
+- Phase validation prevents skipping (e.g., can't jump to Phase 7 without completing Phases 2-6)
 
 ### Testing Strategy
 
@@ -225,7 +225,7 @@ README.md was rewritten (2026-01-23) to reflect current repository state:
 
 | Doc Claim | Reality | File Reference |
 |-----------|---------|----------------|
-| TDD workflow README accurate | 10-phase workflow, checkpoints, agents all match code | `tdd-workflow/README.md` |
+| TDD workflow README accurate | 8-phase workflow (Phases 2-9), checkpoints, agents all match code | `tdd-workflow/README.md` |
 | Debug workflow README accurate | 9-phase flow matches command implementation | `debug-workflow/README.md` |
 | CLAUDE.md conventions | Applied throughout codebase | `claude-code/CLAUDE.md` |
 | 16 shared commands | Confirmed - 16 .md files in commands/ | `claude-code/commands/` |
@@ -240,8 +240,8 @@ README.md was rewritten (2026-01-23) to reflect current repository state:
   - **Source**: `tdd-workflow/commands/start.md:613-698`
 
 - [x] **How do context checkpoints determine optimal timing?**
-  - **Answer**: Manual heuristic - documentation quotes "60k tokens or 30% context" from community best practices. No automated detection. Checkpoints occur at fixed workflow points: after exploration (Phase 1), after planning (Phase 5), after implementation (Phase 7).
-  - **Source**: `tdd-workflow/commands/start.md:80-84`
+  - **Answer**: Manual heuristic - documentation quotes "60k tokens or 30% context" from community best practices. No automated detection. Checkpoints occur at fixed workflow points: after exploration (Phase 2), after planning/review (Phase 6), after E2E testing (Phase 8).
+  - **Source**: `tdd-workflow/commands/1-start.md`
 
 - [x] **Are there any undocumented hook configurations in debug-workflow?**
   - **Answer**: No - debug-workflow has no hooks directory. Only tdd-workflow has hooks (PostToolUse on Write|Edit).
@@ -267,10 +267,10 @@ README.md was rewritten (2026-01-23) to reflect current repository state:
 
 ## 9. Workflow Traces (Iteration 2 Deep Dive)
 
-### TDD Workflow: 10-Phase End-to-End Flow
+### TDD Workflow: 8-Phase End-to-End Flow (Phases 2-9)
 
 ```
-PHASE 1: Parallel Exploration (5 code-explorer agents via Task tool)
+PHASE 2: Parallel Exploration (5 code-explorer agents via Task tool)
 ├── Architecture agent: Layers, components, data flow, entry points
 ├── Patterns agent: Naming conventions, abstractions, templates
 ├── Boundaries agent: Module contracts, coupling, dependencies
@@ -279,10 +279,10 @@ PHASE 1: Parallel Exploration (5 code-explorer agents via Task tool)
 └─→ OUTPUT: docs/context/{feature}-exploration.md
 
 ══════ CONTEXT CHECKPOINT 1 ══════
-User prompted via AskUserQuestionTool → /clear → /tdd-workflow:resume {feature} --phase 2
-Resume validates: Phase 1 complete → Executes Phases 2→3→4→5 in sequence
+User prompted via AskUserQuestionTool → /clear → /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow {feature} --phase 3
+Resume validates: Phase 2 complete → Executes Phases 3→4→5→6 in sequence
 
-PHASE 2: Specification Interview (40+ questions via AskUserQuestionTool)
+PHASE 3: Specification Interview (40+ questions via AskUserQuestionTool)
 ├── Core Functionality: What, why, inputs, outputs, happy path
 ├── Technical Constraints: Tech stack, performance, scale, compat
 ├── Integration Points: Systems, APIs, data stores, events
@@ -292,20 +292,22 @@ PHASE 2: Specification Interview (40+ questions via AskUserQuestionTool)
 └── External Dependencies: APIs, keys, mock fallbacks
 └─→ OUTPUT: docs/specs/{feature}.md
 
-PHASE 3: Plan Creation (plan mode)
-└─→ OUTPUT: docs/plans/{feature}-plan.md, docs/plans/{feature}-arch.md
+PHASE 4: Architecture Design (code-architect agent optional)
+└─→ OUTPUT: docs/plans/{feature}-arch.md
 
-PHASE 4: Plan Review (plan-reviewer agent)
-└─→ Challenge assumptions, identify gaps, clarifying questions
+PHASE 5: Implementation Plan (main instance)
+└─→ OUTPUT: docs/plans/{feature}-plan.md, docs/plans/{feature}-tests.md
 
-PHASE 5: Plan Approval (AskUserQuestionTool)
-└─→ User confirms or requests changes
+PHASE 6: Plan Review & Approval (plan-reviewer agent + user approval)
+├── Challenge assumptions, identify gaps, clarifying questions
+└── User confirms or requests changes
+└─→ User approval required before implementation
 
 ══════ CONTEXT CHECKPOINT 2 ══════
-User prompted → /clear → /tdd-workflow:resume {feature} --phase 6
-Resume validates: Phases 1-5 complete (incl. Review & Approval) → Executes Phases 6→7 in sequence
+User prompted → /clear → /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow {feature} --phase 7
+Resume validates: Phases 2-6 complete (incl. Review & Approval) → Executes Phases 7→8 in sequence
 
-PHASE 6: Orchestrated TDD Implementation
+PHASE 7: Orchestrated TDD Implementation
 ├── MAIN INSTANCE runs: /ralph-loop:ralph-loop for each component
 │   ├── RED: Spawn test-designer agent → returns test
 │   │   └── MAIN INSTANCE RUNS TESTS → confirms failure
@@ -315,29 +317,39 @@ PHASE 6: Orchestrated TDD Implementation
 │       └── MAIN INSTANCE RUNS TESTS → confirms still pass
 └─→ OUTPUT: Implementation files + git commits
 
-PHASE 7: E2E Testing (Orchestrated)
+PHASE 8: E2E Testing (Orchestrated)
 ├── Spawn test-designer for E2E tests
 └── MAIN INSTANCE runs ralph-loop to fix failures
 └─→ OUTPUT: E2E test files passing
 
 ══════ CONTEXT CHECKPOINT 3 ══════
-User prompted → /clear → /tdd-workflow:resume {feature} --phase 8
-Resume validates: Phases 1-7 complete → Executes Phases 8→9→10 to completion
+User prompted → /clear → /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow {feature} --phase 9
+Resume validates: Phases 2-8 complete → Executes Phase 9 to completion
 
-PHASE 8: Parallel Multi-Aspect Review (5 code-reviewer agents)
-├── Security: Injection, auth, secrets
-├── Performance: Complexity, efficiency, caching
-├── Code Quality: CLAUDE.md compliance, organization
-├── Test Coverage: Paths, edges, errors
-└── Spec Compliance: Requirements met, behavior correct
-└─→ OUTPUT: docs/workflow/{feature}-review.md
-
-PHASE 9: Final Fixes (ralph-loop on Critical findings)
-└─→ OUTPUT: Fixed files + git commits
-
-PHASE 10: Completion Summary
-└─→ OUTPUT: docs/workflow/{feature}-state.md (COMPLETE status)
+PHASE 9: Review, Fixes & Completion
+├── Parallel Multi-Aspect Review (5 code-reviewer agents)
+│   ├── Security: Injection, auth, secrets
+│   ├── Performance: Complexity, efficiency, caching
+│   ├── Code Quality: CLAUDE.md compliance, organization
+│   ├── Test Coverage: Paths, edges, errors
+│   └── Spec Compliance: Requirements met, behavior correct
+├── Final Fixes (ralph-loop on Critical findings)
+└── Completion Summary
+└─→ OUTPUT: docs/workflow/{feature}-review.md, docs/workflow/{feature}-state.md (COMPLETE)
 ```
+
+### Agents by Phase
+
+| Phase | Agent(s) Used | How to Invoke |
+|-------|---------------|---------------|
+| Phase 2: Exploration | `code-explorer` (5x parallel) | `Task tool with subagent_type: "tdd-workflow:code-explorer"` |
+| Phase 3: Interview | None (main instance) | Main instance uses AskUserQuestionTool |
+| Phase 4: Architecture | `code-architect` (optional) | `Task tool with subagent_type: "tdd-workflow:code-architect"` |
+| Phase 5: Plan | None (main instance) | Main instance creates plan from architecture |
+| Phase 6: Review | `plan-reviewer` | `Task tool with subagent_type: "tdd-workflow:plan-reviewer"` |
+| Phase 7: Implement | `test-designer`, `implementer`, `refactorer` | Via ralph-loop orchestration |
+| Phase 8: E2E Test | `test-designer`, `implementer` | Via ralph-loop orchestration |
+| Phase 9: Review | `code-reviewer` (5x parallel) | `Task tool with subagent_type: "tdd-workflow:code-reviewer"` |
 
 ### Debug Workflow: 9-Phase Flow
 
@@ -383,9 +395,14 @@ Phase N: {Name}
 - **Description**: {description}
 
 ## Completed Phases
-- [x] Phase 1: Parallel Exploration
-- [ ] Phase 2: Specification Interview
-...
+- [x] Phase 2: Parallel Exploration
+- [x] Phase 3: Specification Interview
+- [x] Phase 4: Architecture Design
+- [x] Phase 5: Implementation Plan
+- [x] Phase 6: Plan Review & Approval
+- [ ] Phase 7: TDD Implementation
+- [ ] Phase 8: E2E Testing
+- [ ] Phase 9: Review, Fixes & Completion
 
 ## Key Decisions
 - {decision from interview}
@@ -395,11 +412,12 @@ Phase N: {Name}
 1. docs/workflow/{feature}-state.md
 2. docs/context/{feature}-exploration.md
 3. docs/specs/{feature}.md
-4. docs/plans/{feature}-plan.md
-5. CLAUDE.md
+4. docs/plans/{feature}-arch.md
+5. docs/plans/{feature}-plan.md
+6. CLAUDE.md
 
 ## Resume Command
-/tdd-workflow:resume {feature} --phase N
+/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow {feature} --phase N
 ```
 
 ## 11. Remaining Ambiguities
@@ -442,7 +460,7 @@ Phase N: {Name}
 | Auto-Test Hook | `claude-code/plugins/tdd-workflow/hooks/hooks.json` |
 | MCP Servers | `claude-code/global_mcp_settings.json` |
 | Test Runner | `claude-code/plugins/tdd-workflow/scripts/run-tests.sh` |
-| TDD Workflow Orchestrator | `claude-code/plugins/tdd-workflow/commands/start.md` |
+| TDD Workflow Orchestrator | `claude-code/plugins/tdd-workflow/commands/1-start.md` |
 | Debug Workflow Orchestrator | `claude-code/plugins/debug-workflow/commands/debug.md` |
 | Global Standards Template | `claude-code/CLAUDE.md` |
 | VS Code Tasks | `.vscode/tasks.json` |
@@ -452,7 +470,7 @@ Phase N: {Name}
 | Category | Count |
 |----------|-------|
 | TDD Agents | 7 |
-| TDD Commands | 10 |
+| TDD Commands | 11 |
 | TDD Skills | 6 |
 | Debug Agents | 4 |
 | Debug Commands | 7 |

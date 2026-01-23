@@ -485,7 +485,7 @@ This will:
 
 Proceed with planning:
 ```
-/tdd-workflow:plan $ARGUMENTS
+/tdd-workflow:4-plan $ARGUMENTS
 ```
 ```
 
@@ -540,7 +540,7 @@ On completion, the CLI will:
 
 Review the implementation:
 ```
-/tdd-workflow:review
+/tdd-workflow:9-review
 ```
 ```
 

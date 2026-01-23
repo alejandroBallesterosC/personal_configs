@@ -265,6 +265,6 @@ Show the consolidated review findings to the user.
 
 ---
 
-## Next Step
+## Final Step
 
-Review complete. Proceed automatically to **Phase 9: Final Fixes** to address Critical issues.
+Review complete. This is Phase 9 (final phase). Address Critical issues and complete the workflow.

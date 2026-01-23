@@ -7,7 +7,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 ```
 claude-code/
 ├── plugins/           # Encapsulated workflows (TDD, Debug)
-│   ├── tdd-workflow/  # 7 agents, 10 commands, 6 skills, hooks
+│   ├── tdd-workflow/  # 7 agents, 11 commands, 6 skills, hooks
 │   └── debug-workflow/ # 4 agents, 7 commands, 1 skill
 ├── commands/          # Shared command templates
 ├── docs/              # Python, UV, Docker best practices

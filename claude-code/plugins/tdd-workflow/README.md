@@ -5,7 +5,7 @@ A fully orchestrated, planning-heavy TDD workflow for Claude Code with **paralle
 ## Quick Start
 
 ```bash
-/tdd-workflow:start user-authentication "Add user authentication with OAuth2 and JWT tokens"
+/tdd-workflow:1-start user-authentication "Add user authentication with OAuth2 and JWT tokens"
 ```
 
 This **single command** orchestrates the entire workflow automatically. You only respond when:
@@ -23,55 +23,48 @@ The workflow takes **two arguments**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 1: PARALLEL EXPLORATION (5 code-explorer agents with 1M context)     │
+│ PHASE 2: PARALLEL EXPLORATION - /2-explore                                  │
 │   Architecture │ Patterns │ Boundaries │ Testing │ Dependencies            │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
                     ══════ CONTEXT CHECKPOINT 1 ══════
-                    (Save state → /clear → /resume)
+                    (Save state → /clear → /reinitialize-context-after-clear-and-continue-workflow)
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 2: SPECIFICATION INTERVIEW (40+ questions via AskUserQuestionTool)   │
+│ PHASE 3: SPECIFICATION INTERVIEW - /3-user-specification-interview          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 3: PLAN CREATION (plan mode - parallelizable components)             │
+│ PHASE 4: ARCHITECTURE DESIGN - /4-plan-architecture                         │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 4: PLAN REVIEW (plan-reviewer asks clarifying questions)             │
+│ PHASE 5: IMPLEMENTATION PLAN - /5-plan-implementation                       │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 5: PLAN APPROVAL (user approves or requests changes)                 │
+│ PHASE 6: PLAN REVIEW & APPROVAL - /6-review-plan                            │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
                     ══════ CONTEXT CHECKPOINT 2 ══════
-                    (Save state → /clear → /resume)
+                    (Save state → /clear → /reinitialize-context-after-clear-and-continue-workflow)
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 6: ORCHESTRATED TDD (main instance runs ralph-loop, owns feedback)   │
+│ PHASE 7: ORCHESTRATED TDD - /7-implement                                    │
 │   ralph-loop → test-designer → RUN TESTS → implementer → RUN TESTS → ...   │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 7: ORCHESTRATED E2E (main instance runs tests, subagents fix issues) │
+│ PHASE 8: ORCHESTRATED E2E - /8-e2e-test                                     │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
                     ══════ CONTEXT CHECKPOINT 3 ══════
-                    (Save state → /clear → /resume)
+                    (Save state → /clear → /reinitialize-context-after-clear-and-continue-workflow)
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 8: PARALLEL REVIEW (5 code-reviewer agents with 1M context)          │
+│ PHASE 9: REVIEW, FIXES & COMPLETION - /9-review                             │
 │   Security │ Performance │ Code Quality │ Test Coverage │ Spec Compliance  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    ↓
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 9: ORCHESTRATED FIXES (main runs ralph-loop, subagents fix issues)   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    ↓
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 10: COMPLETION SUMMARY                                                │
+│   (parallel review → orchestrated fixes → completion summary)               │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -79,15 +72,16 @@ The workflow takes **two arguments**:
 
 | Command | Purpose |
 |---------|---------|
-| `/tdd-workflow:start <name> "<description>"` | **Start full orchestrated workflow** |
-| `/tdd-workflow:resume <name> [--phase N]` | **Resume workflow after /clear** |
-| `/tdd-workflow:explore <name> "<description>"` | Parallel codebase exploration (5 agents) |
-| `/tdd-workflow:plan <name> "<description>"` | Interview-based spec development |
-| `/tdd-workflow:architect <name>` | Technical design from spec |
-| `/tdd-workflow:review-plan <name>` | Challenge plan, find gaps |
-| `/tdd-workflow:implement <name> "<description>"` | Parallel TDD implementation |
-| `/tdd-workflow:e2e-test <name> "<description>"` | End-to-end testing |
-| `/tdd-workflow:review <name>` | Parallel multi-aspect review (5 agents) |
+| `/tdd-workflow:1-start <name> "<description>"` | **Start full orchestrated workflow** |
+| `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <name> [--phase N]` | **Reinitialize context and continue workflow after /clear** |
+| `/tdd-workflow:2-explore <name> "<description>"` | Parallel codebase exploration (5 agents) |
+| `/tdd-workflow:3-user-specification-interview <name> "<description>"` | Specification interview (40+ questions) |
+| `/tdd-workflow:4-plan-architecture <name>` | Technical architecture design |
+| `/tdd-workflow:5-plan-implementation <name>` | Create implementation plan from architecture |
+| `/tdd-workflow:6-review-plan <name>` | Challenge plan, find gaps |
+| `/tdd-workflow:7-implement <name> "<description>"` | Parallel TDD implementation |
+| `/tdd-workflow:8-e2e-test <name> "<description>"` | End-to-end testing |
+| `/tdd-workflow:9-review <name>` | Parallel multi-aspect review (5 agents) |
 | `/tdd-workflow:help` | Show this help |
 
 ## Context Management
@@ -110,7 +104,7 @@ Long workflows degrade in quality as context fills. This workflow includes **3 s
 
 1. Workflow **saves state** to `docs/workflow/<feature>-state.md`
 2. User is prompted to run **`/clear`**
-3. User runs **`/tdd-workflow:resume <feature>`** to continue
+3. User runs **`/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <feature>`** to continue
 4. Context is **restored from files** and workflow continues
 
 ### State File
@@ -123,13 +117,13 @@ All progress tracked in `docs/workflow/<feature>-state.md`:
 
 ## Key Features
 
-### Parallel Exploration (Phase 1)
+### Parallel Exploration (Phase 2)
 - **5 code-explorer agents** run simultaneously
 - Each uses **Sonnet with 1M context window**
 - Explores: Architecture, Patterns, Boundaries, Testing, Dependencies
 - Identifies API keys availability
 
-### Exhaustive Planning (Phases 2-5)
+### Exhaustive Planning (Phases 3-6)
 - **40+ interview questions** across 9 domains
 - Plan designed for **parallel component implementation**
 - Plan reviewer challenges assumptions
@@ -170,6 +164,19 @@ All progress tracked in `docs/workflow/<feature>-state.md`:
 | implementer | Opus | Minimal code to pass tests (GREEN phase) |
 | refactorer | Opus | Improve while keeping tests green |
 | code-reviewer | Sonnet (1M) | Multi-aspect review with focus areas |
+
+### Agents by Phase
+
+| Phase | Agent(s) Used | How to Invoke |
+|-------|---------------|---------------|
+| Phase 2: Exploration | `code-explorer` (5x parallel) | `Task tool with subagent_type: "tdd-workflow:code-explorer"` |
+| Phase 3: Interview | None (main instance) | Main instance uses AskUserQuestionTool |
+| Phase 4: Architecture | `code-architect` (optional) | `Task tool with subagent_type: "tdd-workflow:code-architect"` |
+| Phase 5: Plan | None (main instance) | Main instance creates plan from architecture |
+| Phase 6: Review | `plan-reviewer` | `Task tool with subagent_type: "tdd-workflow:plan-reviewer"` |
+| Phase 7: Implement | `test-designer`, `implementer`, `refactorer` | Via ralph-loop orchestration |
+| Phase 8: E2E Test | `test-designer`, `implementer` | Via ralph-loop orchestration |
+| Phase 9: Review | `code-reviewer` (5x parallel) | `Task tool with subagent_type: "tdd-workflow:code-reviewer"` |
 
 ## Skills
 

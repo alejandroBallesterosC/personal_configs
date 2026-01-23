@@ -8,7 +8,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 personal_configs/
 ├── claude-code/
 │   ├── plugins/                    # Encapsulated workflow plugins
-│   │   ├── tdd-workflow/           # 7 agents, 10 commands, 6 skills, hooks
+│   │   ├── tdd-workflow/           # 7 agents, 11 commands, 6 skills, hooks
 │   │   └── debug-workflow/         # 4 agents, 7 commands, 1 skill
 │   ├── commands/                   # 16 shared global commands
 │   ├── docs/                       # Python, UV, Docker best practices
@@ -25,23 +25,25 @@ personal_configs/
 
 ### TDD Workflow (`claude-code/plugins/tdd-workflow/`)
 
-A 10-phase Test-Driven Development workflow with parallel exploration, specification interview, planning, implementation, and review phases.
+An 8-phase (Phases 2-9) Test-Driven Development workflow with parallel exploration, specification interview, architecture design, implementation planning, and review phases.
 
 **Key Features:**
-- Parallel exploration with 5 code-explorer agents
-- Specification interview (40+ questions via AskUserQuestionTool)
-- Plan review and approval gates before implementation
-- Orchestrated TDD with ralph-loop integration (RED/GREEN/REFACTOR)
-- Parallel code review with 5 specialized reviewers
+- Parallel exploration with 5 code-explorer agents (Phase 2)
+- Specification interview with 40+ questions (Phase 3)
+- Architecture design before implementation planning (Phase 4 → Phase 5)
+- Plan review and approval gates before implementation (Phase 6)
+- Orchestrated TDD with ralph-loop integration (Phase 7)
+- E2E testing (Phase 8)
+- Parallel code review with 5 specialized reviewers + fixes (Phase 9)
 - Context checkpoints with phase validation on resume
 - Auto-test hook on Write/Edit operations
 
-**Phase Validation:** The resume command validates prerequisites before allowing continuation. For example, resuming Phase 6 requires Phases 1-5 (including Review and Approval) to be complete. This prevents accidental phase skipping.
+**Phase Validation:** The resume command validates prerequisites before allowing continuation. For example, resuming Phase 7 requires Phases 2-6 (including Review and Approval) to be complete. This prevents accidental phase skipping.
 
 **Commands:**
-- `/tdd-workflow:start <feature> "<description>"` - Start workflow
-- `/tdd-workflow:resume <feature> --phase N` - Resume after /clear
-- `/tdd-workflow:explore`, `/tdd-workflow:plan`, `/tdd-workflow:implement`, `/tdd-workflow:review`
+- `/tdd-workflow:1-start <feature> "<description>"` - Start workflow
+- `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <feature> --phase N` - Resume after /clear
+- `/tdd-workflow:2-explore`, `/tdd-workflow:4-plan-architecture`, `/tdd-workflow:5-plan-implementation`, `/tdd-workflow:7-implement`, `/tdd-workflow:9-review`
 
 ### Debug Workflow (`claude-code/plugins/debug-workflow/`)
 
@@ -91,14 +93,14 @@ claude --plugin-dir ~/.claude/plugins/tdd-workflow
 ### Start TDD Workflow
 
 ```bash
-/tdd-workflow:start my-feature "Add user authentication"
+/tdd-workflow:1-start my-feature "Add user authentication"
 ```
 
 ### Resume After Context Clear
 
 ```bash
 /clear
-/tdd-workflow:resume my-feature --phase 6
+/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow my-feature --phase 6
 ```
 
 ## External Dependencies

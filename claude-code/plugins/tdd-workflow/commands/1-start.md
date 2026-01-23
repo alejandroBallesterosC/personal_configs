@@ -15,7 +15,7 @@ This command orchestrates a complete, planning-heavy TDD workflow that runs auto
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 1: PARALLEL EXPLORATION (5 subagents)                                 │
+│ PHASE 2: PARALLEL EXPLORATION (5 subagents) - /2-explore                    │
 │   Architecture │ Patterns │ Boundaries │ Tests │ Dependencies              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
@@ -23,47 +23,45 @@ This command orchestrates a complete, planning-heavy TDD workflow that runs auto
                     (Write state → User runs /clear)
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 2: SPECIFICATION INTERVIEW (40+ questions via AskUserQuestionTool)   │
+│ PHASE 3: SPECIFICATION INTERVIEW - /3-user-specification-interview          │
+│   (40+ questions via AskUserQuestionTool)                                   │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 3: PLAN CREATION (plan mode - parallelizable components)             │
+│ PHASE 4: ARCHITECTURE DESIGN - /4-plan-architecture                         │
+│   (technical design from spec + exploration)                                │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 4: PLAN REVIEW (clarifying questions + suggestions)                  │
+│ PHASE 5: IMPLEMENTATION PLAN - /5-plan-implementation                       │
+│   (parallelizable components from architecture)                             │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 5: PLAN APPROVAL (user approves or requests changes)                 │
+│ PHASE 6: PLAN REVIEW & APPROVAL - /6-review-plan                            │
+│   (clarifying questions + suggestions + user approval)                      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
                     ══════ CONTEXT CHECKPOINT 2 ══════
                     (Write state → User runs /clear)
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 6: ORCHESTRATED TDD (main instance runs ralph-loop, owns feedback)   │
+│ PHASE 7: ORCHESTRATED TDD - /7-implement                                    │
 │   ralph-loop → test-designer → RUN TESTS → implementer → RUN TESTS → ...   │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 7: ORCHESTRATED E2E (main instance runs tests, subagents fix issues) │
+│ PHASE 8: ORCHESTRATED E2E - /8-e2e-test                                     │
+│   (main instance runs tests, subagents fix issues)                          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
                     ══════ CONTEXT CHECKPOINT 3 ══════
                     (Write state → User runs /clear)
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 8: PARALLEL REVIEW (5 subagents reviewing different aspects)         │
+│ PHASE 9: REVIEW, FIXES & COMPLETION - /9-review                             │
 │   Security │ Performance │ Code Quality │ Test Coverage │ Spec Compliance  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    ↓
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 9: ORCHESTRATED FIXES (main runs ralph-loop, subagents fix issues)   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    ↓
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 10: COMPLETION SUMMARY                                                │
+│   (parallel review → orchestrated fixes → completion summary)               │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -98,8 +96,8 @@ All progress is tracked in `docs/workflow/$1-state.md`:
 - **Description**: $2
 
 ## Completed Phases
-- [x] Phase 1: Exploration
-- [ ] Phase 2: Interview
+- [x] Phase 2: Exploration
+- [ ] Phase 3: Interview
 ...
 
 ## Key Decisions
@@ -115,8 +113,8 @@ Read these files to restore context:
 5. docs/plans/$1-arch.md
 6. CLAUDE.md
 
-## Resume Command
-/tdd-workflow:resume $1
+## Continue Command
+/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase N
 ```
 
 ---
@@ -131,7 +129,7 @@ The workflow will now execute automatically. You'll be prompted only when:
 
 ---
 
-## PHASE 1: PARALLEL CODEBASE EXPLORATION
+## PHASE 2: PARALLEL CODEBASE EXPLORATION
 
 **Objective**: Understand the codebase from multiple angles simultaneously.
 
@@ -263,7 +261,7 @@ Phase 2: Specification Interview
 - **Description**: $2
 
 ## Completed Phases
-- [x] Phase 1: Parallel Exploration
+- [x] Phase 2: Parallel Exploration
 
 ## Key Findings from Exploration
 - Architecture: [summary]
@@ -276,9 +274,9 @@ Phase 2: Specification Interview
 2. docs/context/$1-exploration.md
 3. CLAUDE.md
 
-## Resume Command
+## Continue Command
 After /clear, run:
-/tdd-workflow:resume $1 --phase 2
+/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 3
 ```
 
 3. **Prompt user:**
@@ -290,18 +288,18 @@ Context Checkpoint 1 reached. Exploration is complete.
 
 To maintain quality, please clear context now:
 1. Run: /clear
-2. Then run: /tdd-workflow:resume $1 --phase 2
+2. Then run: /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 3
 
 This will restore context from saved files and continue with the Specification Interview.
 
 Ready to clear?
 ```
 
-**STOP HERE. Wait for user to /clear and resume.**
+**STOP HERE. Wait for user to /clear and continue.**
 
 ---
 
-## PHASE 2: SPECIFICATION INTERVIEW
+## PHASE 3: SPECIFICATION INTERVIEW
 
 **Context Restoration** (if resuming after /clear):
 - Read `docs/workflow/$1-state.md`
@@ -360,85 +358,97 @@ Write comprehensive specification to: `docs/specs/$1.md`
 
 ---
 
-## PHASE 3: PLAN CREATION
+## PHASE 4: ARCHITECTURE DESIGN
 
-**Objective**: Create an implementation plan with parallelizable, independent components.
+**Objective**: Design the technical architecture based on specification and exploration findings.
 
-Enter **plan mode** and design the architecture and implementation plan.
+This phase corresponds to `/4-plan-architecture`. The architecture design defines the system structure that will guide the implementation plan.
 
-### Plan Requirements
+### Architecture Requirements
 
-The plan MUST:
+The architecture MUST:
 
-1. **Define independent components** that can be implemented in parallel
+1. **Define independent components** for parallel implementation
    - Each component should be self-contained
    - Components should have clear interfaces
-   - Minimize dependencies between components
+   - No circular dependencies
+   - Shared types/interfaces defined upfront
 
 2. **Specify component contracts**
    - Input/output for each component
    - How components will integrate
-   - Shared types/interfaces needed first
+   - Data flow between components
 
-3. **Order components by dependency**
+3. **Define the build sequence**
    - Foundation components first (shared types, interfaces)
    - Independent components can be parallelized
    - Integration layer last
 
-4. **Define test strategy per component**
-   - Unit tests for each component
-   - Integration tests for component interactions
-   - E2E tests for full workflow
+4. **Identify external integrations**
+   - APIs required
+   - API keys needed (check availability)
+   - Service dependencies
 
-5. **Handle external integrations**
-   - Prefer real API implementations
-   - Document required API keys/credentials
-   - Define mock fallbacks only when real integration isn't possible
+### Architecture Structure
 
-### Plan Structure
-
-Write to `docs/plans/$1-plan.md`:
+Write to `docs/plans/$1-arch.md`:
 
 ```markdown
-# Implementation Plan: $1
+# $1 Architecture
 
-## Architecture Overview
-[High-level architecture diagram in ASCII/Mermaid]
+## Component Overview
+[ASCII diagram showing component relationships]
 
-## Components (Parallelizable)
+## Foundation (Build First)
+- Shared types/interfaces
+- Common utilities
+
+## Independent Components (Build in Parallel)
 
 ### Component 1: [Name]
 - **Purpose**: [What it does]
-- **Dependencies**: [What it needs]
+- **File**: [path/to/file]
+- **Dependencies**: [External deps only]
 - **Interface**: [Inputs/Outputs]
-- **Tests**: [What to test]
-- **Estimated complexity**: [S/M/L]
+- **Can parallel with**: [Other components]
 
 ### Component 2: [Name]
 ... (repeat for each component)
 
-## Integration Layer
+## Integration Layer (Build After Components)
 - How components connect
-- Shared state/events
-- E2E test scenarios
+- Coordination logic
+- Entry points
+
+## Data Flow
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
 
 ## External Integrations
-- APIs required
-- API keys needed (check availability)
-- Mock fallback strategy (if needed)
+| Service | Purpose | API Key Required |
+|---------|---------|------------------|
+| [Service] | [Why] | Yes/No |
 
-## Implementation Order
-1. Foundation (shared types, interfaces)
-2. Parallel: [Component A, Component B, Component C]
-3. Integration layer
-4. E2E tests
+## Build Sequence
+1. Foundation Phase (sequential)
+2. Component Phase (parallel)
+3. Integration Phase (sequential)
 ```
-
-Also write to `docs/plans/$1-arch.md` with detailed architecture.
 
 ---
 
-## PHASE 4: PLAN REVIEW
+## PHASE 5: IMPLEMENTATION PLAN
+
+**Objective**: Create detailed implementation plan based on the architecture.
+
+This phase corresponds to `/5-plan-implementation`. The implementation plan maps architecture components to concrete implementation tasks.
+
+**Execution**: The plan is created from the architecture design, defining parallelizable tasks for each component.
+
+---
+
+## PHASE 6: PLAN REVIEW & APPROVAL
 
 **Objective**: Challenge the plan and ensure completeness.
 
@@ -479,7 +489,7 @@ Present to user:
 
 ---
 
-## PHASE 5: PLAN APPROVAL
+### Plan Approval (part of Phase 6)
 
 **Objective**: Get user sign-off on the plan.
 
@@ -516,18 +526,18 @@ Continue only when user explicitly approves.
 # Workflow State: $1
 
 ## Current Phase
-Phase 6: Orchestrated TDD Implementation
+Phase 7: Orchestrated TDD Implementation
 
 ## Feature
 - **Name**: $1
 - **Description**: $2
 
 ## Completed Phases
-- [x] Phase 1: Parallel Exploration
-- [x] Phase 2: Specification Interview
-- [x] Phase 3: Plan Creation
-- [x] Phase 4: Plan Review
-- [x] Phase 5: Plan Approval
+- [x] Phase 2: Parallel Exploration
+- [x] Phase 3: Specification Interview
+- [x] Phase 4: Plan Creation
+- [x] Phase 5: Architecture Design
+- [x] Phase 6: Plan Review & Approval
 
 ## Components to Implement
 [List from plan]
@@ -544,9 +554,9 @@ Phase 6: Orchestrated TDD Implementation
 4. docs/plans/$1-arch.md
 5. CLAUDE.md
 
-## Resume Command
+## Continue Command
 After /clear, run:
-/tdd-workflow:resume $1 --phase 6
+/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 7
 ```
 
 3. **Prompt user:**
@@ -558,18 +568,18 @@ Context Checkpoint 2 reached. Planning is complete and approved.
 
 Before starting implementation, clear context for best results:
 1. Run: /clear
-2. Then run: /tdd-workflow:resume $1 --phase 6
+2. Then run: /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 7
 
 This ensures implementation starts with fresh context focused on the plan.
 
 Ready to clear and start implementation?
 ```
 
-**STOP HERE. Wait for user to /clear and resume.**
+**STOP HERE. Wait for user to /clear and continue.**
 
 ---
 
-## PHASE 6: COMPONENT IMPLEMENTATION (Orchestrated TDD)
+## PHASE 7: COMPONENT IMPLEMENTATION (Orchestrated TDD)
 
 **Context Restoration** (if resuming after /clear):
 - Read `docs/workflow/$1-state.md`
@@ -715,7 +725,7 @@ Wait for all components to complete before proceeding.
 
 ---
 
-## PHASE 7: END-TO-END TESTING (Orchestrated)
+## PHASE 8: END-TO-END TESTING (Orchestrated)
 
 **Objective**: Verify all components work together correctly, with main instance owning the feedback loop.
 
@@ -812,20 +822,20 @@ When ALL E2E tests pass:
 # Workflow State: $1
 
 ## Current Phase
-Phase 8: Parallel Review
+Phase 9: Review, Fixes & Completion
 
 ## Feature
 - **Name**: $1
 - **Description**: $2
 
 ## Completed Phases
-- [x] Phase 1: Parallel Exploration
-- [x] Phase 2: Specification Interview
-- [x] Phase 3: Plan Creation
-- [x] Phase 4: Plan Review
-- [x] Phase 5: Plan Approval
-- [x] Phase 6: Orchestrated TDD Implementation
-- [x] Phase 7: E2E Testing
+- [x] Phase 2: Parallel Exploration
+- [x] Phase 3: Specification Interview
+- [x] Phase 4: Plan Creation
+- [x] Phase 5: Architecture Design
+- [x] Phase 6: Plan Review & Approval
+- [x] Phase 7: Orchestrated TDD Implementation
+- [x] Phase 8: E2E Testing
 
 ## Implementation Summary
 - Components implemented: [list]
@@ -842,9 +852,9 @@ Phase 8: Parallel Review
 4. CLAUDE.md
 5. [List of implementation files to review]
 
-## Resume Command
+## Continue Command
 After /clear, run:
-/tdd-workflow:resume $1 --phase 8
+/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 9
 ```
 
 3. **Prompt user:**
@@ -856,18 +866,22 @@ Context Checkpoint 3 reached. Implementation and E2E testing complete.
 
 Before starting review, clear context for fresh perspective:
 1. Run: /clear
-2. Then run: /tdd-workflow:resume $1 --phase 8
+2. Then run: /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 9
 
 Fresh context helps reviewers catch issues that accumulated context might miss.
 
 Ready to clear and start review?
 ```
 
-**STOP HERE. Wait for user to /clear and resume.**
+**STOP HERE. Wait for user to /clear and continue.**
 
 ---
 
-## PHASE 8: PARALLEL MULTI-ASPECT REVIEW
+## PHASE 9: REVIEW, FIXES & COMPLETION
+
+This final phase includes parallel review, orchestrated fixes, and completion summary.
+
+### Part A: PARALLEL MULTI-ASPECT REVIEW
 
 **Context Restoration** (if resuming after /clear):
 - Read `docs/workflow/$1-state.md`
@@ -1009,7 +1023,7 @@ Write consolidated review to `docs/workflow/$1-review.md`.
 
 ---
 
-## PHASE 9: FINAL FIXES (Orchestrated)
+### Part B: FINAL FIXES (Orchestrated)
 
 **Objective**: Address review feedback with main instance owning the verification loop.
 
@@ -1075,7 +1089,7 @@ After ralph-loop completes:
 
 ---
 
-## PHASE 10: COMPLETION SUMMARY
+### Part C: COMPLETION SUMMARY
 
 **Objective**: Provide comprehensive summary of what was accomplished.
 
@@ -1094,16 +1108,14 @@ COMPLETE
 - **Description**: $2
 
 ## Completed Phases
-- [x] Phase 1: Parallel Exploration
-- [x] Phase 2: Specification Interview
-- [x] Phase 3: Plan Creation
-- [x] Phase 4: Plan Review
-- [x] Phase 5: Plan Approval
-- [x] Phase 6: Orchestrated TDD Implementation
-- [x] Phase 7: E2E Testing
-- [x] Phase 8: Parallel Review
-- [x] Phase 9: Final Fixes
-- [x] Phase 10: Completion Summary
+- [x] Phase 2: Parallel Exploration
+- [x] Phase 3: Specification Interview
+- [x] Phase 4: Plan Creation
+- [x] Phase 5: Architecture Design
+- [x] Phase 6: Plan Review & Approval
+- [x] Phase 7: Orchestrated TDD Implementation
+- [x] Phase 8: E2E Testing
+- [x] Phase 9: Review, Fixes & Completion
 
 ## Status
 ✅ COMPLETE
@@ -1183,6 +1195,6 @@ Output a completion report:
 
 ## BEGINNING WORKFLOW NOW
 
-Starting **Phase 1: Parallel Codebase Exploration** for "$1"
+Starting **Phase 2: Parallel Codebase Exploration** for "$1"
 
 Launching 5 parallel exploration subagents to analyze the codebase from multiple angles...

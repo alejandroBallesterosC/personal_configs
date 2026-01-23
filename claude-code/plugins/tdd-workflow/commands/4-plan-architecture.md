@@ -1,5 +1,5 @@
 ---
-description: Technical architecture design for planned feature
+description: Technical architecture design from specification (Phase 4)
 model: opus
 argument-hint: <feature-name>
 ---
@@ -8,25 +8,62 @@ argument-hint: <feature-name>
 
 You are designing the technical architecture for: **$ARGUMENTS**
 
+This is **Phase 4** of the TDD workflow. It creates the technical architecture from the specification, which will guide the implementation plan.
+
 ## Prerequisites
 
 Read these files before designing:
 - `docs/context/$ARGUMENTS-exploration.md` (codebase context)
 - `docs/specs/$ARGUMENTS.md` (feature specification)
-- `docs/plans/$ARGUMENTS-plan.md` (implementation plan)
 - `CLAUDE.md` (project conventions)
 
-If any are missing, recommend running the previous workflow steps first.
+If any are missing, recommend running the previous workflow steps first:
+- `/tdd-workflow:2-explore $ARGUMENTS "<description>"` for exploration
+- `/tdd-workflow:3-user-specification-interview $ARGUMENTS "<description>"` for specification
 
 ## Process
 
-Use the `code-architect` agent to design:
+You have two options for creating the architecture:
+
+### Option A: Main Instance Creates Architecture (Recommended)
+
+The main instance designs the architecture directly, since it has full context from the exploration and specification phases.
+
+Design the technical architecture:
 1. Component breakdown and responsibilities
 2. File structure and naming
 3. API contracts and interfaces
 4. Data flow and state management
 5. Integration approach with existing code
 6. **Parallel implementation strategy**
+
+### Option B: Spawn Code-Architect Subagent
+
+For complex architectures, spawn a `code-architect` subagent using the Task tool:
+
+```
+Use Task tool with subagent_type: "tdd-workflow:code-architect"
+
+Prompt:
+Feature: $ARGUMENTS
+
+Create technical architecture for this feature.
+
+Context files to read:
+- docs/context/$ARGUMENTS-exploration.md (codebase context)
+- docs/specs/$ARGUMENTS.md (feature specification)
+- CLAUDE.md (project conventions)
+
+Design requirements:
+1. Component breakdown with clear responsibilities
+2. File structure and naming following existing patterns
+3. API contracts and interfaces
+4. Data flow and state management
+5. Integration approach with existing code
+6. Parallel implementation strategy - components must be independently implementable
+
+Output: Write architecture to docs/plans/$ARGUMENTS-arch.md
+```
 
 ## Architecture for Parallel Implementation
 
@@ -168,5 +205,5 @@ Architecture supports:
 - Build sequence: Foundation → Parallel Components → Integration
 
 Next step:
-/tdd-workflow:review-plan $ARGUMENTS
+/tdd-workflow:5-plan-implementation $ARGUMENTS (create implementation plan from architecture)
 ```

@@ -1,19 +1,28 @@
 ---
-description: Deep planning through comprehensive user interview
+description: Conduct specification interview to gather requirements (Phase 3)
 model: opus
 argument-hint: <feature-name> "<feature description>"
 ---
 
-# Feature Planning Interview
+# User Specification Interview
 
 **Feature**: $1
 **Description**: $2
 
-This follows Thariq Shihab's spec-based development approach: interview first, then code.
+This is **Phase 3** of the TDD workflow. It follows Thariq Shihab's spec-based development approach: interview first, then plan, then code.
 
 ## Before Starting
 
-Check if exploration exists at `docs/context/$1-exploration.md`. If not, recommend running `/tdd-workflow:explore $1 "$2"` first.
+Check if exploration exists at `docs/context/$1-exploration.md`. If not, recommend running `/tdd-workflow:2-explore $1 "$2"` first.
+
+## Execution
+
+The **main instance conducts the interview** directly using AskUserQuestionTool. This phase does not spawn subagents because:
+- The interview requires real-time user interaction
+- Questions build on previous answers
+- The main instance needs to maintain conversation context
+
+---
 
 ## Interview Protocol
 
@@ -94,77 +103,24 @@ Be like a journalist or skeptical senior engineer:
 
 ## Output
 
-When the interview is complete (you have clarity on ALL domains):
+When the specification interview is complete (you have clarity on ALL domains):
 
-1. **Write specification** to `docs/specs/$1.md`:
-   - Complete requirements
-   - Acceptance criteria
-   - Non-functional requirements
-   - Out of scope items
-
-2. **Write implementation plan** to `docs/plans/$1-plan.md`:
-   - Ordered implementation steps
-   - **Components designed for parallel implementation**
-   - Dependencies between steps
-   - Independent components that can be implemented in parallel
-   - Integration points between components
-
-3. **Write test cases** to `docs/plans/$1-tests.md`:
-   - Test cases for each requirement
-   - Edge case tests
-   - Integration tests
-   - E2E test scenarios
-   - Acceptance tests
-
-## Plan Structure for Parallel Implementation
-
-The implementation plan MUST identify:
-
-```markdown
-## Independent Components
-
-### Component 1: [Name]
-- **Purpose**: [What it does]
-- **Dependencies**: [External deps only, not other components]
-- **Interface**: [Inputs/Outputs]
-- **Can run in parallel with**: [Other components]
-
-### Component 2: [Name]
-...
-
-## Build Order
-
-1. **Foundation** (must complete first):
-   - Shared types/interfaces
-   - Common utilities
-   - Configuration
-
-2. **Parallel Components** (can implement simultaneously):
-   - Component 1
-   - Component 2
-   - Component 3
-
-3. **Integration Layer** (after parallel components):
-   - Wire components together
-   - Coordination logic
-```
+Write specification to `docs/specs/$1.md`:
+- Complete requirements
+- Acceptance criteria
+- Non-functional requirements
+- Out of scope items
 
 ## Completion
 
 End with this message:
 
 ```
-Planning complete for: $1
+Specification interview complete for: $1
 
-Artifacts created:
+Artifact created:
 - docs/specs/$1.md (specification)
-- docs/plans/$1-plan.md (implementation plan with parallel components)
-- docs/plans/$1-tests.md (test cases)
 
-Next steps:
-1. /tdd-workflow:architect $1 (design technical approach)
-2. /tdd-workflow:review-plan $1 (challenge the plan)
-
-Or continue the full workflow:
-/tdd-workflow:start $1 "$2"
+Next step:
+/tdd-workflow:4-plan-architecture $1 (create technical architecture from spec)
 ```
