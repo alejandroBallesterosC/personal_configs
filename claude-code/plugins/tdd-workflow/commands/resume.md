@@ -11,9 +11,33 @@ argument-hint: <feature-name> [--phase N]
 ## Purpose
 
 This command resumes the TDD workflow after a `/clear` by:
-1. Reading the saved workflow state
-2. Restoring essential context from files
-3. Continuing from the specified phase
+1. Validating phase prerequisites
+2. Reading the saved workflow state
+3. Restoring essential context from files
+4. Continuing from the specified phase with explicit sequence
+
+---
+
+## STEP 0: Validate Phase Prerequisites
+
+Before resuming, verify the state file shows all prerequisite phases are complete:
+
+### Prerequisites by Phase
+
+| Resume Phase | Required Completed Phases |
+|--------------|--------------------------|
+| Phase 2 | Phase 1: Exploration |
+| Phase 6 | Phases 1-5 (including Review and Approval) |
+| Phase 8 | Phases 1-7 |
+
+**Validation Rules:**
+
+If prerequisites are NOT met:
+1. List which phases are missing from "Completed Phases" in state file
+2. Recommend running the missing phases first
+3. Ask user via AskUserQuestionTool if they want to proceed anyway (not recommended)
+
+⚠️ **Critical**: Phases 4 (Plan Review) and 5 (Plan Approval) MUST be completed before Phase 6. These phases ensure the plan is vetted and user-approved before implementation begins.
 
 ---
 
@@ -34,6 +58,19 @@ To start a new workflow, run:
 
 Or check if the feature name is correct.
 ```
+
+### State File Validation
+
+After reading the state file, verify prerequisites:
+
+1. **Check "Completed Phases" section** matches expected prerequisites for the target phase
+2. **If resuming Phase 6** and Phase 4 or Phase 5 not marked complete:
+   - WARN: "⚠️ Phase 4 (Plan Review) and/or Phase 5 (Plan Approval) not completed"
+   - ASK via AskUserQuestionTool: "Do you want to run the review/approval phases first? (Recommended)"
+   - If user says no, proceed but note in state file that review was skipped
+3. **If resuming Phase 8** and Phases 6-7 not marked complete:
+   - WARN: "⚠️ Implementation phases not completed"
+   - ASK via AskUserQuestionTool: "Do you want to complete implementation first?"
 
 ---
 
@@ -102,19 +139,88 @@ Based on the current phase from the state file, continue execution:
 ### If Phase 2: Specification Interview
 - Context is restored from exploration
 - Begin the interview process with AskUserQuestionTool
-- Follow Phase 2 instructions from start.md
+
+**Execution Sequence (complete ALL before next checkpoint):**
+
+1. **Phase 2: Interview** - Conduct specification interview using AskUserQuestionTool
+   - Ask about goals, constraints, edge cases, success criteria
+   - Output: `docs/specs/$1.md`
+
+2. **Phase 3: Planning** - Create implementation plan
+   - Spawn `tdd-workflow:code-architect` agent for technical design
+   - Output: `docs/plans/$1-plan.md` and `docs/plans/$1-arch.md`
+
+3. **Phase 4: Review** - Invoke plan-reviewer agent to critically analyze the plan
+   - Spawn `tdd-workflow:plan-reviewer` agent
+   - Challenge assumptions, identify gaps
+   - Ask clarifying questions via AskUserQuestionTool
+   - Update plans based on feedback
+
+4. **Phase 5: Approval** - Get explicit user approval
+   - Present plan summary to user
+   - Use AskUserQuestionTool to confirm user is ready to proceed
+   - **DO NOT continue without explicit approval**
+
+5. **Checkpoint** - Write updated state file, prompt user to `/clear`
+   - Update `docs/workflow/$1-state.md` with completed phases 2-5
+   - Tell user: "Context checkpoint reached. Run `/clear` then `/tdd-workflow:resume $1 --phase 6`"
+
+⚠️ **DO NOT skip to implementation.** Complete Phases 2→3→4→5 in sequence.
 
 ### If Phase 6: Orchestrated TDD Implementation
 - Context is restored from spec and plan
 - Verify API keys are available
 - Create foundation (shared types) first
-- Run ralph-loop for each component (main instance owns feedback loop)
-- Follow Phase 6 instructions from start.md
+
+**Execution Sequence (complete ALL before next checkpoint):**
+
+1. **Phase 6: TDD Implementation** - Run ralph-loop for each component
+   - Main instance owns feedback loop
+   - Spawn subagents for discrete tasks:
+     - `tdd-workflow:test-designer` - RED phase: write failing tests
+     - `tdd-workflow:implementer` - GREEN phase: write minimal code to pass
+     - `tdd-workflow:refactorer` - REFACTOR phase: improve while keeping green
+   - Repeat for each component in the plan
+
+2. **Phase 7: E2E Testing** - Run ralph-loop for E2E test iteration
+   - Spawn `tdd-workflow:test-designer` for E2E tests
+   - Run tests, fix failures until all pass
+   - Verify integration between components
+
+3. **Checkpoint** - Write updated state file, prompt user to `/clear`
+   - Update `docs/workflow/$1-state.md` with completed phases 6-7
+   - Tell user: "Implementation complete. Run `/clear` then `/tdd-workflow:resume $1 --phase 8`"
+
+⚠️ **Complete Phase 6→7 before checkpoint.** Do not skip E2E testing.
 
 ### If Phase 8: Parallel Review
 - Context is restored from spec, plan, and implementation
-- Launch 5 parallel review subagents
-- Follow Phase 8 instructions from start.md
+
+**Execution Sequence (complete ALL to finish workflow):**
+
+1. **Phase 8: Parallel Review** - Launch 5 `tdd-workflow:code-reviewer` agents in parallel
+   - Security reviewer: Check for vulnerabilities, injection risks
+   - Performance reviewer: Identify bottlenecks, inefficiencies
+   - Quality reviewer: Code style, maintainability, best practices
+   - Coverage reviewer: Test coverage gaps, edge cases
+   - Spec compliance reviewer: Verify implementation matches spec
+   - Consolidate findings into `docs/workflow/$1-review.md`
+
+2. **Phase 9: Final Fixes** - Run ralph-loop to address Critical findings
+   - Fix Critical and High severity issues from review
+   - Verify tests still pass after each fix
+   - Re-run affected reviewers if needed
+
+3. **Phase 10: Completion** - Generate summary report
+   - Update final state file with all completed phases
+   - Generate completion summary:
+     - Features implemented
+     - Tests passing
+     - Review findings addressed
+     - Files created/modified
+   - Present completion summary to user
+
+⚠️ **Complete Phase 8→9→10 to finish workflow.** All critical findings must be addressed.
 
 ---
 
