@@ -53,12 +53,12 @@ No dependencies, no build, no deployment.
 
 ## Gotchas
 
-- `README.md` is severely outdated - see `CODEBASE.md` for accurate docs
 - Plugins must be synced to `~/.claude/plugins/` before use
 - `ralph-loop` is external dependency, not included
 - `claude-code/CLAUDE.md` is a TEMPLATE (syncs to ~/.claude/), not this repo's CLAUDE.md
 - Test auto-detection exits 0 when no framework found (non-fatal for repos without tests)
 - Context checkpoints are manual (/clear + /resume), not automatic
+- Resume command validates phase prerequisites (can't skip phases)
 
 ## Sync Usage
 

@@ -1,73 +1,119 @@
 # Personal Development Configurations
 
-This repository contains a curated collection of shared configurations, scripts, and development tools to streamline and standardize development workflows across different projects and environments.
+Development infrastructure repository for AI-assisted workflows with Claude Code. Contains configuration, documentation, plugins, and automation scripts.
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 personal_configs/
-├── .cursor/                    # Cursor IDE configurations
-│   ├── mcp.json               # Model Context Protocol server configurations
-│   └── rules/
-│       └── maintain-docs.mdc  # Documentation maintenance rules
-├── .vscode/                   # Visual Studio Code configurations
-│   ├── key_bindings.json      # Custom keyboard shortcuts
-│   └── tasks.json             # Build and run tasks
-├── claude-code/               # Claude AI assistant command templates
-│   └── commands/              # Reusable command prompts
-├── scripts/                   # Utility scripts
-│   └── run_file.sh           # Universal file runner script
-└── README.md                  # This file
+├── claude-code/
+│   ├── plugins/                    # Encapsulated workflow plugins
+│   │   ├── tdd-workflow/           # 7 agents, 10 commands, 6 skills, hooks
+│   │   └── debug-workflow/         # 4 agents, 7 commands, 1 skill
+│   ├── commands/                   # 16 shared global commands
+│   ├── docs/                       # Python, UV, Docker best practices
+│   ├── CLAUDE.md                   # Global coding standards template
+│   └── global_mcp_settings.json    # MCP server configuration
+├── scripts/                        # 13 sync scripts (bidirectional)
+├── .vscode/                        # VS Code tasks (15 sync tasks)
+├── .cursor/                        # Cursor IDE configurations
+├── CODEBASE.md                     # Comprehensive codebase analysis
+└── CLAUDE.md                       # Project-specific instructions
 ```
 
-## 🛠️ Components
+## Core Plugins
 
-### Cursor Configs (`.cursor/`)
+### TDD Workflow (`claude-code/plugins/tdd-workflow/`)
 
-**MCP Server Setup** (`mcp.json`)
-- Configures Model Context Protocol servers for enhanced AI capabilities
-- **Notion Integration**: Connects to Notion workspace via `@notionhq/notion-mcp-server`
-- **Browser Tools**: Enables web interaction capabilities with `@agentdeskai/browser-tools-mcp`
+A 10-phase Test-Driven Development workflow with parallel exploration, specification interview, planning, implementation, and review phases.
 
-**Documentation Rules** (`rules/maintain-docs.mdc`)
-- Automated documentation maintenance guidelines
-- Ensures README files stay current with code changes
-- Triggers updates for API changes, configuration changes, and new features
+**Key Features:**
+- Parallel exploration with 5 code-explorer agents
+- Specification interview (40+ questions via AskUserQuestionTool)
+- Plan review and approval gates before implementation
+- Orchestrated TDD with ralph-loop integration (RED/GREEN/REFACTOR)
+- Parallel code review with 5 specialized reviewers
+- Context checkpoints with phase validation on resume
+- Auto-test hook on Write/Edit operations
 
-### VS Code Configs (`.vscode/`)
+**Phase Validation:** The resume command validates prerequisites before allowing continuation. For example, resuming Phase 6 requires Phases 1-5 (including Review and Approval) to be complete. This prevents accidental phase skipping.
 
-**Custom Key Bindings** (`key_bindings.json`)
-- `Cmd+Shift+B`: Quick compile and run current file
+**Commands:**
+- `/tdd-workflow:start <feature> "<description>"` - Start workflow
+- `/tdd-workflow:resume <feature> --phase N` - Resume after /clear
+- `/tdd-workflow:explore`, `/tdd-workflow:plan`, `/tdd-workflow:implement`, `/tdd-workflow:review`
 
-**Build Tasks** (`tasks.json`)
-- **Compile & Run Current File**: Universal task that delegates to `run_file.sh` (in `/scripts`)
-- **Compile Frontend TypeScript**: TypeScript compilation for frontend projects
-- **Run App**: General application runner script
+### Debug Workflow (`claude-code/plugins/debug-workflow/`)
 
-### Claude Code Custom Commands (`claude-code/commands/`)
+A 9-phase hypothesis-driven debugging workflow with instrumentation and evidence-based analysis.
 
-Pre-written command templates for common development tasks:
-- `execute-plan-subagents.md`: Template for parallel task execution using multiple AI agents
-- `explain-repo.md`: Repository explanation and architecture analysis prompt
-- `understand-repo.md`: Comprehensive codebase review template
-- `update-docs-and-todos.md`: Documentation and TODO maintenance prompt
+**Flow:** EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX -> VERIFY -> CLEAN
 
-you can copy this to ~/.claude/commands for global use across all your claude-code projects and then call them with/{command}
+**Commands:**
+- `/debug-workflow:debug` - Start debugging workflow
+- `/debug-workflow:explore`, `/debug-workflow:hypothesize`, `/debug-workflow:instrument`, `/debug-workflow:analyze`, `/debug-workflow:verify`
 
-### Utility Scripts (`scripts/`)
+## MCP Servers
 
-**File Runner** (`run_file.sh`)
-- Universal file runner supporting C++ and Python
-- Triggered by VS Code's Cmd+Shift+B shortcut
+Configured in `claude-code/global_mcp_settings.json`:
+- **context7**: Documentation retrieval
+- **fetch**: URL content fetching
+- **exa**: Web search
+- **playwright**: Browser automation
 
-**Claude Code Sync Scripts**
-- `sync_commands_from_global.sh`: Copy commands from `~/.claude/commands/` → `claude-code/commands/`
-- `sync_commands_to_global.sh`: Copy commands from `claude-code/commands/` → `~/.claude/commands/`
-- `sync_docs_from_global.sh`: Copy docs from `~/.claude/docs/` → `claude-code/docs/`
-- `sync_docs_to_global.sh`: Copy docs from `claude-code/docs/` → `~/.claude/docs/`
+## Sync Scripts
 
-All sync scripts support `--overwrite` flag to clear destination before copying (default: overwrites only matching filenames)
+Bidirectional sync between this repo and `~/.claude/`:
+
+| Script | Direction |
+|--------|-----------|
+| `sync_plugins_to_global.sh` | Plugins -> ~/.claude/plugins/ |
+| `sync_commands_to_global.sh` | Commands -> ~/.claude/commands/ |
+| `sync_skills_to_global.sh` | Skills -> ~/.claude/skills/ |
+| `sync_docs_to_global.sh` | Docs -> ~/.claude/docs/ |
+| `sync_claude_md_to_global.sh` | CLAUDE.md -> ~/.claude/ |
+| `sync_mcp_settings_to_global.sh` | MCP config -> ~/.claude/ |
+
+All scripts support `--overwrite` flag. Reverse sync scripts (`*_from_global.sh`) also available.
+
+## Usage
+
+### First-time Setup
+
+```bash
+# Sync plugins to global
+./scripts/sync_plugins_to_global.sh
+
+# Load plugin
+claude --plugin-dir ~/.claude/plugins/tdd-workflow
+```
+
+### Start TDD Workflow
+
+```bash
+/tdd-workflow:start my-feature "Add user authentication"
+```
+
+### Resume After Context Clear
+
+```bash
+/clear
+/tdd-workflow:resume my-feature --phase 6
+```
+
+## External Dependencies
+
+- **ralph-loop plugin** (required for TDD implement phase)
+- **Claude Code** (runtime environment)
+- **uv** (Python package management)
+
+## Documentation
+
+- `CODEBASE.md` - Comprehensive codebase analysis with workflow traces
+- `claude-code/plugins/tdd-workflow/README.md` - TDD workflow reference
+- `claude-code/plugins/debug-workflow/README.md` - Debug workflow reference
+- `claude-code/docs/` - Python, UV, Docker best practices
 
 ---
 
-*This configuration repository is designed to be a living collection that evolves with your development needs. Feel free to adapt and extend these configurations for your specific workflow requirements.*
+*Configuration repository for AI-assisted development workflows.*

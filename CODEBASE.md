@@ -1,7 +1,7 @@
 # Personal Configs - Codebase Analysis
 
 > Last updated: 2026-01-23
-> Iteration: 3 of 3 (FINAL)
+> Iteration: 4 (phase validation update)
 
 ## 1. System Purpose & Domain
 
@@ -157,6 +157,7 @@ description: When to auto-activate
 | Parallel exploration | 5 agents in parallel | Sequential exploration | Faster exploration vs. higher token cost |
 | Context checkpoints | Manual /clear + /resume | Automatic context management | User control vs. workflow interruption |
 | No mocking | Real APIs always | Mock for unit tests | Integration confidence vs. test speed |
+| Phase validation on resume | Validate prerequisites + explicit sequences | Trust model to follow docs | Prevents phase skipping vs. more verbose instructions |
 
 ## 6. Code Quality & Patterns
 
@@ -175,7 +176,9 @@ description: When to auto-activate
 **Context Checkpoint Pattern:**
 - Save progress to docs/ at strategic points
 - Prompt user to run /clear
-- /resume reads state files to restore context
+- /resume validates phase prerequisites before allowing continuation
+- /resume provides explicit execution sequences (not just "where to start" but "what phases to complete")
+- Phase validation prevents skipping (e.g., can't jump to Phase 6 without completing Phases 4-5)
 
 ### Testing Strategy
 
@@ -206,19 +209,17 @@ EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE �
 - API keys via environment variables (`${CONTEXT7_API_KEY}`, `${EXA_API_KEY}`)
 - Bidirectional sync scripts maintain repo ↔ `~/.claude/` consistency
 
-## 7. Documentation Accuracy Audit (Iteration 3)
+## 7. Documentation Accuracy Audit (Iteration 4)
 
-### Critical: README.md is severely outdated
+### README.md - Updated and Accurate
 
-| Doc Claim | Reality | File Reference |
-|-----------|---------|----------------|
-| README structure shows minimal tree | Actual repo has extensive plugins, 13 scripts, docs/ | `README.md:7-20` |
-| README mentions Notion MCP server | Not in global_mcp_settings.json (context7, fetch, exa, playwright instead) | `README.md:29` |
-| README mentions browser-tools-mcp | Not in global_mcp_settings.json (playwright MCP instead) | `README.md:30` |
-| README shows 4 commands | Actually 16 shared + 10 TDD + 7 debug commands | `README.md:49-53` |
-| README sync scripts list 4 | Actually 13 sync scripts exist | `README.md:64-67` |
-| No mention of plugins | TDD and debug plugins are core functionality | `README.md` |
-| No mention of hooks | Auto-test hook is key TDD feature | `README.md` |
+README.md was rewritten (2026-01-23) to reflect current repository state:
+- Accurate repository structure with plugins, scripts, docs
+- Correct MCP servers (context7, fetch, exa, playwright)
+- All major commands documented
+- Plugin architecture explained
+- Phase validation feature documented
+- Sync scripts table included
 
 ### Confirmed Accurate
 
@@ -231,16 +232,6 @@ EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE �
 | TDD has 7 agents | Confirmed | `tdd-workflow/agents/` |
 | Debug has 4 agents | Confirmed | `debug-workflow/agents/` |
 | Hooks auto-run tests | PostToolUse on Write\|Edit triggers run-tests.sh | `tdd-workflow/hooks/hooks.json` |
-
-### Recommendation
-
-**README.md should be rewritten** to reflect current repository state. Key additions needed:
-1. Plugin architecture (tdd-workflow, debug-workflow)
-2. Hooks system (auto-test on Write|Edit)
-3. All 13 sync scripts
-4. MCP server configuration (context7, fetch, exa, playwright)
-5. Skills system
-6. Marketplace configuration
 
 ## 8. Open Questions (Iteration 2 Answers)
 
@@ -289,6 +280,7 @@ PHASE 1: Parallel Exploration (5 code-explorer agents via Task tool)
 
 ══════ CONTEXT CHECKPOINT 1 ══════
 User prompted via AskUserQuestionTool → /clear → /tdd-workflow:resume {feature} --phase 2
+Resume validates: Phase 1 complete → Executes Phases 2→3→4→5 in sequence
 
 PHASE 2: Specification Interview (40+ questions via AskUserQuestionTool)
 ├── Core Functionality: What, why, inputs, outputs, happy path
@@ -311,6 +303,7 @@ PHASE 5: Plan Approval (AskUserQuestionTool)
 
 ══════ CONTEXT CHECKPOINT 2 ══════
 User prompted → /clear → /tdd-workflow:resume {feature} --phase 6
+Resume validates: Phases 1-5 complete (incl. Review & Approval) → Executes Phases 6→7 in sequence
 
 PHASE 6: Orchestrated TDD Implementation
 ├── MAIN INSTANCE runs: /ralph-loop:ralph-loop for each component
@@ -329,6 +322,7 @@ PHASE 7: E2E Testing (Orchestrated)
 
 ══════ CONTEXT CHECKPOINT 3 ══════
 User prompted → /clear → /tdd-workflow:resume {feature} --phase 8
+Resume validates: Phases 1-7 complete → Executes Phases 8→9→10 to completion
 
 PHASE 8: Parallel Multi-Aspect Review (5 code-reviewer agents)
 ├── Security: Injection, auth, secrets
