@@ -44,21 +44,24 @@ No dependencies, no build, no deployment.
 - `claude-code/global_mcp_settings.json`: MCP server config
 - `claude-code/plugins/tdd-workflow/README.md`: TDD workflow reference
 - `claude-code/plugins/debug-workflow/README.md`: Debug workflow reference
-- `CODEBASE.md`: Comprehensive codebase analysis
+- `CODEBASE.md`: Comprehensive codebase analysis (see for detailed architecture, workflows, open questions)
 
 ## Dependencies
 
 - **ralph-loop plugin** (required for TDD implement phase)
+  - Install: `/plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum`
+  - Safety: ALWAYS set `--max-iterations` (50 iterations = $50-100+ in API costs)
 - **Claude Code** (runtime environment)
 
 ## Gotchas
 
 - Plugins must be synced to `~/.claude/plugins/` before use
-- `ralph-loop` is external dependency, not included
+- `ralph-loop` is external dependency - install via plugin marketplace (see Dependencies)
 - `claude-code/CLAUDE.md` is a TEMPLATE (syncs to ~/.claude/), not this repo's CLAUDE.md
 - Test auto-detection exits 0 when no framework found (non-fatal for repos without tests)
 - Context checkpoints are manual (/clear + /resume), not automatic
 - Resume command validates phase prerequisites (can't skip phases)
+- Single MCP server with 20 tools = ~14,000 tokens; disable unused servers before heavy work
 
 ## Sync Usage
 

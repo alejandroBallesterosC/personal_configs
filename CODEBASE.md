@@ -1,481 +1,493 @@
 # Personal Configs - Codebase Analysis
 
 > Last updated: 2026-01-23
-> Iteration: 5 (phase reordering - architecture before plan)
+> Iteration: 3 of 3 (FINAL)
 
 ## 1. System Purpose & Domain
 
-**Development infrastructure repository** for AI-assisted workflows with Claude Code. Contains configuration, documentation, and automation - **no application code**.
+**Purpose:** AI-assisted development workflow orchestration platform for Claude Code. This is a configuration-only repository containing zero application code—only markdown commands, YAML agent definitions, JSON configuration, and bash automation scripts.
 
 **Core Domain Entities:**
-- **Plugins**: Encapsulated workflow systems (TDD, Debug)
-- **Agents**: Specialized AI workers with constrained tools (`claude-code/plugins/*/agents/*.md`)
-- **Commands**: Orchestration entry points (`claude-code/plugins/*/commands/*.md`, `claude-code/commands/*.md`)
-- **Skills**: Domain knowledge modules that auto-activate on context match (`claude-code/plugins/*/skills/*/SKILL.md`)
-- **Hooks**: Automation triggers (PostToolUse events)
 
-**Problem Solved:** Provides structured, repeatable AI-assisted development workflows with:
-- TDD implementation with parallel exploration and review
-- Hypothesis-driven debugging with instrumentation
-- Configuration sync between repo and global `~/.claude/`
+| Entity | Definition | Location |
+|--------|------------|----------|
+| **Plugin** | Encapsulated workflow with agents, commands, skills, hooks | `claude-code/plugins/*/` |
+| **Agent** | Specialized task executor with defined tools and model | `*/agents/*.md` (YAML frontmatter) |
+| **Command** | CLI entry point for workflow phases | `*/commands/*.md` |
+| **Skill** | Auto-activated methodology guidance | `*/skills/*/SKILL.md` |
+| **Hook** | PostToolUse automation trigger | `*/hooks/hooks.json` |
+
+**Two Primary Plugins:**
+1. **TDD Workflow** (v1.0.0): 9-phase test-driven development with parallel exploration/review
+2. **Debug Workflow** (v1.0.0): Hypothesis-driven debugging with instrumentation
 
 ## 2. Technology Stack
 
-| Category | Technology | Source |
-|----------|------------|--------|
-| Configuration | Markdown (workflows), JSON (configs), YAML (frontmatter) | All files |
-| Automation | Bash shell scripts | `scripts/*.sh` |
-| IDE Support | VS Code (15 tasks), Cursor (rules) | `.vscode/`, `.cursor/` |
-| AI Runtime | Claude Code (Anthropic) | External dependency |
-| MCP Servers | context7, fetch, exa, playwright | `global_mcp_settings.json` |
+### Languages & Formats
+- **Markdown** (62 files): Commands, agents, skills, documentation
+- **JSON** (8 files): Plugin manifests, MCP config, IDE tasks, hooks
+- **Bash** (15 files): Bidirectional sync scripts, test automation
 
-**External Dependencies:**
-- **ralph-loop plugin** (required for TDD implement phase)
-- **uv** (Python package management)
-- **npx** (JavaScript package execution)
-- Test frameworks: pytest, jest, vitest, go test, cargo test, rspec, minitest, mix
+### Runtime Dependencies
+- **Claude Code**: Platform runtime (required)
+- **ralph-loop plugin**: TDD Phase 7 orchestration (external dependency)
+
+### MCP Servers (from `global_mcp_settings.json`)
+| Server | Type | Purpose | Auth |
+|--------|------|---------|------|
+| context7 | HTTP | Documentation retrieval | API key |
+| fetch | stdio/uvx | URL content fetching | None |
+| exa | stdio/npx | Web search, code context | API key |
+| playwright | stdio/npx | Browser automation | None |
+
+### Test Framework Support (auto-detected)
+- Python: pytest (with uv)
+- JavaScript: vitest, jest
+- Go: go test
+- Rust: cargo test
+- Ruby: rspec, minitest
+- Elixir: mix test
 
 ## 3. Architecture
 
-**Pattern**: Modular Plugin System
+### Pattern: Modular Plugin Architecture
 
 ```
-personal_configs/
-├── claude-code/
-│   ├── plugins/                    # Encapsulated workflow plugins
-│   │   ├── tdd-workflow/           # 7 agents, 10 commands, 6 skills, hooks
-│   │   │   ├── .claude-plugin/plugin.json
-│   │   │   ├── agents/             # Specialized AI workers
-│   │   │   ├── commands/           # Orchestration entry points
-│   │   │   ├── skills/             # Auto-activating guidance
-│   │   │   ├── hooks/              # PostToolUse triggers
-│   │   │   └── scripts/            # Test detection & execution
-│   │   └── debug-workflow/         # 4 agents, 7 commands, 1 skill
-│   │       └── [same structure]
-│   ├── commands/                   # 16 shared global commands
-│   ├── docs/                       # Python, UV, Docker best practices
-│   ├── CLAUDE.md                   # Global coding standards template
-│   └── global_mcp_settings.json    # MCP server configuration
-└── scripts/                        # 13 sync scripts (bidirectional)
+┌─────────────────────────────────────────────────────────────────┐
+│                   Claude Code Platform (Runtime)                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ▲
+                              │ loads plugins from ~/.claude/
+                              │
+┌─────────────────────────────────────────────────────────────────┐
+│              personal_configs Repository (This codebase)         │
+├──────────────────┬───────────────────┬─────────────────────────┤
+│  Plugin Layer    │   Shared Layer    │   Infrastructure        │
+├──────────────────┼───────────────────┼─────────────────────────┤
+│  tdd-workflow/   │   commands/       │   scripts/ (13 sync)    │
+│   - 7 agents     │    16 shared      │   .vscode/tasks.json    │
+│   - 11 commands  │   docs/ (3)       │   MCP config            │
+│   - 6 skills     │   CLAUDE.md       │   .claude/settings      │
+│   - hooks.json   │    (template)     │                         │
+│                  │                   │                         │
+│  debug-workflow/ │                   │                         │
+│   - 4 agents     │                   │                         │
+│   - 7 commands   │                   │                         │
+│   - 1 skill      │                   │                         │
+└──────────────────┴───────────────────┴─────────────────────────┘
+          │
+          ▼ syncs to
+┌─────────────────────────────────────────────────────────────────┐
+│                    ~/.claude/ (Global Config)                    │
+│   plugins/ │ commands/ │ skills/ │ docs/ │ CLAUDE.md            │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Data Flow:**
+### Data Flow
 
+**TDD Workflow (9 phases):**
 ```
-User Command → Plugin Command → Spawns Agents (via Task tool)
-                    ↓
-              Main Instance (owns feedback loop)
-                    ↓
-              Runs Tests/Verification
-                    ↓
-              State Files (docs/*.md)
+Phase 2 (Explore) ─────────────────┐
+  5 parallel code-explorer agents  │
+  Output: exploration.md           │
+           ↓                       │ Checkpoint 1
+Phase 3 (Interview) ←──────────────┘
+  40+ interview questions
+  Output: specs.md
+           ↓
+Phase 4 (Architecture)
+  code-architect agent
+  Output: arch.md
+           ↓
+Phase 5 (Planning)
+  Main instance
+  Output: plan.md
+           ↓
+Phase 6 (Review) ──────────────────┐
+  plan-reviewer agent              │
+  Gate: User approval              │ Checkpoint 2
+           ↓                       │
+Phase 7 (Implement) ←──────────────┘
+  ralph-loop orchestration
+  RED → GREEN → REFACTOR cycle
+           ↓
+Phase 8 (E2E Testing) ─────────────┐
+  ralph-loop orchestration         │
+  Output: passing E2E tests        │ Checkpoint 3
+           ↓                       │
+Phase 9 (Review) ←─────────────────┘
+  5 parallel code-reviewer agents
+  Fix critical issues
+  Output: FIX_COMPLETE
 ```
 
-**Key Architectural Decisions:**
-1. Main instance owns verification loops (tests, reviews)
-2. Subagents are stateless workers with constrained tools
-3. Parallel for read operations (exploration, review)
-4. Sequential for state-changing operations (TDD implementation)
-5. Context checkpoints via file-based state persistence
+**Debug Workflow (9 phases):**
+```
+EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE → FIX → VERIFY → CLEAN
+```
 
 ## 4. Boundaries & Interfaces
 
-### Plugin Boundary
-
-**Contract**: Plugin manifest (`plugin.json`)
-```json
-{
-  "name": "plugin-name",
-  "description": "What it does",
-  "version": "1.0.0"
-}
-```
-
-**Coupling**: Loose - plugins are fully self-contained, no cross-plugin dependencies
-
-### Agent Interface
-
-**Contract**: YAML frontmatter in markdown
+### Agent Contract (YAML Frontmatter)
 ```yaml
 ---
-name: agent-name
-description: Activation trigger / role description
-tools: [Tool1, Tool2, ...]    # Constrained capability
-model: opus|sonnet            # Model assignment
+name: <agent-name>           # Task tool invocation identifier
+description: <role>          # Auto-activation trigger
+tools: [Read, Write, ...]    # Available capabilities
+model: opus|sonnet           # Model preference
 ---
 ```
 
-**Coupling**: Tight with orchestrating command - agents designed for specific workflow phases
+**Read-only agents:** code-explorer, test-designer, debug-explorer, hypothesis-generator, plan-reviewer, log-analyzer
+**Write agents:** implementer, refactorer, instrumenter
 
-### Command Interface
-
-**Contract**: YAML frontmatter + markdown body
+### Command Contract
 ```yaml
 ---
-description: What this command does
+description: <purpose>
 model: opus|sonnet
-argument-hint: <arg1> "<arg2>"
+argument-hint: <usage>
 ---
 ```
 
-**Coupling**: Commands depend on agents they spawn, state files they read/write
-
-### Skill Interface
-
-**Contract**: YAML frontmatter in `SKILL.md`
-```yaml
----
-name: skill-name
-description: When to auto-activate
----
-```
-
-**Coupling**: Loose - skills activate based on context matching, no explicit dependencies
-
-### Hook Interface
-
-**Contract**: `hooks.json` configuration
+### Plugin Manifest (`plugin.json`)
 ```json
 {
-  "hooks": {
-    "PostToolUse": [
-      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "..." }] }
-    ]
-  }
+  "name": "<plugin-name>",
+  "description": "<purpose>",
+  "version": "1.0.0",
+  "author": { "name": "jandro" }
 }
 ```
 
-**Coupling**: Loose - hooks triggered by tool events, independent of workflow state
+### Hook Contract (`hooks.json`)
+```json
+{
+  "PostToolUse": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [{ "type": "command", "command": "run-tests.sh", "timeout": 120 }]
+    }
+  ]
+}
+```
+
+### Coupling Assessment
+- **Loose:** Plugins are independent; commands are shared utilities
+- **Strict contracts:** YAML frontmatter enforces interface definition
+- **External dependency:** ralph-loop plugin required for TDD Phase 7
 
 ## 5. Key Design Decisions & Tradeoffs
 
 | Decision | Chosen | Alternative | Tradeoff |
 |----------|--------|-------------|----------|
-| Main instance owns tests | Orchestrator runs tests | Subagents run tests | Higher quality (orchestrator sees real output) vs. slower iteration |
-| File-based state | Markdown in docs/ | Database, JSON | Human-readable + git-friendly vs. no schema validation |
-| YAML frontmatter | Embedded metadata | Separate config files | Single source of truth vs. parsing complexity |
-| Parallel exploration | 5 agents in parallel | Sequential exploration | Faster exploration vs. higher token cost |
-| Context checkpoints | Manual /clear + /resume | Automatic context management | User control vs. workflow interruption |
-| No mocking | Real APIs always | Mock for unit tests | Integration confidence vs. test speed |
-| Phase validation on resume | Validate prerequisites + explicit sequences | Trust model to follow docs | Prevents phase skipping vs. more verbose instructions |
+| **Config-only repo** | Markdown + JSON | Python/JS implementation | Human-readable, version-controllable, but limited to simple config |
+| **Main instance owns feedback** | ralph-loop orchestration | Subagent-driven loops | Context managed centrally; requires external plugin dependency |
+| **Parallel read-only phases** | 5 agents for explore/review | Sequential processing | Faster exploration; more complex orchestration |
+| **Context checkpoints** | Manual /clear + /resume | Automatic summarization | Quality maintained; requires user action |
+| **Real APIs first** | Production credentials | Mock implementations | Catches integration issues; requires API key availability |
+| **Bidirectional sync** | Both directions supported | One-way only | Flexibility; potential conflict resolution complexity |
+| **Phase-based state** | Sequential progression | Free-form | Clear checkpoints; cannot skip phases |
 
 ## 6. Code Quality & Patterns
 
 ### Recurring Patterns
 
-**Orchestrator-Subagent Pattern:**
-- Main instance spawns subagents via Task tool
-- Subagents do ONE discrete task and return
-- Main instance validates results (runs tests, reviews output)
+**1. Graceful degradation** (`run-tests.sh:20-30`)
+```bash
+if command -v pytest &> /dev/null; then
+    uv run pytest -q
+else
+    echo "pytest not found"
+    exit 0  # Non-fatal
+fi
+```
 
-**Parallel Agent Pattern:**
-- Single command spawns N agents simultaneously
-- Each agent explores from different angle
-- Results synthesized into single document
+**2. Fail-fast automation** (all sync scripts)
+```bash
+set -e  # Exit on first error
+```
 
-**Context Checkpoint Pattern:**
-- Save progress to docs/ at strategic points
-- Prompt user to run /clear
-- /reinitialize-context-after-clear-and-continue-workflow validates phase prerequisites before allowing continuation
-- Provides explicit execution sequences (not just "where to start" but "what phases to complete")
-- Phase validation prevents skipping (e.g., can't jump to Phase 7 without completing Phases 2-6)
+**3. Pre-flight validation** (`sync_plugins_to_global.sh:11-14`)
+```bash
+if [ ! -d "$REPO_PLUGINS_DIR" ]; then
+    echo "Error: Directory not found"
+    exit 1
+fi
+```
 
 ### Testing Strategy
-
-**Meta-testing framework** - provides test orchestration for external projects:
-- Auto-detection: `scripts/detect-test-runner.sh` (pytest, jest, vitest, go, cargo, rspec, minitest, mix)
-- Execution: `scripts/run-tests.sh`
-- Auto-trigger: PostToolUse hook on Write|Edit
-
-**TDD Methodology (from skills/tdd-guide):**
-- RED: Write ONE failing test
-- GREEN: Write MINIMAL code to pass
-- REFACTOR: Improve while keeping tests green
+- **No tests in this repo:** Configuration-only repository
+- **Test infrastructure:** Auto-detect and run 8+ frameworks via hooks
+- **TDD enforcement:** Phase 7 uses RED→GREEN→REFACTOR cycle
+- **Continuous verification:** PostToolUse hooks run tests on Write|Edit
 
 ### Error Handling
-
-**Debugging Methodology (from debug-workflow):**
-```
-EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE → FIX → VERIFY → CLEAN
-```
-
-- Hypothesis-first: Never fix without understanding root cause
-- Evidence-driven: Let logs decide, not intuition
-- Instrumentation pattern: `[DEBUG-H1]` tags in log statements
+| Error Type | Handling | Exit Code |
+|------------|----------|-----------|
+| Missing tool | Log, continue | 0 (non-fatal) |
+| Invalid path | Log, exit | 1 (fatal) |
+| Test failure | Pass through | From test runner |
+| Missing context | Ask user | N/A |
 
 ### Configuration Management
+- **Environment:** `.env` (gitignored) for API keys
+- **Local settings:** `.claude/settings.local.json` for permissions
+- **Global template:** `claude-code/CLAUDE.md` syncs to ~/.claude/
 
-- MCP servers configured in `global_mcp_settings.json`
-- API keys via environment variables (`${CONTEXT7_API_KEY}`, `${EXA_API_KEY}`)
-- Bidirectional sync scripts maintain repo ↔ `~/.claude/` consistency
-
-## 7. Documentation Accuracy Audit (Iteration 4)
-
-### README.md - Updated and Accurate
-
-README.md was rewritten (2026-01-23) to reflect current repository state:
-- Accurate repository structure with plugins, scripts, docs
-- Correct MCP servers (context7, fetch, exa, playwright)
-- All major commands documented
-- Plugin architecture explained
-- Phase validation feature documented
-- Sync scripts table included
-
-### Confirmed Accurate
+## 7. Documentation Accuracy Audit
 
 | Doc Claim | Reality | File Reference |
 |-----------|---------|----------------|
-| TDD workflow README accurate | 8-phase workflow (Phases 2-9), checkpoints, agents all match code | `tdd-workflow/README.md` |
-| Debug workflow README accurate | 9-phase flow matches command implementation | `debug-workflow/README.md` |
-| CLAUDE.md conventions | Applied throughout codebase | `claude-code/CLAUDE.md` |
-| 16 shared commands | Confirmed - 16 .md files in commands/ | `claude-code/commands/` |
-| TDD has 7 agents | Confirmed | `tdd-workflow/agents/` |
-| Debug has 4 agents | Confirmed | `debug-workflow/agents/` |
-| Hooks auto-run tests | PostToolUse on Write\|Edit triggers run-tests.sh | `tdd-workflow/hooks/hooks.json` |
+| "No application code" | Verified: 0 .py/.js/.go files | `CLAUDE.md:20` |
+| "ralph-loop required" | Not bundled, external dependency | `tdd-workflow/README.md` |
+| "8+ test frameworks" | Verified in detection script | `scripts/detect-test-runner.sh:1-50` |
+| "Bidirectional sync" | All 13 scripts support both directions | `scripts/sync_*_to_global.sh`, `scripts/sync_*_from_global.sh` |
 
-## 8. Open Questions (Iteration 2 Answers)
+## 8. Open Questions
 
-- [x] **What is the exact integration pattern with ralph-loop plugin?**
-  - **Answer**: TDD start.md invokes `/ralph-loop:ralph-loop` with a detailed prompt. The prompt includes context files, component details, and TDD cycle instructions. Ralph-loop manages iteration (`--max-iterations 50`, `--completion-promise "COMPONENT_COMPLETE"`). Main instance owns the outer loop, ralph-loop manages inner iteration.
-  - **Source**: `tdd-workflow/commands/start.md:613-698`
+- [x] What happens if context checkpoints are skipped? **ANSWERED:** Resume command validates prerequisites per phase (see table in `reinitialize-context-after-clear-and-continue-workflow.md:27-31`). If Phase 6 not completed before Phase 7, user is warned and asked via AskUserQuestionTool whether to proceed.
+- [x] How do skills auto-activate? **ANSWERED:** Skills have `name` and `description` in YAML frontmatter. Activation is based on description matching context (e.g., "Provides TDD guidance when writing tests").
+- [x] Where is ralph-loop plugin sourced from? **ANSWERED:** "Ralph Wiggum" pattern by Geoffrey Huntley, packaged as official plugin by Boris Cherny. Install via `/plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum` (per `workflow_plan.md:119-123`). Uses Stop hook to intercept exit code 2 and re-feed prompts.
+- [ ] How are API key secrets managed beyond .env? No vault/secrets manager referenced.
+- [ ] Are there version compatibility requirements between plugins and Claude Code?
+- [ ] What's the conflict resolution strategy for bidirectional sync? Scripts use `rm -rf` + `cp -r` (last write wins).
+- [ ] How are MCP server errors handled during workflow execution? No fallback documented.
+- [ ] Is there a maximum context size that triggers checkpoint recommendations?
+- [ ] What happens when hook timeout (120s) is exceeded? Claude Code platform behavior undocumented here.
 
-- [x] **How do context checkpoints determine optimal timing?**
-  - **Answer**: Manual heuristic - documentation quotes "60k tokens or 30% context" from community best practices. No automated detection. Checkpoints occur at fixed workflow points: after exploration (Phase 2), after planning/review (Phase 6), after E2E testing (Phase 8).
-  - **Source**: `tdd-workflow/commands/1-start.md`
+## 9. Ambiguities
 
-- [x] **Are there any undocumented hook configurations in debug-workflow?**
-  - **Answer**: No - debug-workflow has no hooks directory. Only tdd-workflow has hooks (PostToolUse on Write|Edit).
-  - **Source**: Directory listing shows no `debug-workflow/hooks/` exists
+1. **ralph-loop integration:** Installation documented in `workflow_plan.md:119-123` but not in plugin READMEs. Users must know to check workflow_plan.md. Invoked as `/ralph-loop:ralph-loop "..." --max-iterations N --completion-promise "TEXT"`.
+2. **Hook timeout behavior:** `hooks.json:12` sets 120s timeout but doesn't document timeout consequences.
+3. **MCP server failure modes:** No documented fallback when servers are unavailable. Used for context7 (docs), exa (search), playwright (browser).
+4. **Sync conflict resolution:** `sync_plugins_to_global.sh:40` does `rm -rf` then `cp -r` — last write wins, no merge.
+5. **Phase skip consequences:** User can force skip with AskUserQuestionTool confirmation, but quality implications undocumented.
 
-- [x] **What triggers skill auto-activation?**
-  - **Answer**: Skills activate when their `description` field matches the current context. The skill explicitly states "Announce at start: 'I'm using the tdd-guide skill.'" suggesting the model self-identifies when activating.
-  - **Source**: `tdd-workflow/skills/tdd-guide/SKILL.md:18-19`
+## 10. Deep Dive Findings (Iteration 2)
 
-- [x] **How does marketplace.json plugin discovery work?**
-  - **Answer**: Sync script copies marketplace manifest to `~/.claude/plugins/.claude-plugin/`. Users then run `/plugin marketplace add ~/.claude/plugins` to register, or `claude --plugin-dir ~/.claude/plugins/<plugin-name>` to load directly.
-  - **Source**: `scripts/sync_plugins_to_global.sh:54-58, 62-63`
+### Execution Flow Analysis
 
-- [x] **Recommended order for sync scripts?**
-  - **Answer**: Scripts are independent. Typical order: plugins first (contains most functionality), then commands/skills/docs for global access, finally CLAUDE.md and MCP servers for environment setup.
-  - **Source**: Scripts have no dependencies on each other
-
-- [ ] **How do agents handle tool permission errors?** - Not documented, depends on Claude Code runtime
-
-- [x] **What happens when test auto-detection fails?**
-  - **Answer**: Script exits 0 (success) with message "No test runner detected". This is intentional - allows hook to trigger without failing the workflow when no tests exist.
-  - **Source**: `tdd-workflow/scripts/run-tests.sh:82-86`
-
-## 9. Workflow Traces (Iteration 2 Deep Dive)
-
-### TDD Workflow: 8-Phase End-to-End Flow (Phases 2-9)
+#### TDD Phase 7 (Implementation) - Key Workflow
+**File:** `claude-code/plugins/tdd-workflow/commands/7-implement.md`
 
 ```
-PHASE 2: Parallel Exploration (5 code-explorer agents via Task tool)
-├── Architecture agent: Layers, components, data flow, entry points
-├── Patterns agent: Naming conventions, abstractions, templates
-├── Boundaries agent: Module contracts, coupling, dependencies
-├── Testing agent: Framework detection, test command, coverage patterns
-└── Dependencies agent: Packages, services, API keys
-└─→ OUTPUT: docs/context/{feature}-exploration.md
-
-══════ CONTEXT CHECKPOINT 1 ══════
-User prompted via AskUserQuestionTool → /clear → /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow {feature} --phase 3
-Resume validates: Phase 2 complete → Executes Phases 3→4→5→6 in sequence
-
-PHASE 3: Specification Interview (40+ questions via AskUserQuestionTool)
-├── Core Functionality: What, why, inputs, outputs, happy path
-├── Technical Constraints: Tech stack, performance, scale, compat
-├── Integration Points: Systems, APIs, data stores, events
-├── Edge Cases: Invalid input, failures, boundaries
-├── Security: Auth, data protection, audit
-├── Testing: Success criteria, automation needs
-└── External Dependencies: APIs, keys, mock fallbacks
-└─→ OUTPUT: docs/specs/{feature}.md
-
-PHASE 4: Architecture Design (code-architect agent optional)
-└─→ OUTPUT: docs/plans/{feature}-arch.md
-
-PHASE 5: Implementation Plan (main instance)
-└─→ OUTPUT: docs/plans/{feature}-plan.md, docs/plans/{feature}-tests.md
-
-PHASE 6: Plan Review & Approval (plan-reviewer agent + user approval)
-├── Challenge assumptions, identify gaps, clarifying questions
-└── User confirms or requests changes
-└─→ User approval required before implementation
-
-══════ CONTEXT CHECKPOINT 2 ══════
-User prompted → /clear → /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow {feature} --phase 7
-Resume validates: Phases 2-6 complete (incl. Review & Approval) → Executes Phases 7→8 in sequence
-
-PHASE 7: Orchestrated TDD Implementation
-├── MAIN INSTANCE runs: /ralph-loop:ralph-loop for each component
-│   ├── RED: Spawn test-designer agent → returns test
-│   │   └── MAIN INSTANCE RUNS TESTS → confirms failure
-│   ├── GREEN: Spawn implementer agent → returns code
-│   │   └── MAIN INSTANCE RUNS TESTS → confirms pass
-│   └── REFACTOR: Spawn refactorer agent → returns improvements
-│       └── MAIN INSTANCE RUNS TESTS → confirms still pass
-└─→ OUTPUT: Implementation files + git commits
-
-PHASE 8: E2E Testing (Orchestrated)
-├── Spawn test-designer for E2E tests
-└── MAIN INSTANCE runs ralph-loop to fix failures
-└─→ OUTPUT: E2E test files passing
-
-══════ CONTEXT CHECKPOINT 3 ══════
-User prompted → /clear → /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow {feature} --phase 9
-Resume validates: Phases 2-8 complete → Executes Phase 9 to completion
-
-PHASE 9: Review, Fixes & Completion
-├── Parallel Multi-Aspect Review (5 code-reviewer agents)
-│   ├── Security: Injection, auth, secrets
-│   ├── Performance: Complexity, efficiency, caching
-│   ├── Code Quality: CLAUDE.md compliance, organization
-│   ├── Test Coverage: Paths, edges, errors
-│   └── Spec Compliance: Requirements met, behavior correct
-├── Final Fixes (ralph-loop on Critical findings)
-└── Completion Summary
-└─→ OUTPUT: docs/workflow/{feature}-review.md, docs/workflow/{feature}-state.md (COMPLETE)
+Main Instance (ralph-loop orchestrator)
+    │
+    ├── Step 1: Foundation (sequential)
+    │   Create shared types, utilities, config
+    │
+    ├── Step 2: Identify Parallel Components
+    │   Read docs/plans/$1-plan.md
+    │
+    ├── Step 3: For each component...
+    │   │
+    │   └── ralph-loop TDD cycle (max 50 iterations)
+    │       │
+    │       ├── RED: Spawn test-designer subagent
+    │       │   → Write ONE failing test
+    │       │   → Main instance RUNS tests (verify red)
+    │       │   → Commit: "red: [$feature][$component] test for [req]"
+    │       │
+    │       ├── GREEN: Spawn implementer subagent
+    │       │   → Write MINIMAL code to pass
+    │       │   → Main instance RUNS tests (verify green)
+    │       │   → Commit: "green: [$feature][$component] [req]"
+    │       │
+    │       └── REFACTOR: Spawn refactorer subagent (optional)
+    │           → Improve code quality
+    │           → Main instance RUNS tests (verify still green)
+    │           → Commit: "refactor: [$feature][$component] [desc]"
+    │
+    └── Step 5: Integration Layer (ralph-loop, max 20 iterations)
+        Wire components together
+        Output: INTEGRATION_$1_COMPLETE
 ```
 
-### Agents by Phase
+**Key Insight:** Main instance owns feedback loop and runs tests directly. Subagents are stateless workers.
 
-| Phase | Agent(s) Used | How to Invoke |
-|-------|---------------|---------------|
-| Phase 2: Exploration | `code-explorer` (5x parallel) | `Task tool with subagent_type: "tdd-workflow:code-explorer"` |
-| Phase 3: Interview | None (main instance) | Main instance uses AskUserQuestionTool |
-| Phase 4: Architecture | `code-architect` (optional) | `Task tool with subagent_type: "tdd-workflow:code-architect"` |
-| Phase 5: Plan | None (main instance) | Main instance creates plan from architecture |
-| Phase 6: Review | `plan-reviewer` | `Task tool with subagent_type: "tdd-workflow:plan-reviewer"` |
-| Phase 7: Implement | `test-designer`, `implementer`, `refactorer` | Via ralph-loop orchestration |
-| Phase 8: E2E Test | `test-designer`, `implementer` | Via ralph-loop orchestration |
-| Phase 9: Review | `code-reviewer` (5x parallel) | `Task tool with subagent_type: "tdd-workflow:code-reviewer"` |
+#### Debug Workflow - Key Phases
+**File:** `claude-code/plugins/debug-workflow/commands/debug.md`
 
-### Debug Workflow: 9-Phase Flow
+9-phase systematic debugging:
+1. **EXPLORE:** debug-explorer agent maps execution flow
+2. **DESCRIBE:** Collect bug context via AskUserQuestionTool
+3. **HYPOTHESIZE:** Generate 3-5 ranked theories
+4. **INSTRUMENT:** Add tagged logging (`[DEBUG-H1]`, `[DEBUG-H2]`)
+5. **REPRODUCE:** Guide user to trigger bug
+6. **ANALYZE:** Match logs against hypotheses (CONFIRMED/REJECTED/INCONCLUSIVE)
+7. **FIX:** Minimal fix + regression test
+8. **VERIFY:** Confirm fix works
+9. **CLEAN:** Remove all debug instrumentation (`// DEBUG: Remove after fix`)
 
-```
-EXPLORE: debug-explorer agent maps relevant systems
-    └─→ File mapping, execution flow, dependencies, recent changes
+**Key Principle:** "Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result." - Boris Cherny (cited in docs)
 
-DESCRIBE: AskUserQuestionTool gathers bug context
-    └─→ OUTPUT: docs/debug/{bug}-bug.md
+### Hook System Details
 
-HYPOTHESIZE: hypothesis-generator agent creates theories
-    └─→ OUTPUT: docs/debug/{bug}-hypotheses.md (3-5 ranked theories)
+**File:** `claude-code/plugins/tdd-workflow/hooks/hooks.json`
 
-INSTRUMENT: instrumenter agent adds targeted logging
-    └─→ Tags: [DEBUG-H1], [DEBUG-H2], etc.
-    └─→ Comment: // DEBUG: Remove after fix
-
-REPRODUCE: Guide user to trigger bug with instrumentation active
-
-ANALYZE: log-analyzer agent matches logs to hypotheses
-    └─→ For each: CONFIRMED / REJECTED / INCONCLUSIVE
-    └─→ If all rejected: Return to HYPOTHESIZE
-
-FIX: Propose minimal fix (keep instrumentation)
-
-VERIFY: Apply fix, reproduce scenario, confirm behavior
-
-CLEAN: Remove [DEBUG-Hx] statements, commit fix only
+```json
+{
+  "PostToolUse": [{
+    "matcher": "Write|Edit",
+    "hooks": [{
+      "type": "command",
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/run-tests.sh",
+      "timeout": 120
+    }]
+  }]
+}
 ```
 
-### State File Schema
+**Behavior:**
+- Triggers on ANY Write or Edit tool use
+- Runs auto-detected test framework (8+ supported)
+- 120 second timeout
+- Non-fatal exit on missing runner (`exit 0`)
 
-**Location**: `docs/workflow/{feature}-state.md`
+### MCP Server Configuration Details
 
-```markdown
-# Workflow State: {feature}
+**File:** `claude-code/global_mcp_settings.json`
 
-## Current Phase
-Phase N: {Name}
+| Server | Protocol | Command/URL | Auth Method |
+|--------|----------|-------------|-------------|
+| context7 | HTTP | `https://mcp.context7.com/mcp` | Header: `CONTEXT7_API_KEY` |
+| fetch | stdio | `uvx mcp-server-fetch` | None |
+| exa | stdio | `npx -y exa-mcp-server` | Env: `EXA_API_KEY` |
+| playwright | stdio | `npx @playwright/mcp@latest` | None |
 
-## Feature
-- **Name**: {feature}
-- **Description**: {description}
+**exa tools enabled:** `get_code_context_exa`, `web_search_exa`, `deep_researcher_start`, `deep_researcher_check`
 
-## Completed Phases
-- [x] Phase 2: Parallel Exploration
-- [x] Phase 3: Specification Interview
-- [x] Phase 4: Architecture Design
-- [x] Phase 5: Implementation Plan
-- [x] Phase 6: Plan Review & Approval
-- [ ] Phase 7: TDD Implementation
-- [ ] Phase 8: E2E Testing
-- [ ] Phase 9: Review, Fixes & Completion
+### Permission Configuration
 
-## Key Decisions
-- {decision from interview}
-- {architecture choice}
+**File:** `.claude/settings.local.json`
 
-## Context Restoration Files
-1. docs/workflow/{feature}-state.md
-2. docs/context/{feature}-exploration.md
-3. docs/specs/{feature}.md
-4. docs/plans/{feature}-arch.md
-5. docs/plans/{feature}-plan.md
-6. CLAUDE.md
-
-## Resume Command
-/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow {feature} --phase N
+```json
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/jandro/.claude/**)",
+      "WebSearch",
+      "mcp__exa__web_search_exa",
+      "mcp__fetch__fetch"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
 ```
 
-## 11. Remaining Ambiguities
+**Analysis:** Only read access to ~/.claude/, web search, and fetch are pre-approved. All other operations require user confirmation.
 
-**From code alone, cannot determine:**
-1. ~~Ralph-loop integration~~ **RESOLVED** - See workflow traces above
-2. ~~Context checkpoint heuristics~~ **RESOLVED** - Fixed points in workflow, 60k/30% guideline
-3. **MCP server failure handling** - No retry logic or fallback patterns documented
-4. **Plugin versioning strategy** - All plugins at 1.0.0; no upgrade/migration patterns
-5. **Multi-project workflows** - Test runner uses first-match; unclear priority with multiple frameworks
+### Sync Script Analysis
 
-## 12. Iteration 3 Findings: Test Runner Behavior
+**File:** `scripts/sync_plugins_to_global.sh`
 
-**When test detection fails** (no recognized framework):
-- `run-tests.sh:82-86` outputs "No test runner detected" and exits 0
-- Non-fatal exit allows hooks to complete without breaking workflow
-- Appropriate for repos without tests (like this config repo)
+Flow:
+1. Validate source dir exists (fatal error if not)
+2. Create destination dir if needed
+3. If `--overwrite`: Remove only repo plugins from destination (preserves unrelated plugins)
+4. For each plugin: `rm -rf` destination, then `cp -r` source
+5. Copy marketplace manifest if exists
 
-**Test framework priority** (from detect-test-runner.sh):
-1. pytest (pyproject.toml, setup.py, pytest.ini)
-2. vitest (vitest.config.*)
-3. jest (jest.config.*, package.json with jest)
-4. go (go.mod)
-5. cargo (Cargo.toml)
-6. rspec (.rspec, spec/)
-7. minitest (test/*_test.rb)
-8. mix (mix.exs)
+**Conflict Resolution:** Last write wins. No merge, no diff, no backup.
 
-**First match wins** - no multi-framework support currently
+## 11. Iteration 3 Findings: Ralph-Loop & Workflow Philosophy
+
+### Ralph-Loop Plugin Origin & Installation
+
+**Source:** `claude-code/workflow_plan.md:113-131`
+
+The "Ralph Wiggum" pattern was created by Geoffrey Huntley and packaged as an official plugin by Boris Cherny. It implements **autonomous iteration loops** where Claude works continuously until completion criteria.
+
+**How it works:**
+- Uses a Stop hook that intercepts Claude's exit attempts (exit code 2)
+- Feeds the same prompt back to Claude
+- Claude observes its own modifications through git history and file changes
+- Prompt stays constant, but codebase evolves
+
+**Installation:**
+```bash
+/plugin marketplace add anthropics/claude-code
+/plugin install ralph-wiggum
+```
+
+**Commands:**
+```bash
+/ralph-loop "<prompt>" --max-iterations N
+/ralph-loop "<prompt>" --max-iterations N --completion-promise "DONE"
+/cancel-ralph
+```
+
+**Critical Safety:** ALWAYS set `--max-iterations`. 50-iteration loops can cost **$50-100+** in API credits.
+
+### Workflow Philosophy (from workflow_plan.md)
+
+Key quotes that explain the design:
+
+> "A good plan is really important to avoid issues down the line." - Boris Cherny
+
+> "Start a fresh session to execute the completed spec." - Thariq Shihab
+
+> "Ask questions in all caps, record answers, cover feature, UX, UI, architecture, API, security, edge cases, test requirements, and pushback on idealistic ideas." - Mo Bitar
+
+> "Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result." - Boris Cherny
+
+### Context Compaction Behavior
+
+**From workflow_plan.md:322-325:**
+- Auto-compact triggers at ~95% capacity
+- Preserves: architectural decisions, unresolved bugs, implementation details
+- Discards: verbose tool outputs
+- Retains: 5 most recently accessed files + compressed summary
+
+**Best practice:** Manual compact at ~70-80% capacity:
+```
+/compact Focus on: current phase, test results, remaining tasks, key decisions
+```
+
+### CLAUDE.md Persistence
+
+**Critical finding (workflow_plan.md:33-46):** CLAUDE.md is automatically re-injected after context compaction. This makes it the primary mechanism for persistent project memory.
+
+| Location | Scope | Best Use |
+|----------|-------|----------|
+| `~/.claude/CLAUDE.md` | Global | Personal coding preferences |
+| `./CLAUDE.md` | Project root | Team conventions (checked into git) |
+| `./CLAUDE.local.md` | Project root (gitignored) | Personal overrides |
+| `.claude/rules/*.md` | Path-specific | Context-aware rules |
+
+### Cost Considerations
+
+- 50-iteration ralph-loop: **$50-100+ in API credits**
+- Single MCP server with 20 tools: **~14,000 tokens**
+- Recommendation: Disable unused MCP servers before resource-intensive work
+
+### Related Official Plugins
+
+**From workflow_plan.md:347-364:**
+```bash
+/plugin install ralph-wiggum        # Autonomous iteration loops
+/plugin install code-simplifier     # Clean up after long sessions
+/plugin install pr-review-toolkit   # 6 parallel review agents
+```
+
+The pr-review-toolkit runs 6 specialized agents: comment-analyzer, pr-test-analyzer, silent-failure-hunter, type-design-analyzer, code-reviewer, code-simplifier.
 
 ---
 
-## Key Files Reference
-
-| Purpose | Path |
-|---------|------|
-| TDD Plugin Manifest | `claude-code/plugins/tdd-workflow/.claude-plugin/plugin.json` |
-| Debug Plugin Manifest | `claude-code/plugins/debug-workflow/.claude-plugin/plugin.json` |
-| Marketplace Config | `claude-code/plugins/.claude-plugin/marketplace.json` |
-| Auto-Test Hook | `claude-code/plugins/tdd-workflow/hooks/hooks.json` |
-| MCP Servers | `claude-code/global_mcp_settings.json` |
-| Test Runner | `claude-code/plugins/tdd-workflow/scripts/run-tests.sh` |
-| TDD Workflow Orchestrator | `claude-code/plugins/tdd-workflow/commands/1-start.md` |
-| Debug Workflow Orchestrator | `claude-code/plugins/debug-workflow/commands/debug.md` |
-| Global Standards Template | `claude-code/CLAUDE.md` |
-| VS Code Tasks | `.vscode/tasks.json` |
-
-## Statistics
+## File Metrics
 
 | Category | Count |
 |----------|-------|
-| TDD Agents | 7 |
-| TDD Commands | 11 |
-| TDD Skills | 6 |
-| Debug Agents | 4 |
-| Debug Commands | 7 |
-| Debug Skills | 1 |
-| Shared Commands | 16 |
-| Sync Scripts | 13 |
-| VS Code Tasks | 15 |
-| MCP Servers | 4 |
+| Markdown files | 62 |
+| JSON configs | 8 |
+| Bash scripts | 15 |
+| Agents (TDD) | 7 |
+| Agents (Debug) | 4 |
+| Commands (TDD) | 11 |
+| Commands (Debug) | 7 |
+| Commands (Shared) | 16 |
+| Skills (TDD) | 6 |
+| Skills (Debug) | 1 |
+| Total repo size | 2.5 MB |

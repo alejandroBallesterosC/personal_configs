@@ -154,7 +154,7 @@ The reinitialize command restores context and tells you *which* phases to execut
 ---
 
 ### Phase 4: ARCHITECTURE DESIGN
-**Purpose**: Create technical architecture from specification and exploration
+**Purpose**: Create technical architecture from specification and exploration. For simple features/changes do it yourself, for complex features/changes use the code-architect agent to do this.
 
 **What happens**:
 - Technical design based on spec + exploration findings

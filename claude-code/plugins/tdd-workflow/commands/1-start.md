@@ -450,61 +450,67 @@ This phase corresponds to `/5-plan-implementation`. The implementation plan maps
 
 ## PHASE 6: PLAN REVIEW & APPROVAL
 
-**Objective**: Challenge the plan and ensure completeness.
+**Objective**: Challenge the plan and ensure completeness before implementation.
 
-Invoke the **plan-reviewer agent** to critically analyze the plan.
+This phase corresponds to `/6-review-plan`. The plan-reviewer subagent critically analyzes the plan, then findings are presented to the user for approval.
 
-### Review Focus
+### Step 1: Spawn Plan-Reviewer Subagent
 
-The reviewer will:
+Use the Task tool to spawn a `plan-reviewer` agent:
 
-1. **Challenge assumptions**
-   - What are we assuming that might be wrong?
-   - Are component boundaries correct?
-   - Are interfaces well-defined?
+```
+Use Task tool with subagent_type: "tdd-workflow:plan-reviewer"
 
-2. **Identify gaps**
-   - Missing requirements from spec?
-   - Missing error handling?
-   - Missing test scenarios?
+Prompt:
+Feature: $1
 
-3. **Ask clarifying questions**
-   Using AskUserQuestionTool, ask NON-OBVIOUS questions about:
-   - Ambiguous requirements
-   - Edge cases not covered
-   - Integration concerns
-   - Performance implications
+Critically review the implementation plan for this feature.
 
-4. **Provide suggestions**
-   - Alternative approaches
-   - Potential simplifications
-   - Risk mitigations
+Context files to read:
+- docs/context/$1-exploration.md (codebase context)
+- docs/specs/$1.md (specification)
+- docs/plans/$1-arch.md (architecture)
+- docs/plans/$1-plan.md (implementation plan)
+- docs/plans/$1-tests.md (test cases)
 
-### Output
+Review Focus:
+1. Challenge assumptions - What might be wrong? Are boundaries correct?
+2. Identify gaps - Missing requirements, error handling, test scenarios?
+3. Verify parallel implementation viability - Are components truly independent?
+4. Check for security, performance, and integration risks
+5. Verify API key requirements are identified
 
-Present to user:
-- List of concerns/questions
-- Suggestions for improvement
-- Overall assessment
+For each finding, report:
+- Area: [Completeness/Feasibility/Edge Cases/etc.]
+- Rating: ✅ Good / ⚠️ Concern / ❌ Blocker
+- Details: [What the issue is]
+- Suggestion: [How to address it]
 
----
+Return a comprehensive review report with all findings.
+```
 
-### Plan Approval (part of Phase 6)
+### Step 2: After Subagent Returns
 
-**Objective**: Get user sign-off on the plan.
+The main instance should:
 
-Using AskUserQuestionTool, ask:
+1. **Present findings to user** via AskUserQuestionTool
+2. **Ask follow-up questions** for any ⚠️ Concern or ❌ Blocker items
+3. **Update plan files** based on user's decisions
 
-1. **Review the plan** - Present summary of proposed architecture and components
+### Step 3: Plan Approval
+
+Using AskUserQuestionTool:
+
+1. **Present summary** - Proposed architecture and components
 2. **Address feedback** - Ask which suggestions to incorporate
-3. **Request approval** - Confirm user is ready to proceed
+3. **Request explicit approval** - Confirm user is ready to proceed
 
 If user requests changes:
 - Update `docs/plans/$1-plan.md`
 - Update `docs/plans/$1-arch.md`
 - Re-validate with user
 
-Continue only when user explicitly approves.
+**Continue only when user explicitly approves.**
 
 ---
 
