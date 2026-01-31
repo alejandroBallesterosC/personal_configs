@@ -1,0 +1,18 @@
+{
+  "name": "playwright",
+  "description": "Browser automation with Playwright - test pages, fill forms, take screenshots, validate UX, and automate any browser task",
+  "version": "4.1.0",
+  "author": {
+    "name": "jandro"
+  },
+  "repository": "https://github.com/jandro/personal_configs",
+  "keywords": [
+    "playwright",
+    "browser",
+    "automation",
+    "testing",
+    "web",
+    "screenshots",
+    "e2e"
+  ]
+}

@@ -23,6 +23,15 @@
       },
       "source": "./debug-workflow",
       "category": "development"
+    },
+    {
+      "name": "playwright",
+      "description": "Browser automation with Playwright - test pages, fill forms, take screenshots, validate UX, and automate any browser task",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./playwright",
+      "category": "testing"
     }
   ]
 }
