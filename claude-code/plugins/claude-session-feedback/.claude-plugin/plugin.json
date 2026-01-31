@@ -1,0 +1,9 @@
+{
+  "name": "claude-session-feedback",
+  "description": "Tools for exporting conversation history, reading past sessions, and getting feedback on Claude Code usage",
+  "version": "1.0.0",
+  "author": {
+    "name": "jandro"
+  },
+  "keywords": ["conversation", "history", "export", "feedback", "session"]
+}
