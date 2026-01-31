@@ -185,8 +185,6 @@ All progress tracked in `docs/workflow/<feature>-state.md`:
 | tdd-workflow-guide | Navigate workflow phases |
 | tdd-guide | RED → GREEN → REFACTOR cycle |
 | writing-plans | Parallelizable component design |
-| writing-claude-md | CLAUDE.md best practices |
-| infrastructure-as-code | Terraform + AWS patterns |
 | using-git-worktrees | Feature branch isolation |
 
 ## Dependencies

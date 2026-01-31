@@ -1,0 +1,9 @@
+{
+  "name": "infrastructure-as-code",
+  "description": "Terraform and AWS infrastructure management with safety-first practices",
+  "version": "1.0.0",
+  "author": {
+    "name": "jandro"
+  },
+  "keywords": ["terraform", "aws", "infrastructure", "iac", "devops"]
+}

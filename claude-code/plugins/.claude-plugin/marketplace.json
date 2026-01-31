@@ -32,6 +32,33 @@
       },
       "source": "./playwright",
       "category": "testing"
+    },
+    {
+      "name": "claude-session-feedback",
+      "description": "Tools for exporting conversation history, reading past sessions, and getting feedback on Claude Code usage",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-session-feedback",
+      "category": "productivity"
+    },
+    {
+      "name": "infrastructure-as-code",
+      "description": "Terraform and AWS infrastructure management with safety-first practices",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./infrastructure-as-code",
+      "category": "devops"
+    },
+    {
+      "name": "claude-md-best-practices",
+      "description": "Guide for writing and maintaining effective CLAUDE.md files",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-md-best-practices",
+      "category": "documentation"
     }
   ]
 }

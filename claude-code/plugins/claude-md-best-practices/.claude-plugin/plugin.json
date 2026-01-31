@@ -1,0 +1,9 @@
+{
+  "name": "claude-md-best-practices",
+  "description": "Guide for writing and maintaining effective CLAUDE.md files",
+  "version": "1.0.0",
+  "author": {
+    "name": "jandro"
+  },
+  "keywords": ["claude-md", "documentation", "conventions", "best-practices"]
+}
