@@ -6,7 +6,7 @@ allowed-tools: Read, Grep, Glob, Bash, Task, Write, Edit, Skill
 
 # Iterative Codebase Understanding
 
-You will perform **${1:-3} iterations** of codebase exploration using parallel subagents, persisting all findings to **${2:-CODEBASE.md}**. You will also update CLAUDE.md files using the writing-claude-md skill.
+You will perform **${1:-3} iterations** of codebase exploration using parallel subagents, persisting all findings to **docs/${2:-CODEBASE.md}**. You will also update CLAUDE.md files using the writing-claude-md skill.
 
 ## Phase 0: Launch Parallel Code Explorers
 
@@ -24,7 +24,7 @@ Launch with `subagent_type: "Explore"` and prompt:
 Launch with `subagent_type: "Explore"` and prompt:
 > Explore the testing strategy and code quality. Find all test files and frameworks. Analyze test patterns (unit, integration, e2e). Check linting/formatting config. Identify CI/CD workflows. Find documentation (README, docs/). Check recent git activity. Output a structured report.
 
-**Wait for all agents to complete**, then synthesize their findings into ${2:-CODEBASE.md}.
+**Wait for all agents to complete**, then synthesize their findings into docs/${2:-CODEBASE.md}.
 
 ---
 
@@ -33,8 +33,8 @@ Launch with `subagent_type: "Explore"` and prompt:
 Write findings to the markdown file immediately as you discover them. The file is your persistent memory—if context is compacted, re-read it to restore state.
 
 **Rules:**
-- Write findings to ${2:-CODEBASE.md} IMMEDIATELY after discovering them
-- If you notice context was compacted, FIRST read ${2:-CODEBASE.md} to restore state
+- Write findings to docs/${2:-CODEBASE.md} IMMEDIATELY after discovering them
+- If you notice context was compacted, FIRST read docs/${2:-CODEBASE.md} to restore state
 - Never keep important findings only in your working memory
 - Update the markdown incrementally with new findings - don't wait until "done"
 
@@ -44,14 +44,14 @@ Write findings to the markdown file immediately as you discover them. The file i
 
 ### Iteration 1: Discovery Synthesis
 
-1. **Create ${2:-CODEBASE.md}** with initial structure
+1. **Create docs/${2:-CODEBASE.md}** with initial structure and current date at the top of the file
 2. **Synthesize agent findings** into the required sections
 3. **Identify gaps** - what didn't the agents cover?
 4. **End with "Open Questions"** - list 5-10 high priority questions
 
 ### Iteration 2: Deep Dive (The Logic)
 
-1. **Read ${2:-CODEBASE.md}** to restore context
+1. **Read docs/${2:-CODEBASE.md}** to restore context
 2. **Trace key workflows** end-to-end (auth, main business logic, data flow)
 3. **Verify boundaries** - are contracts strict or loose?
 4. **Analyze data strategy** - where is state? How does it flow?
@@ -59,7 +59,7 @@ Write findings to the markdown file immediately as you discover them. The file i
 
 ### Iterations 3 through ${1:-3}: Explore Open Questions
 
-1. **Read ${2:-CODEBASE.md}** to restore context
+1. **Read docs/${2:-CODEBASE.md}** to restore context
 2. **Select 3-5 highest priority open questions**
 3. **Trace execution paths** - follow actual code, not documentation claims
 4. **Launch additional subagents** if needed for deep dives
@@ -103,7 +103,7 @@ After completing exploration, **invoke the writing-claude-md skill** and update 
 
 ---
 
-## Required Sections in ${2:-CODEBASE.md}
+## Required Sections in docs/${2:-CODEBASE.md}
 
 ```markdown
 # [Project Name] - Codebase Analysis
@@ -170,9 +170,9 @@ What couldn't you determine from the code alone? What would you ask the original
 
 - **DO NOT** edit application code
 - **DO NOT** commit anything
-- **ONLY** write to ${2:-CODEBASE.md} and CLAUDE.md
+- **ONLY** write to docs/${2:-CODEBASE.md} and CLAUDE.md
 - Use **concrete file:line references** for every claim
-- Prioritize **insight density** in ${2:-CODEBASE.md}
+- Prioritize **insight density** in docs/${2:-CODEBASE.md}
 
 ---
 
@@ -181,7 +181,7 @@ What couldn't you determine from the code alone? What would you ask the original
 If you see "Compacting context..." or your context feels fresh:
 
 1. STOP what you're doing
-2. Read ${2:-CODEBASE.md} completely
+2. Read docs/${2:-CODEBASE.md} completely
 3. Check which iteration you're on
 4. Continue from where you left off
 
@@ -192,7 +192,7 @@ The markdown file is your source of truth. Trust it.
 ## Summary of Execution
 
 1. **Launch 3 parallel subagents** (structure, architecture, testing)
-2. **Synthesize findings** into ${2:-CODEBASE.md}
+2. **Synthesize findings** into docs/${2:-CODEBASE.md}
 3. **Iterate** through deep dives and open questions
 4. **Update CLAUDE.md** using writing-claude-md skill
 5. **Present summary** to user
