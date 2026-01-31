@@ -190,6 +190,10 @@ All progress tracked in `docs/workflow/<feature>-state.md`:
 ## Dependencies
 
 - **Required**: `ralph-loop` plugin for TDD implementation loops
+  ```bash
+  /plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum
+  ```
+  **Warning:** Always set `--max-iterations` (50 iterations = $50-100+ in API costs)
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test, etc.)
 
 ## Philosophy

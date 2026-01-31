@@ -1,14 +1,18 @@
 # Personal Configs
 
-Development infrastructure repository for AI-assisted workflows with Claude Code. Contains two major plugins (TDD workflow, Debug workflow), configuration sync scripts, and IDE integrations.
+Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 6 plugins (TDD, Debug, Playwright, Session Feedback, Infrastructure-as-Code, CLAUDE.md Best Practices), configuration sync scripts, and IDE integrations.
 
 ## Architecture
 
 ```
 claude-code/
-├── plugins/           # Encapsulated workflows (TDD, Debug)
-│   ├── tdd-workflow/  # 7 agents, 11 commands, 6 skills, hooks
-│   └── debug-workflow/ # 4 agents, 7 commands, 1 skill
+├── plugins/           # 6 encapsulated plugins
+│   ├── tdd-workflow/  # 7 agents, 11 commands, 4 skills, hooks
+│   ├── debug-workflow/ # 4 agents, 7 commands, 1 skill
+│   ├── playwright/    # Browser automation (JS + skill)
+│   ├── claude-session-feedback/ # 3 commands
+│   ├── infrastructure-as-code/ # 1 command, 1 skill
+│   └── claude-md-best-practices/ # 1 skill
 ├── commands/          # Shared command templates
 ├── docs/              # Python, UV, Docker best practices
 └── CLAUDE.md          # Global template (syncs to ~/.claude/)
@@ -41,10 +45,10 @@ No dependencies, no build, no deployment.
 ## Key Files
 
 - `claude-code/CLAUDE.md`: Global coding standards template
-- `claude-code/global_mcp_settings.json`: MCP server config
+- `claude-code/global_mcp_settings.json`: MCP server config (context7, fetch, exa, playwright)
 - `claude-code/plugins/tdd-workflow/README.md`: TDD workflow reference
 - `claude-code/plugins/debug-workflow/README.md`: Debug workflow reference
-- `CODEBASE.md`: Comprehensive codebase analysis (see for detailed architecture, workflows, open questions)
+- `docs/CODEBASE.md`: Comprehensive codebase analysis (architecture, workflows, open questions)
 
 ## Dependencies
 
@@ -59,9 +63,10 @@ No dependencies, no build, no deployment.
 - `ralph-loop` is external dependency - install via plugin marketplace (see Dependencies)
 - `claude-code/CLAUDE.md` is a TEMPLATE (syncs to ~/.claude/), not this repo's CLAUDE.md
 - Test auto-detection exits 0 when no framework found (non-fatal for repos without tests)
-- Context checkpoints are manual (/clear + /resume), not automatic
+- Context checkpoints are manual (`/clear` → `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow`)
 - Resume command validates phase prerequisites (can't skip phases)
 - Single MCP server with 20 tools = ~14,000 tokens; disable unused servers before heavy work
+- MCP servers require env vars: `CONTEXT7_API_KEY`, `EXA_API_KEY` (in `.env`, gitignored)
 
 ## Sync Usage
 
