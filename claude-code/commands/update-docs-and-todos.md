@@ -15,22 +15,7 @@ Do this by first reviewing the progress we have made, then review the current st
 - Ensure all of the documentation files (.md) are linked and explained at the beginning of the main/central README.md in the root of the repo
 
 ## CLAUDE.md Specific Requirements
-When updating the CLAUDE.md files in this repo:
-- Thoroughly review the current contents of **CLAUDE.md** in the root of the repo first.
-- Prune any outdated or redundant items (commands, workflows, gotchas).
-- Maintain a bulleted list of the important tools, commands, or scripts for working in the codebase.
-- Maintain a bulleted list of changes in workflows, build/test/deploy commands, or directory structure.
-- Maintain a bulleted list of Project-specific gotchas or exceptions.
-- Maintain a project map: Key modules & where code lives (1–2 bullets each), the existing high-level structure (architecture, conventions, commands, gotchas).
-- Keep the file **concise, bullet-based, and actionable** (no long prose).
-- Use `@path/to/file` imports if a section is long or duplicated elsewhere. This is helpful for referencing the documentation that already exists in the codebase.
-- Preserve clarity: ensure each bullet is precise and unambiguous.
-- If the CLAUDE.md file is longer than the recommended limit please remove old updates and/or summarize older or less relevant information as necessary. As of 9/24/2025 this limit was 40k characters but please validate this is still true today.
-
-### General CLAUDE.md Best Practices
-- Remember that CLAUDE.md files are hierarchical - subdirectory files provide context when working in that directory so do not provide information in a CLAUDE.md file that doesn't correspond to the location of that file in the repo. CLAUDE.md files in the root of the repo cover the entire repo.
-- Keep CLAUDE.mds concise, human-readable, actionable
-- Document: commands, gotchas, workflows, naming patterns, critical warnings
-- Use "IMPORTANT" or "YOU MUST" for critical adherence
-- Include code examples and specific file references
-- Make it a living document (update as you learn)
+- Follow the `writing-claude-md` skill from the `claude-md-best-practices` plugin for CLAUDE.md best practices
+- Ensure CLAUDE.md files are in sync with READMEs and other documentation
+- Prune outdated or redundant items
+- Use `@path/to/file` imports to reference existing documentation instead of duplicating content
