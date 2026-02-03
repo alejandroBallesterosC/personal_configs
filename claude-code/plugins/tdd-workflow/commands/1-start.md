@@ -11,6 +11,8 @@ argument-hint: <feature-name> "<feature description>"
 
 This command orchestrates a complete, planning-heavy TDD workflow that runs automatically from start to finish. You only need to respond when asked questions or approve plans.
 
+Before continuing with the workflow ensure the user has the ralph-loop plugin (specifically, /ralph-loop:ralph-loop) installed and available as it is a dependency.
+
 ## Workflow Overview
 
 ```
@@ -106,12 +108,13 @@ All progress is tracked in `docs/workflow/$1-state.md`:
 
 ## Context Restoration Files
 Read these files to restore context:
-1. docs/workflow/$1-state.md (this file)
-2. docs/context/$1-exploration.md
-3. docs/specs/$1.md
-4. docs/plans/$1-plan.md
-5. docs/plans/$1-arch.md
-6. CLAUDE.md
+1. Ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
+2. docs/workflow/$1-state.md (this file)
+3. docs/context/$1-exploration.md
+4. docs/specs/$1.md
+5. docs/plans/$1-plan.md
+6. docs/plans/$1-arch.md
+7. CLAUDE.md
 
 ## Continue Command
 /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase N
@@ -270,9 +273,10 @@ Phase 2: Specification Interview
 - API Keys: [available/missing]
 
 ## Context Restoration Files
-1. docs/workflow/$1-state.md
-2. docs/context/$1-exploration.md
-3. CLAUDE.md
+1. ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
+2. docs/workflow/$1-state.md
+3. docs/context/$1-exploration.md
+4. CLAUDE.md
 
 ## Continue Command
 After /clear, run:
@@ -302,6 +306,7 @@ Ready to clear?
 ## PHASE 3: SPECIFICATION INTERVIEW
 
 **Context Restoration** (if resuming after /clear):
+- Ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
 - Read `docs/workflow/$1-state.md`
 - Read `docs/context/$1-exploration.md`
 - Read `CLAUDE.md`
@@ -399,8 +404,9 @@ Write to `docs/plans/$1-arch.md`:
 ## Component Overview
 [ASCII diagram showing component relationships]
 
-## Foundation (Build First)
+## Foundation + Contracts (Build First)
 - Shared types/interfaces
+- Shared contracts at boundaries/interfaces between components
 - Common utilities
 
 ## Independent Components (Build in Parallel)
@@ -554,11 +560,12 @@ Phase 7: Orchestrated TDD Implementation
 - [API key decisions]
 
 ## Context Restoration Files
-1. docs/workflow/$1-state.md
-2. docs/specs/$1.md (ESSENTIAL - the spec)
-3. docs/plans/$1-plan.md (ESSENTIAL - the plan)
-4. docs/plans/$1-arch.md
-5. CLAUDE.md
+1. Ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
+2. docs/workflow/$1-state.md
+3. docs/specs/$1.md (ESSENTIAL - the spec)
+4. docs/plans/$1-plan.md (ESSENTIAL - the plan)
+5. docs/plans/$1-arch.md
+6. CLAUDE.md
 
 ## Continue Command
 After /clear, run:
@@ -588,6 +595,7 @@ Ready to clear and start implementation?
 ## PHASE 7: COMPONENT IMPLEMENTATION (Orchestrated TDD)
 
 **Context Restoration** (if resuming after /clear):
+- Ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
 - Read `docs/workflow/$1-state.md`
 - Read `docs/specs/$1.md`
 - Read `docs/plans/$1-plan.md`
@@ -616,10 +624,12 @@ The **main Claude Code instance runs ralph-loop** so that:
    - Ask user if any are missing
    - Only use mocks if real integration is truly impossible
 
-3. **Create foundation first**
+3. **Create foundation and contracts first**
    - Shared types/interfaces
+   - Shared contracts at boundaries/interfaces between components
    - Common utilities
    - Must complete before component implementation
+
 
 ### Implementation Process
 
@@ -852,11 +862,12 @@ Phase 9: Review, Fixes & Completion
 [List of new/modified files]
 
 ## Context Restoration Files
-1. docs/workflow/$1-state.md
-2. docs/specs/$1.md
-3. docs/plans/$1-plan.md
-4. CLAUDE.md
-5. [List of implementation files to review]
+1. ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
+2. docs/workflow/$1-state.md
+3. docs/specs/$1.md
+4. docs/plans/$1-plan.md
+5. CLAUDE.md
+6. [List of implementation files to review]
 
 ## Continue Command
 After /clear, run:
@@ -890,6 +901,7 @@ This final phase includes parallel review, orchestrated fixes, and completion su
 ### Part A: PARALLEL MULTI-ASPECT REVIEW
 
 **Context Restoration** (if resuming after /clear):
+- Ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
 - Read `docs/workflow/$1-state.md`
 - Read `docs/specs/$1.md`
 - Read `docs/plans/$1-plan.md`

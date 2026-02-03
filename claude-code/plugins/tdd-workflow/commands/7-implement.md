@@ -41,10 +41,11 @@ Using AskUserQuestionTool, verify:
 
 ## IMPLEMENTATION PROCESS
 
-### Step 1: Create Foundation
+### Step 1: Create Foundation + Contracts
 
-Before parallel implementation, create shared foundation:
+Before parallel implementation, create the shared foundation and make the contracts at the interfaces explicit:
 - Shared types/interfaces
+- Explicit contracts at interfaces
 - Common utilities
 - Configuration setup
 

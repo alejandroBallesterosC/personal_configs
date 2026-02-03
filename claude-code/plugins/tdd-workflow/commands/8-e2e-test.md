@@ -50,7 +50,11 @@ Write END-TO-END integration tests covering:
 - Edge cases (boundary conditions across components)
 - External integration scenarios (full paths involving external services)
 
-Follow the test patterns established in the codebase.
+Read the playwright skill in the playwright plugin to understand how to use Playwright to test the application end-to-end if the application has a frontend/UI that needs to be tested, otherwise stick to other testing frameworks more suitable for end-to-end backend-only testing.
+
+If the application does have a frontend/UI that needs to be tested, use Playwright to ensure end-to-end functionality as expected across the frontend/UI and the backend. Take screen shots with playwright and iterate until the frontend/UI looks as expected and functions as expected.
+
+Be sure to also follow the test patterns established in the codebase.
 Return list of E2E test files created.
 ```
 
