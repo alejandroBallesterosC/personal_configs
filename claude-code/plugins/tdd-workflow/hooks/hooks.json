@@ -1,5 +1,5 @@
 {
-  "description": "TDD workflow automatic test feedback - runs tests after code changes",
+  "description": "TDD workflow hooks - test feedback, context preservation, and auto-resume",
   "hooks": {
     "PostToolUse": [
       {
@@ -8,6 +8,29 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/run-tests.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "Before context compaction, save TDD workflow state if one is active.\n\n## Detection\n\n1. Look for files matching `docs/workflow/*-state.md` in the current project\n2. If no state file exists, output nothing and exit (no active TDD workflow)\n3. If a state file exists, proceed to extract and update it\n\n## Extraction\n\nAnalyze the current conversation context (available in $ARGUMENTS) and extract:\n\n1. **Current Phase**: Which phase (2-9) are we in? What's the phase name?\n2. **Current Component**: If in Phase 7/8, which component is being worked on?\n3. **Current Requirement**: If in Phase 7, which specific requirement within the component?\n4. **Progress**: What has been completed in this session?\n5. **Key Decisions**: Any important decisions made this session (technical choices, user preferences)\n6. **Blockers/Issues**: Any unresolved problems or blockers\n7. **Next Action**: What should be done next when context is restored?\n8. **Files Modified**: List files changed in this session\n\n## Update State File\n\nRead the existing state file and update it with the extracted information. Preserve the existing format but add/update these sections:\n\n```markdown\n## Session Progress (Auto-saved before compaction)\n- **Phase**: [current phase number and name]\n- **Component**: [if applicable]\n- **Requirement**: [if applicable]\n- **Next Action**: [specific next step]\n\n## Recent Decisions\n- [decision 1]\n- [decision 2]\n\n## Blockers\n- [blocker 1, if any]\n\n## Files Modified This Session\n- [file 1]\n- [file 2]\n```\n\nAlso update the main \"Current Phase\" and \"Completed Phases\" sections if progress was made.\n\n## Output\n\nAfter updating the state file, output a brief confirmation:\n```\nTDD workflow state saved for [feature-name]. Phase [N], next action: [brief description]\n```",
+            "timeout": 90
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-resume-after-compact.sh"
           }
         ]
       }

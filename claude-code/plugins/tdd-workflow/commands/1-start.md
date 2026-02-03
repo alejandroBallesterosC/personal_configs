@@ -21,9 +21,6 @@ Before continuing with the workflow ensure the user has the ralph-loop plugin (s
 │   Architecture │ Patterns │ Boundaries │ Tests │ Dependencies              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
-                    ══════ CONTEXT CHECKPOINT 1 ══════
-                    (Write state → User runs /clear)
-                                    ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 3: SPECIFICATION INTERVIEW - /3-user-specification-interview          │
 │   (40+ questions via AskUserQuestionTool)                                   │
@@ -44,9 +41,6 @@ Before continuing with the workflow ensure the user has the ralph-loop plugin (s
 │   (clarifying questions + suggestions + user approval)                      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
-                    ══════ CONTEXT CHECKPOINT 2 ══════
-                    (Write state → User runs /clear)
-                                    ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 7: ORCHESTRATED TDD - /7-implement                                    │
 │   ralph-loop → test-designer → RUN TESTS → implementer → RUN TESTS → ...   │
@@ -57,31 +51,31 @@ Before continuing with the workflow ensure the user has the ralph-loop plugin (s
 │   (main instance runs tests, subagents fix issues)                          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
-                    ══════ CONTEXT CHECKPOINT 3 ══════
-                    (Write state → User runs /clear)
-                                    ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 9: REVIEW, FIXES & COMPLETION - /9-review                             │
 │   Security │ Performance │ Code Quality │ Test Coverage │ Spec Compliance  │
 │   (parallel review → orchestrated fixes → completion summary)               │
 └─────────────────────────────────────────────────────────────────────────────┘
+
+Context is managed automatically via hooks - state is preserved before any
+compaction and restored seamlessly. No manual commands needed.
 ```
 
 ---
 
 ## CONTEXT MANAGEMENT STRATEGY
 
-This workflow includes **3 context checkpoints** where context should be cleared to maintain quality. At each checkpoint:
+Context is managed **automatically via hooks** throughout the workflow:
 
-1. **State is written** to `docs/workflow/$1-state.md`
-2. **User is prompted** to run `/clear`
-3. **Context is restored** by reading essential files
+1. **PreCompact hook** saves session progress to `docs/workflow/$1-state.md` before any compaction
+2. **SessionStart hook** reads the state file and injects full context after compaction
+3. **Workflow continues automatically** from where it left off
 
 ### Why Clear Context?
 
 > "Clear at 60k tokens or 30% context... The automatic compaction is opaque, error-prone, and not well-optimized." - Community Best Practices
 
-Long workflows degrade in quality as context fills. Strategic clearing with state preservation maintains high-quality outputs throughout.
+Long workflows degrade in quality as context fills. The hooks ensure state is preserved automatically whether context is cleared manually or by auto-compaction.
 
 ### Workflow State File
 
@@ -106,18 +100,21 @@ All progress is tracked in `docs/workflow/$1-state.md`:
 - [Decision 1]
 - [Decision 2]
 
+## Session Progress (Auto-saved before compaction)
+- **Phase**: [current phase]
+- **Component**: [if applicable]
+- **Requirement**: [if applicable]
+- **Next Action**: [specific next step]
+
 ## Context Restoration Files
 Read these files to restore context:
-1. Ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
+1. Use the tdd-workflow-guide skill if needed
 2. docs/workflow/$1-state.md (this file)
 3. docs/context/$1-exploration.md
 4. docs/specs/$1.md
 5. docs/plans/$1-plan.md
 6. docs/plans/$1-arch.md
 7. CLAUDE.md
-
-## Continue Command
-/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase N
 ```
 
 ---
@@ -127,8 +124,9 @@ Read these files to restore context:
 The workflow will now execute automatically. You'll be prompted only when:
 - Questions need your answers (AskUserQuestionTool)
 - Plan needs your approval
-- Context checkpoint reached (you'll run `/clear`)
 - Decisions require your input
+
+Context is managed automatically via hooks - no manual intervention needed.
 
 ---
 
@@ -241,65 +239,28 @@ Include these critical sections:
 
 ---
 
-## ══════ CONTEXT CHECKPOINT 1 ══════
+## Phase 2 Complete
 
-**Exploration complete. Time to clear context.**
+**Exploration complete.**
 
-### Before Clearing
+### Verify Artifacts
 
-1. **Ensure these files exist:**
-   - `docs/context/$1-exploration.md` (exploration synthesis)
-   - `CLAUDE.md` (updated if needed)
+Ensure these files exist before continuing:
+- `docs/context/$1-exploration.md` (exploration synthesis)
+- `docs/workflow/$1-state.md` (workflow state - updated automatically by hooks)
+- `CLAUDE.md` (updated if needed)
 
-2. **Write workflow state** to `docs/workflow/$1-state.md`:
-
-```markdown
-# Workflow State: $1
-
-## Current Phase
-Phase 2: Specification Interview
-
-## Feature
-- **Name**: $1
-- **Description**: $2
-
-## Completed Phases
-- [x] Phase 2: Parallel Exploration
-
-## Key Findings from Exploration
-- Architecture: [summary]
-- Patterns: [summary]
-- Testing: [summary]
-- API Keys: [available/missing]
-
-## Context Restoration Files
-1. ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
-2. docs/workflow/$1-state.md
-3. docs/context/$1-exploration.md
-4. CLAUDE.md
-
-## Continue Command
-After /clear, run:
-/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 3
-```
-
-3. **Prompt user:**
+### Continue Workflow
 
 Using AskUserQuestionTool, ask:
 
 ```
-Context Checkpoint 1 reached. Exploration is complete.
+Phase 2 (Exploration) is complete.
 
-To maintain quality, please clear context now:
-1. Run: /clear
-2. Then run: /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 3
-
-This will restore context from saved files and continue with the Specification Interview.
-
-Ready to clear?
+Continue with Specification Interview?
 ```
 
-**STOP HERE. Wait for user to /clear and continue.**
+**After user responds, continue with Phase 3.**
 
 ---
 
@@ -520,83 +481,37 @@ If user requests changes:
 
 ---
 
-## ══════ CONTEXT CHECKPOINT 2 ══════
+## Phases 3-6 Complete
 
-**Planning complete. Time to clear context before implementation.**
+**Planning complete and approved.**
 
-### Before Clearing
+### Verify Artifacts
 
-1. **Ensure these files exist:**
-   - `docs/context/$1-exploration.md`
-   - `docs/specs/$1.md`
-   - `docs/plans/$1-plan.md`
-   - `docs/plans/$1-arch.md`
+Ensure these files exist before continuing:
+- `docs/context/$1-exploration.md`
+- `docs/specs/$1.md`
+- `docs/plans/$1-plan.md`
+- `docs/plans/$1-arch.md`
+- `docs/workflow/$1-state.md` (workflow state - updated automatically by hooks)
 
-2. **Update workflow state** in `docs/workflow/$1-state.md`:
-
-```markdown
-# Workflow State: $1
-
-## Current Phase
-Phase 7: Orchestrated TDD Implementation
-
-## Feature
-- **Name**: $1
-- **Description**: $2
-
-## Completed Phases
-- [x] Phase 2: Parallel Exploration
-- [x] Phase 3: Specification Interview
-- [x] Phase 4: Plan Creation
-- [x] Phase 5: Architecture Design
-- [x] Phase 6: Plan Review & Approval
-
-## Components to Implement
-[List from plan]
-
-## Key Decisions
-- [Decision from interview]
-- [Architecture choice]
-- [API key decisions]
-
-## Context Restoration Files
-1. Ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
-2. docs/workflow/$1-state.md
-3. docs/specs/$1.md (ESSENTIAL - the spec)
-4. docs/plans/$1-plan.md (ESSENTIAL - the plan)
-5. docs/plans/$1-arch.md
-6. CLAUDE.md
-
-## Continue Command
-After /clear, run:
-/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 7
-```
-
-3. **Prompt user:**
+### Continue Workflow
 
 Using AskUserQuestionTool, ask:
 
 ```
-Context Checkpoint 2 reached. Planning is complete and approved.
+Planning phases (3-6) are complete and approved.
 
-Before starting implementation, clear context for best results:
-1. Run: /clear
-2. Then run: /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 7
-
-This ensures implementation starts with fresh context focused on the plan.
-
-Ready to clear and start implementation?
+Continue with TDD Implementation?
 ```
 
-**STOP HERE. Wait for user to /clear and continue.**
+**After user responds, continue with Phase 7.**
 
 ---
 
 ## PHASE 7: COMPONENT IMPLEMENTATION (Orchestrated TDD)
 
-**Context Restoration** (if resuming after /clear):
-- Ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
-- Read `docs/workflow/$1-state.md`
+**Context Restoration** (if resuming after context clear/compact):
+- Read `docs/workflow/$1-state.md` (hooks inject this automatically)
 - Read `docs/specs/$1.md`
 - Read `docs/plans/$1-plan.md`
 - Read `docs/plans/$1-arch.md`
@@ -728,7 +643,7 @@ When ALL requirements for this component pass tests:
 1. **Main instance runs tests** - Not the subagents
 2. **Subagents do ONE task** - Write a test, write code, or refactor
 3. **Feedback loop is visible** - Main instance sees test results
-4. **Context managed at orchestrator** - Can checkpoint if needed
+4. **Context managed at orchestrator** - Hooks preserve state automatically
 
 ### Parallel Components
 
@@ -822,75 +737,29 @@ When ALL E2E tests pass:
 
 ---
 
-## ══════ CONTEXT CHECKPOINT 3 ══════
+## Phases 7-8 Complete
 
-**Implementation and E2E testing complete. Time to clear context before review.**
+**Implementation and E2E testing complete.**
 
-### Before Clearing
+### Verify Tests Pass
 
-1. **Verify all tests pass:**
-   - Run full test suite
-   - Confirm E2E tests pass
+Before continuing to review:
+- Run full test suite
+- Confirm E2E tests pass
 
-2. **Update workflow state** in `docs/workflow/$1-state.md`:
+State file `docs/workflow/$1-state.md` is updated automatically by hooks.
 
-```markdown
-# Workflow State: $1
-
-## Current Phase
-Phase 9: Review, Fixes & Completion
-
-## Feature
-- **Name**: $1
-- **Description**: $2
-
-## Completed Phases
-- [x] Phase 2: Parallel Exploration
-- [x] Phase 3: Specification Interview
-- [x] Phase 4: Plan Creation
-- [x] Phase 5: Architecture Design
-- [x] Phase 6: Plan Review & Approval
-- [x] Phase 7: Orchestrated TDD Implementation
-- [x] Phase 8: E2E Testing
-
-## Implementation Summary
-- Components implemented: [list]
-- Tests passing: [count]
-- E2E tests passing: [count]
-
-## Files Changed
-[List of new/modified files]
-
-## Context Restoration Files
-1. ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
-2. docs/workflow/$1-state.md
-3. docs/specs/$1.md
-4. docs/plans/$1-plan.md
-5. CLAUDE.md
-6. [List of implementation files to review]
-
-## Continue Command
-After /clear, run:
-/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 9
-```
-
-3. **Prompt user:**
+### Continue Workflow
 
 Using AskUserQuestionTool, ask:
 
 ```
-Context Checkpoint 3 reached. Implementation and E2E testing complete.
+Implementation and E2E testing (Phases 7-8) complete.
 
-Before starting review, clear context for fresh perspective:
-1. Run: /clear
-2. Then run: /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 9
-
-Fresh context helps reviewers catch issues that accumulated context might miss.
-
-Ready to clear and start review?
+Continue with Review phase?
 ```
 
-**STOP HERE. Wait for user to /clear and continue.**
+**After user responds, continue with Phase 9.**
 
 ---
 
@@ -900,9 +769,8 @@ This final phase includes parallel review, orchestrated fixes, and completion su
 
 ### Part A: PARALLEL MULTI-ASPECT REVIEW
 
-**Context Restoration** (if resuming after /clear):
-- Ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
-- Read `docs/workflow/$1-state.md`
+**Context Restoration** (if resuming after context clear/compact):
+- Read `docs/workflow/$1-state.md` (hooks inject this automatically)
 - Read `docs/specs/$1.md`
 - Read `docs/plans/$1-plan.md`
 - Read `CLAUDE.md`
@@ -1206,7 +1074,7 @@ Output a completion report:
 3. **Real integrations first** - Only mock when real integration is truly impossible
 4. **Verify continuously** - Main instance runs tests after every subagent task
 5. **Front-load planning** - Thorough questioning eliminates implementation rework
-6. **Clear context strategically** - Preserve state, clear context at checkpoints
+6. **Automatic context management** - Hooks preserve state before compaction and restore it automatically
 7. **Automatic orchestration** - User only provides input when needed
 
 ---

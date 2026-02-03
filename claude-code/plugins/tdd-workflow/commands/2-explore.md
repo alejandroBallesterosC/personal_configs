@@ -196,17 +196,12 @@ If `CLAUDE.md` is missing or lacks key project information discovered during exp
 
 ## Next Step
 
-Exploration complete. 
-Using AskUserQuestionTool, ask the user to clear context and reinitialize context before proceeding to Phase 3 of the workflow: the specification interview:
+Phase 2 (Exploration) is complete.
+
+Using AskUserQuestionTool, ask the user if they want to continue to Phase 3 of the workflow (the specification interview):
 
 ```
-Context Checkpoint 1 reached. Exploration is complete.
+Phase 2 (Exploration) is complete.
 
-To maintain quality, please clear context now:
-1. Run: /clear
-2. Then run: /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1 --phase 3
-
-This will restore context from saved files and continue with the Specification Interview.
-
-Ready to clear?
+Continue with Specification Interview?
 ```

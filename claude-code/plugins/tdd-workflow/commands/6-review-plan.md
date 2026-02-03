@@ -146,8 +146,9 @@ All blockers resolved. Plan is ready for implementation.
 - docs/plans/$ARGUMENTS-arch.md (if modified)
 
 Next step:
-obtain explicit user approval to start implementation,
-then prompt the user to run /clear and /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow $1
+obtain explicit user approval to start implementation.
+
+You may optionally run /clear to reset context before implementation - hooks will preserve and restore state automatically.
 
 /tdd-workflow:7-implement $ARGUMENTS "[description]"
 

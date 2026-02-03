@@ -8,7 +8,7 @@ description: Guide for using the TDD workflow plugin. Activates when starting or
 This skill provides **navigation guidance** for the TDD workflow plugin's 8 phases (Phases 2-9). Based on practices from Boris Cherny (Claude Code creator), Thariq Shihab (Anthropic), Mo Bitar, and Geoffrey Huntley.
 
 **Important:** This skill is for understanding and navigating the workflow. For **detailed execution instructions** (agent prompts, ralph-loop invocations, interview questions), see:
-`claude-code/plugins/tdd-workflow/commands/start.md`
+`claude-code/plugins/tdd-workflow/commands/1-start.md`
 
 ## When to Activate
 
@@ -16,22 +16,19 @@ Activate when:
 - User asks about the TDD workflow process
 - User seems lost in the workflow
 - Navigating between workflow phases
-- User needs help understanding checkpoints or phases
+- User needs help understanding workflow phases
 
-**Note:** When executing the workflow via `/tdd-workflow:1-start` or `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow`, follow the instructions in those commands directly - this skill is supplementary guidance.
+**Note:** When executing the workflow via `/tdd-workflow:1-start`, follow the instructions in that command directly - this skill is supplementary guidance.
 
 **Announce at start:** "I'm using the tdd-workflow-guide skill to help navigate this workflow."
 
-## Workflow Overview (8 Phases, 3 Checkpoints)
+## Workflow Overview (8 Phases)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 2: PARALLEL EXPLORATION - /2-explore                                  │
 │   Architecture │ Patterns │ Boundaries │ Testing │ Dependencies            │
 └─────────────────────────────────────────────────────────────────────────────┘
-                                    ↓
-                    ══════ CONTEXT CHECKPOINT 1 ══════
-                    Save state → /clear → /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <feature> --phase 3
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 3: SPECIFICATION INTERVIEW - /3-user-specification-interview          │
@@ -49,9 +46,6 @@ Activate when:
 │ PHASE 6: PLAN REVIEW & APPROVAL - /6-review-plan                            │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
-                    ══════ CONTEXT CHECKPOINT 2 ══════
-                    Save state → /clear → /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <feature> --phase 7
-                                    ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 7: ORCHESTRATED TDD - /7-implement                                    │
 │   ralph-loop → test-designer → RUN TESTS → implementer → RUN TESTS → ...   │
@@ -61,63 +55,55 @@ Activate when:
 │ PHASE 8: ORCHESTRATED E2E - /8-e2e-test                                     │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
-                    ══════ CONTEXT CHECKPOINT 3 ══════
-                    Save state → /clear → /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <feature> --phase 9
-                                    ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 9: REVIEW, FIXES & COMPLETION - /9-review                             │
 │   Security │ Performance │ Code Quality │ Test Coverage │ Spec Compliance   │
 │   (parallel review → orchestrated fixes → completion summary)               │
 └─────────────────────────────────────────────────────────────────────────────┘
+
+Context is managed automatically via hooks - no manual checkpoints needed.
 ```
 
-## Context Checkpoints & Resume
+## Automatic Context Management
 
 ### Why Clear Context?
 
 > "Clear at 60k tokens or 30% context... The automatic compaction is opaque, error-prone, and not well-optimized." - Community Best Practices
 
-Long workflows degrade in quality as context fills. Strategic clearing with state preservation maintains high-quality outputs.
+Long workflows degrade in quality as context fills. This plugin uses **hooks for automatic context preservation**.
 
-### Checkpoint Pattern
+### How It Works
 
-At each checkpoint:
-1. **State is saved** to `docs/workflow/<feature>-state.md`
-2. **User is prompted** to run `/clear`
-3. **User runs** the reinitialize command (see below)
-4. **Reinitialize command**:
-   - Validates prerequisite phases are complete
-   - Restores context from saved files
-   - Directs model to read execution details from `start.md`
+Context is managed **automatically** via hooks - no manual commands needed:
 
-### Reinitialize Context Command
+1. **PreCompact hook** (agent): Before any compaction, extracts and saves session progress to `docs/workflow/<feature>-state.md`
+2. **SessionStart hook** (command): After compaction, reads the state file and injects full context for seamless resume
 
-```bash
-/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <feature> --phase N
-```
+**What gets auto-saved:**
+- Current phase, component, and requirement
+- Session progress and key decisions
+- Blockers and issues
+- Files modified
+- Next action to take
 
-| Checkpoint | Phase Arg | Phases to Execute | Execution Details In |
-|------------|-----------|-------------------|---------------------|
-| After Phase 2 | `--phase 3` | 3 → 4 → 5 → 6 → checkpoint | `1-start.md` Phases 3-6 |
-| After Phase 6 | `--phase 7` | 7 → 8 → checkpoint | `1-start.md` Phases 7-8 |
-| After Phase 8 | `--phase 9` | 9 → complete | `1-start.md` Phase 9 |
+**What happens after compaction:**
+- Detects active workflow from `docs/workflow/*-state.md`
+- Reads the entire state file and injects it into context
+- Lists all relevant artifact files to read
+- Claude continues the workflow automatically
 
-### Phase Validation
+This works for:
+- **Auto-compaction**: When context fills up during long sessions
+- **Manual `/clear`**: When you optionally want to reset context
 
-The reinitialize command validates prerequisites before continuing:
+### How Context Preservation Works
 
-| Resume Phase | Required Completed Phases |
-|--------------|--------------------------|
-| Phase 3 | Phase 2: Exploration |
-| Phase 7 | Phases 2-6 (including Review and Approval) |
-| Phase 9 | Phases 2-8 |
+Regardless of when or how context is cleared:
+1. **PreCompact hook** saves state to `docs/workflow/<feature>-state.md` before compaction
+2. **SessionStart hook** restores context after compaction
+3. **Workflow continues** automatically from where it left off
 
-If prerequisites are missing, the user is warned and asked whether to proceed.
-
-### Execution Details
-
-The reinitialize command restores context and tells you *which* phases to execute. For *how* to execute them (agent prompts, ralph-loop invocations, interview questions), it directs you to read the corresponding sections in:
-`claude-code/plugins/tdd-workflow/commands/1-start.md`
+No specific phase or "checkpoint" required - works at any point in the workflow.
 
 ---
 
@@ -256,7 +242,6 @@ The reinitialize command restores context and tells you *which* phases to execut
 | Command | Purpose |
 |---------|---------|
 | `/tdd-workflow:1-start <name> "<desc>"` | Start full orchestrated workflow |
-| `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <name> --phase N` | Reinitialize context and continue after /clear |
 | `/tdd-workflow:2-explore <name> "<desc>"` | Parallel exploration (5 agents) |
 | `/tdd-workflow:3-user-specification-interview <name> "<desc>"` | Specification interview (40+ questions) |
 | `/tdd-workflow:4-plan-architecture <name>` | Technical architecture design |
@@ -274,16 +259,18 @@ The reinitialize command restores context and tells you *which* phases to execut
 ### Starting the Workflow
 
 When user invokes `/tdd-workflow:1-start <feature> "<description>"`:
-1. The `start.md` command contains all execution instructions
-2. Follow the phases sequentially as defined in `start.md`
-3. At each checkpoint, prompt user to `/clear` and provide the reinitialize command
+1. The `1-start.md` command contains all execution instructions
+2. Follow the phases sequentially as defined in `1-start.md`
+3. State is saved automatically by hooks whenever context is compacted
+4. If context is cleared (manually or by auto-compact), hooks restore context
 
-### After Context Clear
+### After Context Clear or Compaction
 
-When user invokes `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow`:
-1. The command restores context and validates prerequisites
-2. It directs you to read specific sections from `start.md` for execution details
-3. Follow those instructions to continue the workflow
+When context is cleared or compacted:
+1. The SessionStart hook automatically detects the active workflow
+2. It reads the state file and injects full context
+3. You should read the listed artifact files and continue the workflow
+4. No manual command needed - just continue where you left off
 
 ### Phase Transitions
 
@@ -298,31 +285,22 @@ After completing each phase:
 - [list of files created]
 
 ### Next Step
-[Continuing with Phase N+1 / Checkpoint reached]
+Continuing with Phase [N+1]...
 ```
 
-### Handling Checkpoints
+### Phase Completion
 
-At each checkpoint:
+When completing a phase, simply confirm completion and continue:
 
 ```markdown
-## Context Checkpoint [N] Reached
+## Phase [N] Complete
 
-State saved to: docs/workflow/<feature>-state.md
+[Summary of what was accomplished]
 
-To maintain quality, please clear context now:
-1. Run: /clear
-2. Then run: /tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <feature> --phase [N]
-
-This restores context from saved files and continues the workflow.
+Continuing with Phase [N+1]...
 ```
 
-### If User Wants to Skip Phases
-
-The resume command validates prerequisites. If phases are missing:
-- Warn user which phases are incomplete
-- Recommend running missing phases
-- Allow proceeding if user insists (not recommended)
+Context management is handled automatically by hooks - no special action required.
 
 ---
 
@@ -355,7 +333,7 @@ The resume command validates prerequisites. If phases are missing:
 
 ## Dependencies
 
-- **Required**: `ralph-loop` plugin for Phases 6, 7, 9
+- **Required**: `ralph-loop` plugin for Phases 7, 8, 9
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test)
 
 ## Integration with Debug Workflow

@@ -27,9 +27,6 @@ The workflow takes **two arguments**:
 │   Architecture │ Patterns │ Boundaries │ Testing │ Dependencies            │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
-                    ══════ CONTEXT CHECKPOINT 1 ══════
-                    (Save state → /clear → /reinitialize-context-after-clear-and-continue-workflow)
-                                    ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 3: SPECIFICATION INTERVIEW - /3-user-specification-interview          │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -46,9 +43,6 @@ The workflow takes **two arguments**:
 │ PHASE 6: PLAN REVIEW & APPROVAL - /6-review-plan                            │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
-                    ══════ CONTEXT CHECKPOINT 2 ══════
-                    (Save state → /clear → /reinitialize-context-after-clear-and-continue-workflow)
-                                    ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 7: ORCHESTRATED TDD - /7-implement                                    │
 │   ralph-loop → test-designer → RUN TESTS → implementer → RUN TESTS → ...   │
@@ -58,14 +52,13 @@ The workflow takes **two arguments**:
 │ PHASE 8: ORCHESTRATED E2E - /8-e2e-test                                     │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
-                    ══════ CONTEXT CHECKPOINT 3 ══════
-                    (Save state → /clear → /reinitialize-context-after-clear-and-continue-workflow)
-                                    ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 9: REVIEW, FIXES & COMPLETION - /9-review                             │
 │   Security │ Performance │ Code Quality │ Test Coverage │ Spec Compliance  │
 │   (parallel review → orchestrated fixes → completion summary)               │
 └─────────────────────────────────────────────────────────────────────────────┘
+
+Context is managed automatically via hooks - no manual checkpoints needed.
 ```
 
 ## Commands
@@ -73,7 +66,6 @@ The workflow takes **two arguments**:
 | Command | Purpose |
 |---------|---------|
 | `/tdd-workflow:1-start <name> "<description>"` | **Start full orchestrated workflow** |
-| `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <name> [--phase N]` | **Reinitialize context and continue workflow after /clear** |
 | `/tdd-workflow:2-explore <name> "<description>"` | Parallel codebase exploration (5 agents) |
 | `/tdd-workflow:3-user-specification-interview <name> "<description>"` | Specification interview (40+ questions) |
 | `/tdd-workflow:4-plan-architecture <name>` | Technical architecture design |
@@ -86,26 +78,45 @@ The workflow takes **two arguments**:
 
 ## Context Management
 
-Long workflows degrade in quality as context fills. This workflow includes **3 strategic context checkpoints** following community best practices.
+Long workflows degrade in quality as context fills. This workflow uses **automatic context preservation via hooks** following community best practices.
 
-### Why Clear Context?
+### Why Automatic Context Management?
 
 > "Clear at 60k tokens or 30% context... The automatic compaction is opaque, error-prone, and not well-optimized." - Community Best Practices
 
-### Checkpoints
-
-| Checkpoint | After Phase | Reason |
-|------------|-------------|--------|
-| 1 | Exploration | Heavy read operations filled context |
-| 2 | Plan Approval | Fresh start for implementation |
-| 3 | E2E Testing | Fresh perspective for review |
-
 ### How It Works
 
-1. Workflow **saves state** to `docs/workflow/<feature>-state.md`
-2. User is prompted to run **`/clear`**
-3. User runs **`/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <feature>`** to continue
-4. Context is **restored from files** and workflow continues
+Context is managed **automatically** via hooks:
+
+1. **PreCompact hook** saves session progress to `docs/workflow/<feature>-state.md` before any compaction
+2. **SessionStart hook** detects the active workflow after compaction and injects full context
+3. Claude automatically continues from where it left off
+
+This works for both:
+- **Auto-compaction**: When context fills up during long sessions
+- **Manual `/clear`**: When you optionally want to reset context
+
+No manual commands needed to resume - the hooks handle everything.
+
+### Auto-Context Preservation (Hooks)
+
+| Hook | Event | Purpose |
+|------|-------|---------|
+| PreCompact (agent) | Before compaction | Extracts and saves session progress to state file |
+| SessionStart (command) | After compaction | Reads state file, injects full context for seamless resume |
+
+**What gets auto-saved before compaction:**
+- Current phase, component, and requirement
+- Session progress and key decisions
+- Blockers and issues
+- Files modified
+- Next action to take
+
+**What happens after compaction:**
+- Detects active workflow from `docs/workflow/*-state.md`
+- Reads the **entire state file** and injects it into context
+- Lists all relevant artifact files to read
+- Claude continues the workflow automatically
 
 ### State File
 
@@ -186,6 +197,24 @@ All progress tracked in `docs/workflow/<feature>-state.md`:
 | tdd-guide | RED → GREEN → REFACTOR cycle |
 | writing-plans | Parallelizable component design |
 | using-git-worktrees | Feature branch isolation |
+
+## Hooks
+
+| Hook | Event | Matcher | Purpose |
+|------|-------|---------|---------|
+| run-tests.sh | PostToolUse | `Write\|Edit` | Auto-run tests after code changes |
+| PreCompact agent | PreCompact | `auto` | Save workflow state before compaction |
+| auto-resume-after-compact.sh | SessionStart | `compact` | Inject context to resume workflow |
+
+### Hook Files
+
+```
+hooks/
+├── hooks.json                    # Hook configuration
+├── run-tests.sh                  # Test runner hook
+├── detect-test-runner.sh         # Test framework detection
+└── auto-resume-after-compact.sh  # Context restoration hook
+```
 
 ## Dependencies
 

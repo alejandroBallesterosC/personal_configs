@@ -60,6 +60,8 @@ The workflow takes **two arguments**:
 │   Security │ Performance │ Code Quality │ Test Coverage │ Spec Compliance  │
 │   (parallel review → orchestrated fixes → completion summary)               │
 └─────────────────────────────────────────────────────────────────────────────┘
+
+Context is managed automatically via hooks - no manual checkpoints needed.
 ```
 
 ## Commands
@@ -67,7 +69,6 @@ The workflow takes **two arguments**:
 | Command | Purpose |
 |---------|---------|
 | `/tdd-workflow:1-start <name> "<description>"` | **Start full orchestrated workflow** |
-| `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <name> [--phase N]` | **Reinitialize context and continue workflow after /clear** |
 | `/tdd-workflow:2-explore <name> "<description>"` | Parallel codebase exploration (5 agents) |
 | `/tdd-workflow:3-user-specification-interview <name> "<description>"` | Specification interview (40+ questions) |
 | `/tdd-workflow:4-plan-architecture <name>` | Technical architecture design |
@@ -80,25 +81,39 @@ The workflow takes **two arguments**:
 
 ## Context Management
 
-The workflow includes **3 strategic context checkpoints** where you'll be prompted to run `/clear`:
+Context is managed **automatically via hooks** - no manual intervention needed.
 
-| Checkpoint | After | Why Clear |
-|------------|-------|-----------|
-| **1** | Phase 2 (Exploration) | Heavy read operations filled context |
-| **2** | Phase 6 (Plan Review & Approval) | Planning complete, fresh start for implementation |
-| **3** | Phase 8 (E2E Testing) | Implementation complete, fresh perspective for review |
+### Automatic Context Preservation (Hooks)
 
-### How It Works
+Context is managed **automatically** via hooks - no manual commands needed to resume:
 
-1. **State is saved** to `docs/workflow/<feature>-state.md`
-2. **You run** `/clear` to clear context
-3. **You run** `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow <feature>` to restore and continue
+| Hook | Event | Purpose |
+|------|-------|---------|
+| PreCompact (agent) | Before compaction | Saves session progress to state file |
+| SessionStart (command) | After compaction | Reads state file, injects context to resume |
+
+**What gets auto-saved before compaction:**
+- Current phase, component, and requirement
+- Session progress and key decisions
+- Blockers and issues
+- Files modified
+- Next action to take
+
+**What happens after compaction:**
+- Detects active workflow from `docs/workflow/*-state.md`
+- Reads the entire state file and injects it into context
+- Lists all relevant artifact files to read
+- Claude continues the workflow automatically
+
+This works for both:
+- **Auto-compaction**: When context fills up during long sessions
+- **Manual `/clear`**: When you optionally want to reset context
 
 ### Why This Matters
 
 > "Clear at 60k tokens or 30% context... The automatic compaction is opaque, error-prone, and not well-optimized." - Community Best Practices
 
-Strategic clearing maintains output quality throughout long workflows.
+Strategic clearing with automatic state preservation maintains output quality throughout long workflows.
 
 ## Key Features
 
@@ -213,7 +228,10 @@ docs/
 │   └── <feature>-exploration.md    # Codebase analysis
 ├── specs/
 │   └── <feature>.md                # Full specification
-└── plans/
-    ├── <feature>-plan.md           # Implementation plan
-    └── <feature>-arch.md           # Architecture design
+├── plans/
+│   ├── <feature>-plan.md           # Implementation plan
+│   └── <feature>-arch.md           # Architecture design
+└── workflow/
+    ├── <feature>-state.md          # Workflow state (auto-managed by hooks)
+    └── <feature>-review.md         # Consolidated review findings
 ```

@@ -128,7 +128,7 @@ When ALL E2E tests pass:
 - **Main instance runs tests** - Observes actual failures
 - **Subagents fix specific issues** - Do one fix and return
 - **Main validates after each fix** - Catches regressions immediately
-- **Context managed at orchestrator level** - Can checkpoint if needed
+- **Context managed at orchestrator level** - hooks handle state preservation automatically
 
 ### Test Real Integrations
 - E2E tests should use real external services where possible

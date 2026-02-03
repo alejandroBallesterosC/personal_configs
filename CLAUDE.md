@@ -7,7 +7,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 ```
 claude-code/
 ├── plugins/           # 6 encapsulated plugins
-│   ├── tdd-workflow/  # 7 agents, 11 commands, 4 skills, hooks
+│   ├── tdd-workflow/  # 7 agents, 10 commands, 4 skills, 3 hooks
 │   ├── debug-workflow/ # 4 agents, 7 commands, 1 skill
 │   ├── playwright/    # Browser automation (JS + skill)
 │   ├── claude-session-feedback/ # 3 commands
@@ -23,7 +23,10 @@ claude-code/
 - **Plugin structure**: Each plugin has `commands/`, `agents/`, `skills/`, optional `hooks/`
 - **Agent YAML frontmatter**: Defines `name`, `tools`, `model` (sonnet|opus)
 - **Skill activation**: Skills auto-activate when context matches their description
-- **Hooks**: `PostToolUse` triggers (e.g., auto-run tests after Write|Edit)
+- **Hooks**: Event-driven automation
+  - `PostToolUse`: Auto-run tests after Write|Edit
+  - `PreCompact`: Save workflow state before context compaction (agent-based)
+  - `SessionStart`: Auto-restore context after compaction (shell script)
 
 ## No Application Code
 
@@ -63,10 +66,11 @@ No dependencies, no build, no deployment.
 - `ralph-loop` is external dependency - install via plugin marketplace (see Dependencies)
 - `claude-code/CLAUDE.md` is a TEMPLATE (syncs to ~/.claude/), not this repo's CLAUDE.md
 - Test auto-detection exits 0 when no framework found (non-fatal for repos without tests)
-- Context checkpoints are manual (`/clear` → `/tdd-workflow:reinitialize-context-after-clear-and-continue-workflow`)
-- Resume command validates phase prerequisites (can't skip phases)
+- **Context is preserved automatically** via PreCompact/SessionStart hooks - no manual `/reinitialize` needed
+- Phase transitions still validate prerequisites (can't skip phases)
 - Single MCP server with 20 tools = ~14,000 tokens; disable unused servers before heavy work
 - MCP servers require env vars: `CONTEXT7_API_KEY`, `EXA_API_KEY` (in `.env`, gitignored)
+- TDD workflow uses hooks for state persistence; debug workflow does not (single-session design)
 
 ## Sync Usage
 

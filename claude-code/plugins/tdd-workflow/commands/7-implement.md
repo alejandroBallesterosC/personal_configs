@@ -214,7 +214,7 @@ Output: INTEGRATION_$1_COMPLETE
 - **Main instance runs ralph-loop** - owns the feedback loop
 - **Subagents do discrete tasks** - write ONE test, implement ONE fix, refactor
 - **Main instance runs tests** - validates results between subagent calls
-- **Context managed at orchestrator level** - can checkpoint if needed
+- **Context managed at orchestrator level** - hooks handle state preservation automatically
 
 ### Use Real Implementations
 - External APIs: Use real API calls with actual credentials
