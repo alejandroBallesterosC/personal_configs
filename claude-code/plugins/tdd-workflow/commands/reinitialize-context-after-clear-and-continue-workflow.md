@@ -18,7 +18,11 @@ This command reinitializes context and continues the TDD workflow after a `/clea
 
 ---
 
-## STEP 0: Validate Phase Prerequisites
+## STEP 0: Understand TDD-Workflow
+
+Before resuming, please ensure you fully understand the tdd workflow by using the tdd-workflow-guide skill in the tdd-workflow plugin, and reading through the commands in the tdd-workflow plugin.
+
+## STEP 1: Validate Phase Prerequisites
 
 Before resuming, verify the state file shows all prerequisite phases are complete:
 
@@ -41,7 +45,7 @@ If prerequisites are NOT met:
 
 ---
 
-## STEP 1: Read Workflow State
+## STEP 2: Read Workflow State
 
 Read `docs/workflow/$1-state.md` to understand:
 - Current phase
@@ -74,7 +78,7 @@ After reading the state file, verify prerequisites:
 
 ---
 
-## STEP 2: Restore Context
+## STEP 3: Restore Context
 
 Based on the current phase, read the required context files:
 
@@ -108,7 +112,7 @@ Read in order:
 
 ---
 
-## STEP 3: Display Context Summary
+## STEP 4: Display Context Summary
 
 After reading files, output a brief summary:
 
@@ -132,7 +136,7 @@ Continuing with Phase [N]...
 
 ---
 
-## STEP 4: Continue Workflow
+## STEP 5: Continue Workflow
 
 Based on the current phase from the state file, continue execution.
 
