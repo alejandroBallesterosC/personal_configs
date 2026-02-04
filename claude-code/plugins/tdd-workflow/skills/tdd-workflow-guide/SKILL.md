@@ -79,7 +79,8 @@ Long workflows degrade in quality as context fills. This plugin uses **hooks for
 Context is managed **automatically** via hooks - no manual commands needed:
 
 1. **PreCompact hook** (agent): Before any compaction, extracts and saves session progress to `docs/workflow-<feature>/<feature>-state.md`
-2. **SessionStart hook** (command): After compaction, reads the state file and injects full context for seamless resume
+2. **SessionEnd hook** (agent): Before session ends (logout, clear, exit), saves session progress to state file
+3. **SessionStart hook** (command): After context reset, reads the state file and injects full context for seamless resume
 
 **What gets auto-saved:**
 - Current phase, component, and requirement
@@ -88,22 +89,32 @@ Context is managed **automatically** via hooks - no manual commands needed:
 - Files modified
 - Next action to take
 
-**What happens after compaction:**
+**What happens after context reset (`/compact` or `/clear`):**
 - Detects active workflow from `docs/workflow-*/*-state.md`
 - Reads the entire state file and injects it into context
 - Lists all relevant artifact files to read
 - Claude continues the workflow automatically
 
 This works for:
-- **Auto-compaction**: When context fills up during long sessions
-- **Manual `/clear`**: When you optionally want to reset context
+- **Auto-compaction / `/compact`**: PreCompact hook saves current progress, then SessionStart restores full context
+- **Manual `/clear`**: SessionEnd hook saves current progress, then SessionStart restores full context
+- **Session exit** (logout, Ctrl+C, etc.): SessionEnd hook saves progress for next session
 
 ### How Context Preservation Works
 
-Regardless of when or how context is cleared:
+For `/compact` (auto or manual):
 1. **PreCompact hook** saves state to `docs/workflow-<feature>/<feature>-state.md` before compaction
 2. **SessionStart hook** restores context after compaction
 3. **Workflow continues** automatically from where it left off
+
+For `/clear`:
+1. **SessionEnd hook** saves state before context is cleared
+2. **SessionStart hook** restores context after clear
+3. **Workflow continues** automatically from where it left off
+
+For session exit:
+1. **SessionEnd hook** saves state before session terminates
+2. Next session can use `/tdd-workflow:continue-workflow <feature>` to resume
 
 No specific phase or "checkpoint" required - works at any point in the workflow.
 
@@ -264,12 +275,12 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 When user invokes `/tdd-workflow:1-start <feature> "<description>"`:
 1. The `1-start.md` command orchestrates all phases in sequence
 2. Each phase references its individual command file for detailed execution instructions
-3. State is saved automatically by hooks whenever context is compacted
-4. If context is cleared (manually or by auto-compact), hooks restore context
+3. State is saved automatically by hooks (PreCompact before compaction, SessionEnd before session ends)
+4. After context reset (`/compact` or `/clear`), SessionStart hook restores context
 
-### After Context Clear or Compaction
+### After Context Reset
 
-When context is cleared or compacted:
+When context is reset (`/compact`, `/clear`, or session restart):
 1. The SessionStart hook automatically detects the active workflow
 2. It reads the state file and injects full context
 3. You should read the listed artifact files and continue the workflow
@@ -360,7 +371,7 @@ These principles guide all phases of the workflow:
 3. **Real integrations first** - Only mock when real integration is truly impossible
 4. **Verify continuously** - Main instance runs tests after every subagent task
 5. **Front-load planning** - Thorough questioning eliminates implementation rework
-6. **Automatic context management** - Hooks preserve state before compaction and restore it automatically
+6. **Automatic context management** - Hooks preserve state before compaction/session end and restore it after context reset
 7. **Automatic orchestration** - User only provides input when needed
 
 ---
@@ -388,7 +399,7 @@ All progress is tracked in `docs/workflow-<feature>/<feature>-state.md`:
 - [Decision 1]
 - [Decision 2]
 
-## Session Progress (Auto-saved before compaction)
+## Session Progress (Auto-saved)
 - **Phase**: [current phase]
 - **Component**: [if applicable]
 - **Requirement**: [if applicable]

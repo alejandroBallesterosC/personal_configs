@@ -90,12 +90,13 @@ Long workflows degrade in quality as context fills. This workflow uses **automat
 Context is managed **automatically** via hooks:
 
 1. **PreCompact hook** saves session progress to `docs/workflow-<feature>/<feature>-state.md` before any compaction
-2. **SessionStart hook** detects the active workflow after compaction and injects full context
+2. **SessionStart hook** detects the active workflow after context reset (`/compact` or `/clear`) and injects full context
 3. Claude automatically continues from where it left off
 
-This works for both:
-- **Auto-compaction**: When context fills up during long sessions
-- **Manual `/clear`**: When you optionally want to reset context
+This works for:
+- **Auto-compaction / `/compact`**: PreCompact hook saves current progress, then SessionStart restores full context
+- **Manual `/clear`**: SessionEnd hook saves current progress, then SessionStart restores full context
+- **Session exit** (logout, Ctrl+C, etc.): SessionEnd hook saves progress for next session
 
 ### Manual Continuation
 
@@ -109,12 +110,13 @@ This command validates the workflow exists and is in progress, loads all context
 
 ### Auto-Context Preservation (Hooks)
 
-| Hook | Event | Purpose |
-|------|-------|---------|
-| PreCompact (agent) | Before compaction | Extracts and saves session progress to state file |
-| SessionStart (command) | After compaction | Reads state file, injects full context for seamless resume |
+| Hook | Event | Matcher | Purpose |
+|------|-------|---------|---------|
+| PreCompact (agent) | Before compaction | `auto\|manual` | Extracts and saves session progress to state file |
+| SessionEnd (agent) | Before session ends | `logout\|clear\|prompt_input_exit\|other` | Saves session progress before session terminates |
+| SessionStart (command) | After context reset | `compact\|clear` | Reads state file, injects full context for seamless resume |
 
-**What gets auto-saved before compaction:**
+**What gets auto-saved (before compaction or session end):**
 - Current phase, component, and requirement
 - Session progress and key decisions
 - Blockers and issues
@@ -212,8 +214,9 @@ All progress tracked in `docs/workflow-<feature>/<feature>-state.md`:
 | Hook | Event | Matcher | Purpose |
 |------|-------|---------|---------|
 | run-tests.sh | PostToolUse | `Write\|Edit` | Auto-run tests after code changes |
-| PreCompact agent | PreCompact | `auto` | Save workflow state before compaction |
-| auto-resume-after-compact.sh | SessionStart | `compact` | Inject context to resume workflow |
+| PreCompact agent | PreCompact | `auto\|manual` | Save workflow state before compaction |
+| SessionEnd agent | SessionEnd | `logout\|clear\|prompt_input_exit\|other` | Save workflow state before session ends |
+| auto-resume-after-compact-or-clear.sh | SessionStart | `compact\|clear` | Inject context to resume workflow after context reset |
 
 ### Hook Files
 
@@ -222,7 +225,7 @@ hooks/
 ├── hooks.json                    # Hook configuration
 ├── run-tests.sh                  # Test runner hook
 ├── detect-test-runner.sh         # Test framework detection
-└── auto-resume-after-compact.sh  # Context restoration hook
+└── auto-resume-after-compact-or-clear.sh  # Context restoration hook
 ```
 
 ## Dependencies

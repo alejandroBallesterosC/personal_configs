@@ -1,13 +1,13 @@
 #!/bin/bash
-# ABOUTME: Auto-resume TDD workflow after context compaction
+# ABOUTME: Auto-resume TDD workflow after context reset (compact or clear)
 # ABOUTME: Reads state file and injects full context for seamless continuation
 
 # Read hook input from stdin
 INPUT=$(cat)
 SOURCE=$(echo "$INPUT" | jq -r '.source // empty')
 
-# Only run after compaction
-if [ "$SOURCE" != "compact" ]; then
+# Only run after compact or clear
+if [ "$SOURCE" != "compact" ] && [ "$SOURCE" != "clear" ]; then
   exit 0
 fi
 
@@ -35,11 +35,19 @@ FEATURE=$(basename "$WORKFLOW_DIR" | sed 's/^workflow-//')
 # Read the entire state file content
 STATE_CONTENT=$(cat "$STATE_FILE" 2>/dev/null)
 
+# Determine the trigger type for accurate messaging
+if [ "$SOURCE" = "clear" ]; then
+  TRIGGER_DESC="cleared"
+else
+  TRIGGER_DESC="compacted"
+fi
+
 # Build context message with full state file content
-CONTEXT="## TDD Workflow Resumed After Compaction
+CONTEXT="## TDD Workflow Resumed After Context Reset
 
 **Feature**: $FEATURE
 **State File**: docs/workflow-$FEATURE/$FEATURE-state.md
+**Trigger**: Context was $TRIGGER_DESC
 
 ---
 
@@ -51,7 +59,7 @@ $STATE_CONTENT
 
 ### Instructions
 
-Context was compacted during an active TDD workflow. To continue:
+Context was $TRIGGER_DESC during an active TDD workflow. To continue:
 
 1. **FIRST**: Use the Skill tool to invoke \`tdd-workflow:tdd-workflow-guide\` to load workflow context
 2. Review the workflow state above to understand current progress
