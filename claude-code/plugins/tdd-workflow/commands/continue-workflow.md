@@ -14,16 +14,16 @@ This command continues an in-progress TDD workflow by reading the saved workflow
 
 ## STEP 1: VALIDATE WORKFLOW EXISTS
 
-### Check for `docs/workflow/` directory
+### Check for workflow directory
 
-First, check if the `docs/workflow/` directory exists. If it does not exist:
+First, check if the `docs/workflow-$1/` directory exists. If it does not exist:
 
 **ERROR**: Output the following message and STOP:
 
 ```
 ❌ Error: No workflows are in progress
 
-The docs/workflow/ directory does not exist in this repository.
+The docs/workflow-$1/ directory does not exist in this repository.
 
 To start a workflow, use:
   /tdd-workflow:1-start <feature-name> "<feature description>"
@@ -31,17 +31,17 @@ To start a workflow, use:
 
 ### Check for workflow state file
 
-If `docs/workflow/` exists, check for `docs/workflow/$1-state.md`. If this file does not exist:
+If `docs/workflow-$1/` exists, check for `docs/workflow-$1/$1-state.md`. If this file does not exist:
 
 **ERROR**: Output the following message and STOP:
 
 ```
 ❌ Error: No workflow found for feature '$1'
 
-The file docs/workflow/$1-state.md does not exist.
+The file docs/workflow-$1/$1-state.md does not exist.
 
-Available workflows in docs/workflow/:
-[List all *-state.md files found, or "None" if directory is empty]
+Available workflows in docs/:
+[List all docs/workflow-* directories found, or "None" if none exist]
 
 To start a workflow for '$1', use:
   /tdd-workflow:1-start $1 "<feature description>"
@@ -49,7 +49,7 @@ To start a workflow for '$1', use:
 
 ### Check if workflow is complete
 
-If `docs/workflow/$1-state.md` exists, read its contents and check if the workflow is already complete.
+If `docs/workflow-$1/$1-state.md` exists, read its contents and check if the workflow is already complete.
 
 The workflow is complete if either:
 - The "Current Phase" section contains "COMPLETE"
@@ -62,10 +62,10 @@ If the workflow is complete:
 ```
 ❌ Error: Workflow for '$1' is already complete
 
-The workflow at docs/workflow/$1-state.md shows status COMPLETE.
+The workflow at docs/workflow-$1/$1-state.md shows status COMPLETE.
 
 To start a fresh workflow with the same feature name:
-1. Archive or delete the existing workflow files in docs/
+1. Archive or delete the existing workflow directory: docs/workflow-$1/
 2. Run: /tdd-workflow:1-start $1 "<feature description>"
 ```
 
@@ -75,27 +75,28 @@ To start a fresh workflow with the same feature name:
 
 If validation passes, the workflow is in progress. Now restore full context.
 
-### 2.1 Announce Skill Usage
+### 2.1 Load Workflow Context
 
-Output:
+**REQUIRED**: Use the Skill tool to invoke `tdd-workflow:tdd-workflow-guide` to load workflow context.
+
+Then output:
 ```
 📋 Continuing TDD workflow for '$1'
-
-I'm using the **tdd-workflow-guide** skill to help navigate this workflow.
 ```
 
 ### 2.2 Read All Context Restoration Files
 
 Read the following files (in order) to fully restore context:
 
-1. **State file** (already read in validation): `docs/workflow/$1-state.md`
-2. **Exploration context**: `docs/context/$1-exploration.md` (if exists)
-3. **Specification**: `docs/specs/$1.md` (if exists)
-4. **Architecture**: `docs/plans/$1-arch.md` (if exists)
-5. **Implementation plan**: `docs/plans/$1-plan.md` (if exists)
-6. **Test strategy**: `docs/plans/$1-tests.md` (if exists)
-7. **Review findings**: `docs/workflow/$1-review.md` (if exists)
-8. **Project conventions**: `CLAUDE.md`
+1. **State file** (already read in validation): `docs/workflow-$1/$1-state.md`
+2. **Original prompt**: `docs/workflow-$1/$1-original-prompt.md` (if exists)
+3. **Exploration context**: `docs/workflow-$1/codebase-context/$1-exploration.md` (if exists)
+4. **Specification**: `docs/workflow-$1/specs/$1-specs.md` (if exists)
+5. **Architecture**: `docs/workflow-$1/plans/$1-architecture-plan.md` (if exists)
+6. **Implementation plan**: `docs/workflow-$1/plans/$1-implementation-plan.md` (if exists)
+7. **Test strategy**: `docs/workflow-$1/plans/$1-tests.md` (if exists)
+8. **Review findings**: `docs/workflow-$1/$1-review.md` (if exists)
+9. **Project conventions**: `CLAUDE.md`
 
 For each file that exists, read it completely. Skip files that don't exist (they may not have been created yet depending on the current phase).
 
@@ -115,13 +116,14 @@ After reading all files, output a summary:
 - **Next Action**: [From state file]
 
 ### Artifacts Loaded
-- [x] State file: docs/workflow/$1-state.md
-- [x/blank] Exploration: docs/context/$1-exploration.md
-- [x/blank] Specification: docs/specs/$1.md
-- [x/blank] Architecture: docs/plans/$1-arch.md
-- [x/blank] Implementation plan: docs/plans/$1-plan.md
-- [x/blank] Test strategy: docs/plans/$1-tests.md
-- [x/blank] Review findings: docs/workflow/$1-review.md
+- [x] State file: docs/workflow-$1/$1-state.md
+- [x/blank] Original prompt: docs/workflow-$1/$1-original-prompt.md
+- [x/blank] Exploration: docs/workflow-$1/codebase-context/$1-exploration.md
+- [x/blank] Specification: docs/workflow-$1/specs/$1-specs.md
+- [x/blank] Architecture: docs/workflow-$1/plans/$1-architecture-plan.md
+- [x/blank] Implementation plan: docs/workflow-$1/plans/$1-implementation-plan.md
+- [x/blank] Test strategy: docs/workflow-$1/plans/$1-tests.md
+- [x/blank] Review findings: docs/workflow-$1/$1-review.md
 - [x] Project conventions: CLAUDE.md
 
 ### Key Decisions (from state file)
@@ -162,7 +164,7 @@ Based on the **Current Phase** and **Next Action** from the state file:
 
 If the current phase involves ralph-loop (Phases 7, 8, or 9):
 
-1. Read `docs/plans/$1-plan.md` to identify components and their status
+1. Read `docs/workflow-$1/plans/$1-implementation-plan.md` to identify components and their status
 2. Check which components are complete (from state file or git history)
 3. Resume ralph-loop for the current/next incomplete component:
 
@@ -224,7 +226,7 @@ Phases 7, 8, and 9 require the `ralph-loop` plugin. Ensure it's installed:
 
 As you continue the workflow:
 - The state file will be automatically updated by the PreCompact hook
-- If making significant progress, you can manually update `docs/workflow/$1-state.md`
+- If making significant progress, you can manually update `docs/workflow-$1/$1-state.md`
 - Key decisions should be recorded in the "Key Decisions" section
 
 ---
@@ -233,7 +235,7 @@ As you continue the workflow:
 
 Now execute the steps above:
 
-1. ✅ Validate workflow exists (check docs/workflow/$1-state.md)
+1. ✅ Validate workflow exists (check docs/workflow-$1/$1-state.md)
 2. ✅ Load all context restoration files
 3. ✅ Continue workflow from current phase
 

@@ -120,6 +120,6 @@ Order implementation to minimize blocking:
 ## Important Notes
 
 - This is READ-ONLY analysis - do not write any files
-- Output goes to `docs/plans/<feature>-arch.md`
+- Output goes to `docs/workflow-<feature>/plans/<feature>-architecture-plan.md`
 - Architecture should support TDD implementation
 - Consider how each component will be tested

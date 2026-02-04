@@ -13,7 +13,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Save plans to:** `docs/plans/<feature-name>-plan.md`
+**Save plans to:** `docs/workflow-<feature-name>/plans/<feature-name>-implementation-plan.md`
 
 ## Bite-Sized Task Granularity
 
@@ -94,6 +94,6 @@ git commit -m "feat: add specific feature"
 
 After saving the plan, offer to start executing it:
 
-**"Plan complete and saved to `docs/plans/<filename>.md`. Execute with /implement?**
+**"Plan complete and saved to `docs/workflow-<feature>/plans/<feature>-implementation-plan.md`. Execute with /implement?**
 
 if the user approves, invoke the /implement <feature> --max-iterations <N> command

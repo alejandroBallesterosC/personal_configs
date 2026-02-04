@@ -13,8 +13,8 @@ This is **Phase 4** of the TDD workflow. It creates the technical architecture f
 ## Prerequisites
 
 Read these files before designing:
-- `docs/context/$ARGUMENTS-exploration.md` (codebase context)
-- `docs/specs/$ARGUMENTS.md` (feature specification)
+- `docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md` (codebase context)
+- `docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md` (feature specification)
 - `CLAUDE.md` (project conventions)
 
 If any are missing, recommend running the previous workflow steps first:
@@ -50,8 +50,8 @@ Feature: $ARGUMENTS
 Create technical architecture for this feature.
 
 Context files to read:
-- docs/context/$ARGUMENTS-exploration.md (codebase context)
-- docs/specs/$ARGUMENTS.md (feature specification)
+- docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md (codebase context)
+- docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (feature specification)
 - CLAUDE.md (project conventions)
 
 Design requirements:
@@ -62,7 +62,7 @@ Design requirements:
 5. Integration approach with existing code
 6. Parallel implementation strategy - components must be independently implementable
 
-Output: Write architecture to docs/plans/$ARGUMENTS-arch.md
+Output: Write architecture to docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md
 ```
 
 ## Architecture for Parallel Implementation
@@ -82,7 +82,7 @@ The architecture MUST support parallel component implementation:
 
 ## Output
 
-Write architecture document to `docs/plans/$ARGUMENTS-arch.md`:
+Write architecture document to `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md`:
 
 ```markdown
 # $ARGUMENTS Architecture
@@ -197,7 +197,7 @@ End with:
 Architecture design complete for: $ARGUMENTS
 
 Artifact created:
-- docs/plans/$ARGUMENTS-arch.md
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md
 
 Architecture supports:
 - [N] independent components for parallel implementation

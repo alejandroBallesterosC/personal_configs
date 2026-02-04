@@ -7,8 +7,7 @@ description: Guide for using the TDD workflow plugin. Activates when starting or
 
 This skill provides **navigation guidance** for the TDD workflow plugin's 8 phases (Phases 2-9). Based on practices from Boris Cherny (Claude Code creator), Thariq Shihab (Anthropic), Mo Bitar, and Geoffrey Huntley.
 
-**Important:** This skill is for understanding and navigating the workflow. For **detailed execution instructions** (agent prompts, ralph-loop invocations, interview questions), see:
-`claude-code/plugins/tdd-workflow/commands/1-start.md`
+**Important:** This skill is the **source of truth** for understanding the workflow (overview, principles, context management, state file format). The command files (`1-start.md`, `7-implement.md`, etc.) contain the **execution instructions** only.
 
 ## When to Activate
 
@@ -76,7 +75,7 @@ Long workflows degrade in quality as context fills. This plugin uses **hooks for
 
 Context is managed **automatically** via hooks - no manual commands needed:
 
-1. **PreCompact hook** (agent): Before any compaction, extracts and saves session progress to `docs/workflow/<feature>-state.md`
+1. **PreCompact hook** (agent): Before any compaction, extracts and saves session progress to `docs/workflow-<feature>/<feature>-state.md`
 2. **SessionStart hook** (command): After compaction, reads the state file and injects full context for seamless resume
 
 **What gets auto-saved:**
@@ -87,7 +86,7 @@ Context is managed **automatically** via hooks - no manual commands needed:
 - Next action to take
 
 **What happens after compaction:**
-- Detects active workflow from `docs/workflow/*-state.md`
+- Detects active workflow from `docs/workflow-*/*-state.md`
 - Reads the entire state file and injects it into context
 - Lists all relevant artifact files to read
 - Claude continues the workflow automatically
@@ -99,7 +98,7 @@ This works for:
 ### How Context Preservation Works
 
 Regardless of when or how context is cleared:
-1. **PreCompact hook** saves state to `docs/workflow/<feature>-state.md` before compaction
+1. **PreCompact hook** saves state to `docs/workflow-<feature>/<feature>-state.md` before compaction
 2. **SessionStart hook** restores context after compaction
 3. **Workflow continues** automatically from where it left off
 
@@ -109,7 +108,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 ## Phase Details
 
-**Note:** These are summaries for understanding the workflow. For detailed execution instructions, see the corresponding `## PHASE N` sections in `1-start.md`.
+**Note:** These summaries explain what each phase does. For **execution instructions**, see the individual phase commands (`2-explore.md`, `3-user-specification-interview.md`, etc.). The `1-start.md` command orchestrates all phases in sequence.
 
 ### Phase 2: PARALLEL EXPLORATION
 **Purpose**: Understand the codebase from multiple angles simultaneously
@@ -119,7 +118,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Each explores: Architecture, Patterns, Boundaries, Testing, Dependencies
 - Identifies test command and API key availability
 
-**Output**: `docs/context/<feature>-exploration.md`
+**Output**: `docs/workflow-<feature>/codebase-context/<feature>-exploration.md`
 
 **Command**: `/tdd-workflow:2-explore <feature> "<description>"`
 
@@ -133,7 +132,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Cover 9 domains: functionality, constraints, integration, edge cases, security, testing, etc.
 - Challenge assumptions, pushback on idealistic ideas
 
-**Output**: `docs/specs/<feature>.md`
+**Output**: `docs/workflow-<feature>/specs/<feature>-specs.md`
 
 **Command**: `/tdd-workflow:3-user-specification-interview <feature> "<description>"`
 
@@ -148,7 +147,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Architecture decisions documented
 - Integration points identified
 
-**Output**: `docs/plans/<feature>-arch.md`
+**Output**: `docs/workflow-<feature>/plans/<feature>-architecture-plan.md`
 
 **Command**: `/tdd-workflow:4-plan-architecture <feature>`
 
@@ -164,8 +163,8 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Create test strategy per component
 
 **Output**:
-- `docs/plans/<feature>-plan.md`
-- `docs/plans/<feature>-tests.md`
+- `docs/workflow-<feature>/plans/<feature>-implementation-plan.md`
+- `docs/workflow-<feature>/plans/<feature>-tests.md`
 
 **Command**: `/tdd-workflow:5-plan-implementation <feature>`
 
@@ -231,7 +230,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
   - Tests verified after each fix
 - **Part C - Completion Summary**: Final state file updated, completion report generated
 
-**Output**: `docs/workflow/<feature>-review.md`, completion report
+**Output**: `docs/workflow-<feature>/<feature>-review.md`, completion report
 
 **Command**: `/tdd-workflow:9-review <feature>`
 
@@ -260,8 +259,8 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 ### Starting the Workflow
 
 When user invokes `/tdd-workflow:1-start <feature> "<description>"`:
-1. The `1-start.md` command contains all execution instructions
-2. Follow the phases sequentially as defined in `1-start.md`
+1. The `1-start.md` command orchestrates all phases in sequence
+2. Each phase references its individual command file for detailed execution instructions
 3. State is saved automatically by hooks whenever context is compacted
 4. If context is cleared (manually or by auto-compact), hooks restore context
 
@@ -345,9 +344,95 @@ Context management is handled automatically by hooks - no special action require
 
 ---
 
+## Key Principles
+
+These principles guide all phases of the workflow:
+
+> "Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result." - Boris Cherny
+
+> "Clear at 60k tokens or 30% context... don't wait for limits." - Community Best Practices
+
+1. **Orchestrator owns the feedback loop** - Main instance runs ralph-loop and tests, subagents do discrete tasks
+2. **Strategic parallelization** - Parallel for read-only work (exploration, review), sequential for implementation
+3. **Real integrations first** - Only mock when real integration is truly impossible
+4. **Verify continuously** - Main instance runs tests after every subagent task
+5. **Front-load planning** - Thorough questioning eliminates implementation rework
+6. **Automatic context management** - Hooks preserve state before compaction and restore it automatically
+7. **Automatic orchestration** - User only provides input when needed
+
+---
+
+## State File Format
+
+All progress is tracked in `docs/workflow-<feature>/<feature>-state.md`:
+
+```markdown
+# Workflow State: <feature>
+
+## Current Phase
+[Phase number and name]
+
+## Feature
+- **Name**: <feature>
+- **Description**: <description>
+
+## Completed Phases
+- [x] Phase 2: Exploration
+- [ ] Phase 3: Interview
+...
+
+## Key Decisions
+- [Decision 1]
+- [Decision 2]
+
+## Session Progress (Auto-saved before compaction)
+- **Phase**: [current phase]
+- **Component**: [if applicable]
+- **Requirement**: [if applicable]
+- **Next Action**: [specific next step]
+
+## Context Restoration Files
+Read these files to restore context:
+1. Use the tdd-workflow-guide skill if needed
+2. docs/workflow-<feature>/<feature>-state.md (this file)
+3. docs/workflow-<feature>/<feature>-original-prompt.md
+4. docs/workflow-<feature>/codebase-context/<feature>-exploration.md
+5. docs/workflow-<feature>/specs/<feature>-specs.md
+6. docs/workflow-<feature>/plans/<feature>-architecture-plan.md
+7. docs/workflow-<feature>/plans/<feature>-implementation-plan.md
+8. CLAUDE.md
+```
+
+---
+
+## Artifacts Created
+
+All artifacts for a feature are stored in `docs/workflow-<feature>/`:
+
+```
+docs/workflow-<feature>/
+├── <feature>-state.md                    # Workflow state (auto-managed by hooks)
+├── <feature>-original-prompt.md          # Original user request
+├── <feature>-review.md                   # Consolidated review findings
+├── codebase-context/
+│   └── <feature>-exploration.md          # Codebase analysis
+├── specs/
+│   └── <feature>-specs.md                # Full specification
+└── plans/
+    ├── <feature>-architecture-plan.md    # Architecture design
+    ├── <feature>-implementation-plan.md  # Implementation plan
+    └── <feature>-tests.md                # Test strategy
+```
+
+---
+
 ## Dependencies
 
 - **Required**: `ralph-loop` plugin for Phases 7, 8, 9
+  ```bash
+  /plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum
+  ```
+  **Warning:** Always set `--max-iterations` (50 iterations = $50-100+ in API costs)
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test)
 
 ## Integration with Debug Workflow

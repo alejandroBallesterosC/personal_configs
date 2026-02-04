@@ -167,7 +167,7 @@ Feature: $ARGUMENTS
 
 REVIEW FOCUS: Spec Compliance
 
-Review implementation against docs/specs/$ARGUMENTS.md:
+Review implementation against docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md:
 
 1. **Functional Requirements**
    - Are all requirements implemented?

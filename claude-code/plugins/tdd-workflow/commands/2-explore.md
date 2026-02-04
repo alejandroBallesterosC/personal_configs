@@ -124,7 +124,7 @@ After all 5 agents complete, synthesize their findings:
 
 ### 1. Create Exploration Document
 
-Write comprehensive exploration to: `docs/context/$1-exploration.md`
+Write comprehensive exploration to: `docs/workflow-$1/codebase-context/$1-exploration.md`
 
 Structure:
 ```markdown

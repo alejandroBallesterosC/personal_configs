@@ -89,7 +89,7 @@ Long workflows degrade in quality as context fills. This workflow uses **automat
 
 Context is managed **automatically** via hooks:
 
-1. **PreCompact hook** saves session progress to `docs/workflow/<feature>-state.md` before any compaction
+1. **PreCompact hook** saves session progress to `docs/workflow-<feature>/<feature>-state.md` before any compaction
 2. **SessionStart hook** detects the active workflow after compaction and injects full context
 3. Claude automatically continues from where it left off
 
@@ -122,14 +122,14 @@ This command validates the workflow exists and is in progress, loads all context
 - Next action to take
 
 **What happens after compaction:**
-- Detects active workflow from `docs/workflow/*-state.md`
+- Detects active workflow from `docs/workflow-*/*-state.md`
 - Reads the **entire state file** and injects it into context
 - Lists all relevant artifact files to read
 - Claude continues the workflow automatically
 
 ### State File
 
-All progress tracked in `docs/workflow/<feature>-state.md`:
+All progress tracked in `docs/workflow-<feature>/<feature>-state.md`:
 - Current phase
 - Completed phases
 - Key decisions
@@ -266,18 +266,21 @@ hooks/
 
 ## Artifacts Created
 
+All artifacts for a feature are stored in `docs/workflow-<feature>/`:
+
 ```
-docs/
-├── context/
-│   └── <feature>-exploration.md    # Codebase analysis
+docs/workflow-<feature>/
+├── <feature>-state.md                    # Workflow state (auto-managed by hooks)
+├── <feature>-original-prompt.md          # Original user request
+├── <feature>-review.md                   # Consolidated review findings
+├── codebase-context/
+│   └── <feature>-exploration.md          # Codebase analysis
 ├── specs/
-│   └── <feature>.md                # Full specification
-├── plans/
-│   ├── <feature>-plan.md           # Implementation plan
-│   └── <feature>-arch.md           # Architecture design
-└── workflow/
-    ├── <feature>-state.md          # Workflow state for resume
-    └── <feature>-review.md         # Consolidated review findings
+│   └── <feature>-specs.md                # Full specification
+└── plans/
+    ├── <feature>-architecture-plan.md    # Architecture design
+    ├── <feature>-implementation-plan.md  # Implementation plan
+    └── <feature>-tests.md                # Test strategy
 ```
 
 ## Credits

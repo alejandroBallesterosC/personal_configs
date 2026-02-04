@@ -101,7 +101,7 @@ Context is managed **automatically** via hooks - no manual commands needed to re
 - Next action to take
 
 **What happens after compaction:**
-- Detects active workflow from `docs/workflow/*-state.md`
+- Detects active workflow from `docs/workflow-*/*-state.md`
 - Reads the entire state file and injects it into context
 - Lists all relevant artifact files to read
 - Claude continues the workflow automatically
@@ -241,16 +241,19 @@ Strategic clearing with automatic state preservation maintains output quality th
 
 ## Artifacts Created
 
+All artifacts for a feature are stored in `docs/workflow-<feature>/`:
+
 ```
-docs/
-├── context/
-│   └── <feature>-exploration.md    # Codebase analysis
+docs/workflow-<feature>/
+├── <feature>-state.md                    # Workflow state (auto-managed by hooks)
+├── <feature>-original-prompt.md          # Original user request
+├── <feature>-review.md                   # Consolidated review findings
+├── codebase-context/
+│   └── <feature>-exploration.md          # Codebase analysis
 ├── specs/
-│   └── <feature>.md                # Full specification
-├── plans/
-│   ├── <feature>-plan.md           # Implementation plan
-│   └── <feature>-arch.md           # Architecture design
-└── workflow/
-    ├── <feature>-state.md          # Workflow state (auto-managed by hooks)
-    └── <feature>-review.md         # Consolidated review findings
+│   └── <feature>-specs.md                # Full specification
+└── plans/
+    ├── <feature>-architecture-plan.md    # Architecture design
+    ├── <feature>-implementation-plan.md  # Implementation plan
+    └── <feature>-tests.md                # Test strategy
 ```

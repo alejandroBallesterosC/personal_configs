@@ -12,10 +12,10 @@ This is **Phase 5** of the TDD workflow. It creates a detailed implementation pl
 
 ## Before Starting
 
-1. **Check architecture exists** at `docs/plans/$1-arch.md`
+1. **Check architecture exists** at `docs/workflow-$1/plans/$1-architecture-plan.md`
    - If not, recommend running `/tdd-workflow:4-plan-architecture $1` first
 
-2. **Check specification exists** at `docs/specs/$1.md`
+2. **Check specification exists** at `docs/workflow-$1/specs/$1-specs.md`
    - If not, recommend running `/tdd-workflow:3-user-specification-interview $1 "<description>"` first
 
 3. **Read the architecture** thoroughly to understand:
@@ -30,7 +30,7 @@ This is **Phase 5** of the TDD workflow. It creates a detailed implementation pl
    - Non-functional requirements
    - Out of scope items
 
-5. **Read exploration** at `docs/context/$1-exploration.md` for:
+5. **Read exploration** at `docs/workflow-$1/codebase-context/$1-exploration.md` for:
    - Codebase patterns to follow
    - Existing interfaces to use
    - Test framework and conventions
@@ -77,13 +77,13 @@ The implementation plan MUST:
 
 Create these artifacts:
 
-### 1. Implementation Plan (`docs/plans/$1-plan.md`)
+### 1. Implementation Plan (`docs/workflow-$1/plans/$1-implementation-plan.md`)
 
 ```markdown
 # Implementation Plan: $1
 
 ## Architecture Reference
-See docs/plans/$1-arch.md for component architecture.
+See docs/workflow-$1/plans/$1-architecture-plan.md for component architecture.
 
 ## Implementation Tasks
 
@@ -144,7 +144,7 @@ See docs/plans/$1-arch.md for component architecture.
 - Mock fallback strategy (if needed)
 ```
 
-### 2. Test Cases (`docs/plans/$1-tests.md`)
+### 2. Test Cases (`docs/workflow-$1/plans/$1-tests.md`)
 
 ```markdown
 # Test Cases: $1
@@ -176,11 +176,11 @@ End with this message:
 Implementation plan complete for: $1
 
 Artifacts created:
-- docs/plans/$1-plan.md (implementation plan with parallel tasks)
-- docs/plans/$1-tests.md (test cases)
+- docs/workflow-$1/plans/$1-implementation-plan.md (implementation plan with parallel tasks)
+- docs/workflow-$1/plans/$1-tests.md (test cases)
 
 References:
-- docs/plans/$1-arch.md (architecture design from Phase 4)
+- docs/workflow-$1/plans/$1-architecture-plan.md (architecture design from Phase 4)
 
 Next step:
 /tdd-workflow:6-review-plan $1 (challenge the plan before implementation)

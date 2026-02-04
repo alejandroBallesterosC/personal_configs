@@ -13,6 +13,8 @@ argument-hint: <feature-name> "<feature description>"
 
 Implement the feature using **orchestrated TDD** where the **main instance runs ralph-loop** and owns the feedback loop, spawning subagents for discrete tasks.
 
+For workflow overview and key principles, see the **tdd-workflow-guide** skill.
+
 ---
 
 ## PREREQUISITES CHECK
@@ -20,10 +22,10 @@ Implement the feature using **orchestrated TDD** where the **main instance runs 
 Before implementation, verify:
 
 ### 1. Planning Artifacts Exist
-- `docs/specs/$1.md` (specification)
-- `docs/plans/$1-plan.md` (implementation plan with components)
-- `docs/plans/$1-arch.md` (architecture)
-- `docs/context/$1-exploration.md` (codebase context)
+- `docs/workflow-$1/specs/$1-specs.md` (specification)
+- `docs/workflow-$1/plans/$1-implementation-plan.md` (implementation plan with components)
+- `docs/workflow-$1/plans/$1-architecture-plan.md` (architecture)
+- `docs/workflow-$1/codebase-context/$1-exploration.md` (codebase context)
 
 If any are missing, run the planning workflow first.
 
@@ -53,7 +55,7 @@ This must complete before parallel components begin.
 
 ### Step 2: Identify Parallel Components
 
-Read `docs/plans/$1-plan.md` and identify:
+Read `docs/workflow-$1/plans/$1-implementation-plan.md` and identify:
 - Independent components that can be implemented in parallel
 - Dependencies between components
 - Integration points
@@ -69,10 +71,10 @@ For each component, the **main instance runs ralph-loop** and owns the feedback 
 You are the TDD orchestrator. You own the feedback loop and spawn subagents for discrete tasks.
 
 ## Context Files
-- docs/specs/$1.md (full specification)
-- docs/plans/$1-plan.md (implementation plan)
-- docs/plans/$1-arch.md (architecture)
-- docs/context/$1-exploration.md (codebase context)
+- docs/workflow-$1/specs/$1-specs.md (full specification)
+- docs/workflow-$1/plans/$1-implementation-plan.md (implementation plan)
+- docs/workflow-$1/plans/$1-architecture-plan.md (architecture)
+- docs/workflow-$1/codebase-context/$1-exploration.md (codebase context)
 
 ## Component Details
 - **Component**: [Component Name]

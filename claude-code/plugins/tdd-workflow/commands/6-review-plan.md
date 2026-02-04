@@ -13,11 +13,11 @@ This follows Mo Bitar's interrogation method: pushback on idealistic ideas, find
 ## Prerequisites
 
 Read ALL planning artifacts:
-- `docs/context/$ARGUMENTS-exploration.md` (codebase context)
-- `docs/specs/$ARGUMENTS.md` (specification)
-- `docs/plans/$ARGUMENTS-arch.md` (architecture)
-- `docs/plans/$ARGUMENTS-plan.md` (implementation plan)
-- `docs/plans/$ARGUMENTS-tests.md` (test cases)
+- `docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md` (codebase context)
+- `docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md` (specification)
+- `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md` (architecture)
+- `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md` (implementation plan)
+- `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-tests.md` (test cases)
 
 If any are missing, recommend running the previous workflow steps first.
 
@@ -36,11 +36,11 @@ Feature: $ARGUMENTS
 Critically review the implementation plan for this feature.
 
 Context files to read:
-- docs/context/$ARGUMENTS-exploration.md (codebase context)
-- docs/specs/$ARGUMENTS.md (specification)
-- docs/plans/$ARGUMENTS-arch.md (architecture)
-- docs/plans/$ARGUMENTS-plan.md (implementation plan)
-- docs/plans/$ARGUMENTS-tests.md (test cases)
+- docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md (codebase context)
+- docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (specification)
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (architecture)
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md (implementation plan)
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-tests.md (test cases)
 
 Review Focus:
 1. Evaluate each planning artifact against the checklist below
@@ -141,9 +141,9 @@ All blockers resolved. Plan is ready for implementation.
 [Summary of suggestions and user's decisions]
 
 ## Updated Artifacts
-- docs/specs/$ARGUMENTS.md (if modified)
-- docs/plans/$ARGUMENTS-plan.md (if modified)
-- docs/plans/$ARGUMENTS-arch.md (if modified)
+- docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (if modified)
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md (if modified)
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (if modified)
 
 Next step:
 obtain explicit user approval to start implementation.

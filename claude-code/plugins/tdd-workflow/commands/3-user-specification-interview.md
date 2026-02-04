@@ -13,7 +13,7 @@ This is **Phase 3** of the TDD workflow. It follows Thariq Shihab's spec-based d
 
 ## Before Starting
 
-Check if exploration exists at `docs/context/$1-exploration.md`. If not, recommend running `/tdd-workflow:2-explore $1 "$2"` first.
+Check if exploration exists at `docs/workflow-$1/codebase-context/$1-exploration.md`. If not, recommend running `/tdd-workflow:2-explore $1 "$2"` first.
 
 ## Execution
 
@@ -105,7 +105,7 @@ Be like a journalist or skeptical senior engineer:
 
 When the specification interview is complete (you have clarity on ALL domains):
 
-Write specification to `docs/specs/$1.md`:
+Write specification to `docs/workflow-$1/specs/$1-specs.md`:
 - Complete requirements
 - Acceptance criteria
 - Non-functional requirements
@@ -119,7 +119,7 @@ End with this message:
 Specification interview complete for: $1
 
 Artifact created:
-- docs/specs/$1.md (specification)
+- docs/workflow-$1/specs/$1-specs.md (specification)
 
 Next step:
 /tdd-workflow:4-plan-architecture $1 (create technical architecture from spec)
