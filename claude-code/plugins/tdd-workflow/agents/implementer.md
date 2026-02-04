@@ -20,6 +20,7 @@ Make tests pass with the simplest possible implementation. Do not optimize. Do n
 - Do NOT optimize or refactor (that's the next phase)
 - Do NOT change existing tests
 - STOP when tests are green
+- NEVER USE EMOJIS in your code
 
 ## Process
 

@@ -9,6 +9,8 @@ This skill provides **navigation guidance** for the TDD workflow plugin's 8 phas
 
 **Important:** This skill is the **source of truth** for understanding the workflow (overview, principles, context management, state file format). The command files (`1-start.md`, `7-implement.md`, etc.) contain the **execution instructions** only.
 
+**IMPORTANT: Never use emojis in your codebase documentation, plans, specs, state file, code implementations, or test implementations**
+
 ## When to Activate
 
 Activate when:
@@ -20,6 +22,7 @@ Activate when:
 **Note:** When executing the workflow via `/tdd-workflow:1-start`, follow the instructions in that command directly - this skill is supplementary guidance.
 
 **Announce at start:** "I'm using the tdd-workflow-guide skill to help navigate this workflow."
+
 
 ## Workflow Overview (8 Phases)
 

@@ -20,6 +20,7 @@ Clean up the implementation without changing behavior. Make the code better, not
 - Do NOT change test assertions
 - Run tests after EACH refactoring
 - If tests break, UNDO immediately
+- NEVER USE EMOJIS in your code
 
 ## Process
 

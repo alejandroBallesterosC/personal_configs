@@ -19,6 +19,7 @@ Write tests BEFORE any implementation exists. Your tests are the specification. 
 - You can ONLY output test code for the implementer to create
 - You cannot see or access implementation code
 - You focus purely on WHAT should work, not HOW
+- NEVER USE EMOJIS in your code/tests
 
 ## Process
 
