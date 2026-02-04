@@ -74,6 +74,7 @@ Context is managed automatically via hooks - no manual checkpoints needed.
 | `/tdd-workflow:7-implement <name> "<description>"` | Parallel TDD implementation |
 | `/tdd-workflow:8-e2e-test <name> "<description>"` | End-to-end testing |
 | `/tdd-workflow:9-review <name>` | Parallel multi-aspect review (5 agents) |
+| `/tdd-workflow:continue-workflow <name>` | **Continue an in-progress workflow** |
 | `/tdd-workflow:help` | Show this help |
 
 ## Context Management
@@ -96,7 +97,15 @@ This works for both:
 - **Auto-compaction**: When context fills up during long sessions
 - **Manual `/clear`**: When you optionally want to reset context
 
-No manual commands needed to resume - the hooks handle everything.
+### Manual Continuation
+
+For scenarios where hooks don't fire (e.g., starting a fresh session):
+
+```bash
+/tdd-workflow:continue-workflow user-authentication
+```
+
+This command validates the workflow exists and is in progress, loads all context restoration files, and continues from the current phase.
 
 ### Auto-Context Preservation (Hooks)
 

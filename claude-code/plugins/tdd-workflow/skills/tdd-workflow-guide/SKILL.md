@@ -250,6 +250,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 | `/tdd-workflow:7-implement <name> "<desc>"` | TDD implementation |
 | `/tdd-workflow:8-e2e-test <name> "<desc>"` | E2E testing |
 | `/tdd-workflow:9-review <name>` | Parallel review (5 agents) |
+| `/tdd-workflow:continue-workflow <name>` | **Continue an in-progress workflow** |
 | `/tdd-workflow:help` | Show help |
 
 ---
@@ -271,6 +272,19 @@ When context is cleared or compacted:
 2. It reads the state file and injects full context
 3. You should read the listed artifact files and continue the workflow
 4. No manual command needed - just continue where you left off
+
+### Starting a Fresh Session
+
+If you're starting a fresh session (not triggered by compaction) and want to continue an in-progress workflow:
+
+```bash
+/tdd-workflow:continue-workflow <feature-name>
+```
+
+This command:
+1. Validates the workflow exists and is in progress (errors if not found or already complete)
+2. Loads all context restoration files (state, spec, plan, architecture, exploration)
+3. Summarizes current state and continues from the current phase
 
 ### Phase Transitions
 
