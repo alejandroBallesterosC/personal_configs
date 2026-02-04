@@ -442,10 +442,7 @@ docs/workflow-<feature>/
 
 ## Dependencies
 
-- **Required**: `ralph-loop` plugin for Phases 7, 8, 9
-  ```bash
-  /plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum
-  ```
+- **Required**: `ralph-loop` plugin for Phases 7, 8, 9 from Anthropic Official Plugins Marketplace
   **Warning:** Always set `--max-iterations` (50 iterations = $50-100+ in API costs)
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test)
 
