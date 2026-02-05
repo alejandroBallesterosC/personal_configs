@@ -6,6 +6,12 @@
     "name": "jandro"
   },
   "repository": "https://github.com/jandro/personal_configs",
-  "keywords": ["tdd", "planning", "interview", "workflow", "opus"],
-  "hooks": "./hooks/hooks.json"
+  "keywords": [
+    "tdd",
+    "test-driven development",
+    "planning",
+    "interview",
+    "workflow",
+    "opus"
+  ]
 }
