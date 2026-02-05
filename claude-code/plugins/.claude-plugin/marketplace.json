@@ -7,21 +7,12 @@
   },
   "plugins": [
     {
-      "name": "tdd-workflow",
-      "description": "Planning-heavy, TDD-driven development workflow with user interviews and autonomous implementation",
+      "name": "dev-workflow",
+      "description": "Unified TDD implementation and hypothesis-driven debugging workflows with 11 agents, 17 commands, and automatic context preservation",
       "author": {
         "name": "jandro"
       },
-      "source": "./tdd-workflow",
-      "category": "development"
-    },
-    {
-      "name": "debug-workflow",
-      "description": "Hypothesis-driven debugging workflow with systematic instrumentation and log analysis",
-      "author": {
-        "name": "jandro"
-      },
-      "source": "./debug-workflow",
+      "source": "./dev-workflow",
       "category": "development"
     },
     {

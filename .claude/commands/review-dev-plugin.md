@@ -1,29 +1,28 @@
-# ABOUTME: Command to conduct thorough research and review of the debug workflow plugin
+# ABOUTME: Command to conduct thorough research and review of the dev workflow plugin
 # ABOUTME: Compares plugin against best practices from Anthropic docs and power users
 
 ---
-description: Research best practices and holistically review the debug workflow plugin
+description: Research best practices and holistically review the dev workflow plugin
 model: opus
 ---
 
-# Review Debug Workflow Plugin
+# Review dev Workflow Plugin
 
-Conduct thorough research and provide holistic feedback on the Debug workflow plugin.
+Conduct thorough research and provide holistic feedback on the dev workflow plugin.
 
 ## Research Phase (Parallel Subagents)
 
 Launch the following research subagents in parallel using subagents:
 
 ### 1. Official Anthropic Research
-Research best practices for a workflow like this with Claude Code from official Anthropic sources:
+Research best practices for agentic long-horizon coding with Claude Code from official Anthropic sources:
 - Official Anthropic documentation on Claude Code best practices
 - Anthropic blog posts about agentic coding, long-horizon tasks, Claude Code workflows
 - Anthropic's guidance on multi-turn conversations, tool use, and agent design
-- Official guides on TDD, testing workflows, debugging, or iterative development with Claude
-- How to structure debugging centric coding tasks
+- Official guides on dev, testing workflows, or iterative development with Claude
+- How to structure long-running coding tasks
 - Best practices for context management
 - How to design effective agent workflows
-- Cursor's debug feature
 - Recommended patterns for iterative development
 - Quality assurance and verification approaches
 
@@ -37,8 +36,8 @@ Research insights and best practices from Claude Code power users:
 - Common pitfalls and how to avoid them
 - Patterns that experienced users have found effective
 
-### 3. Debug Workflow Plugin Analysis
-Thoroughly explore the Debug workflow plugin at `claude-code/plugins/debug-workflow/`:
+### 3. dev Workflow Plugin Analysis
+Thoroughly explore the dev workflow plugin at `claude-code/plugins/dev-workflow/`:
 - Overall plugin structure and architecture
 - All commands - their purpose and implementation
 - All agents - their roles, tools, and configurations
@@ -50,8 +49,9 @@ Thoroughly explore the Debug workflow plugin at `claude-code/plugins/debug-workf
 - Integration points with other plugins
 
 ### 4. Plugin Dependencies Analysis
-Explore dependencies and related plugins that the debug workflow relies on:
-- plugins in `claude-code/plugins/` that interact with the debug workflow
+Explore dependencies and related plugins that dev workflow relies on:
+- ralph-loop plugin (required for Phases 7, 8, 9)
+- Other plugins in `claude-code/plugins/` that interact with dev workflow
 - Shared components in `claude-code/commands/`
 - MCP server configurations that support the workflow
 - How plugins interconnect
