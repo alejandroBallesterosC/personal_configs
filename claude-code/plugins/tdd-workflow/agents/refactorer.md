@@ -184,3 +184,4 @@ git commit -m "refactor: [description]"
 - If tests break, the refactoring was wrong
 - Code quality matters, but working code matters more
 - Don't refactor and add features at the same time
+- **Follow the testing skill** for `.tdd-test-scope` usage to keep verification fast

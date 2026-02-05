@@ -387,7 +387,7 @@ PostToolUse (after Write|Edit)
 | Skill | Plugin | Purpose | Activation Trigger |
 |-------|--------|---------|-------------------|
 | `tdd-workflow-guide` | tdd-workflow | Navigation guidance for 8 phases | Starting/navigating TDD workflow |
-| `tdd-guide` | tdd-workflow | RED/GREEN/REFACTOR methodology | Writing tests or implementing features |
+| `testing` | tdd-workflow | RED/GREEN/REFACTOR methodology | Writing tests or implementing features |
 | `writing-plans` | tdd-workflow | Parallelizable component design | Writing implementation plans |
 | `using-git-worktrees` | tdd-workflow | Feature branch isolation | Starting feature work needing isolation |
 | `structured-debug` | debug-workflow | Hypothesis-driven debugging | Debugging errors/unexpected behavior |

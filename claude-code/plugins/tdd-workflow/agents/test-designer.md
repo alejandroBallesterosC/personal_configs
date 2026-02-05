@@ -129,3 +129,4 @@ This test should FAIL because [implementation doesn't exist yet].
 - Use existing test patterns from the codebase
 - Keep tests independent - no test should depend on another
 - Each test should be runnable in isolation
+- **Follow the testing skill** for test tiering (markers), API caching, and `.tdd-test-scope` usage

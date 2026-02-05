@@ -1,6 +1,6 @@
 #!/bin/bash
 # ABOUTME: Detects the test runner for the current project
-# ABOUTME: Returns: pytest, jest, vitest, go, cargo, or "unknown"
+# ABOUTME: Returns: pytest, playwright, vitest, jest, go, cargo, rspec, minitest, mix, or "unknown"
 
 # Check for Python (pytest)
 if [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -f "setup.py" ] || [ -f "setup.cfg" ]; then
@@ -11,6 +11,12 @@ if [ -f "pyproject.toml" ] || [ -f "pytest.ini" ] || [ -f "setup.py" ] || [ -f "
         echo "pytest"
         exit 0
     fi
+fi
+
+# Check for Playwright (check before other JS runners)
+if [ -f "playwright.config.ts" ] || [ -f "playwright.config.js" ]; then
+    echo "playwright"
+    exit 0
 fi
 
 # Check for Vitest (before Jest since vitest.config takes precedence)
@@ -25,8 +31,12 @@ if [ -f "jest.config.js" ] || [ -f "jest.config.ts" ] || [ -f "jest.config.mjs" 
     exit 0
 fi
 
-# Check package.json for jest
+# Check package.json for JS test runners
 if [ -f "package.json" ]; then
+    if grep -q '"@playwright/test"' package.json 2>/dev/null; then
+        echo "playwright"
+        exit 0
+    fi
     if grep -q '"jest"' package.json 2>/dev/null; then
         echo "jest"
         exit 0

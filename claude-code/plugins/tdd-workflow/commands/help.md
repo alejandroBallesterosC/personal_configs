@@ -201,7 +201,7 @@ Strategic clearing with automatic state preservation maintains output quality th
 | Skill | Purpose |
 |-------|---------|
 | tdd-workflow-guide | Navigate workflow phases |
-| tdd-guide | RED → GREEN → REFACTOR cycle |
+| testing | RED → GREEN → REFACTOR cycle |
 | writing-plans | Parallelizable component design |
 | using-git-worktrees | Feature branch isolation |
 

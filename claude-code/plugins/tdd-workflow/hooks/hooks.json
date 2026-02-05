@@ -1,13 +1,12 @@
 {
   "description": "TDD workflow hooks - test feedback, context preservation, and auto-resume",
   "hooks": {
-    "PostToolUse": [
+    "Stop": [
       {
-        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/run-tests.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/run-scoped-tests.sh"
           }
         ]
       }

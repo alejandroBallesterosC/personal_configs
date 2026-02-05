@@ -137,3 +137,4 @@ git commit -m "green: [requirement]"
 - Trust the process - refactoring comes next
 - If you're writing more code than the test requires, STOP
 - The test is the specification - match it exactly
+- **Follow the testing skill** for `.tdd-test-scope` usage to control which tests run

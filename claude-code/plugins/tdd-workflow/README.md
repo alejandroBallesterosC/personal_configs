@@ -205,7 +205,7 @@ All progress tracked in `docs/workflow-<feature>/<feature>-state.md`:
 | Skill | Purpose |
 |-------|---------|
 | tdd-workflow-guide | Navigate workflow phases |
-| tdd-guide | RED → GREEN → REFACTOR cycle |
+| testing | RED → GREEN → REFACTOR cycle |
 | writing-plans | Parallelizable component design |
 | using-git-worktrees | Feature branch isolation |
 
