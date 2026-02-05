@@ -1,0 +1,20 @@
+{
+  "name": "dev-workflow",
+  "description": "Unified development workflow: TDD implementation workflow (planning, parallel agents, orchestrated implementation) and hypothesis-driven debugging (exploration, instrumentation, verification loops)",
+  "version": "1.0.0",
+  "author": {
+    "name": "jandro"
+  },
+  "repository": "https://github.com/jandro/personal_configs",
+  "keywords": [
+    "tdd",
+    "test-driven development",
+    "debugging",
+    "hypothesis-driven",
+    "planning",
+    "workflow",
+    "instrumentation",
+    "verification",
+    "context-management"
+  ]
+}

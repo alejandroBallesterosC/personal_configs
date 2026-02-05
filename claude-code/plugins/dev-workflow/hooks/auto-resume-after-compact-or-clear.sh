@@ -1,0 +1,168 @@
+#!/bin/bash
+# ABOUTME: Auto-resume TDD implementation or debug workflow after context reset (compact or clear)
+# ABOUTME: Checks both docs/workflow-* and docs/debug/*/ for active sessions, parses YAML frontmatter, and injects context
+
+# Read hook input from stdin
+INPUT=$(cat)
+SOURCE=$(echo "$INPUT" | jq -r '.source // empty')
+
+# Only run after compact or clear
+if [ "$SOURCE" != "compact" ] && [ "$SOURCE" != "clear" ]; then
+  exit 0
+fi
+
+# Determine the trigger type for accurate messaging
+if [ "$SOURCE" = "clear" ]; then
+  TRIGGER_DESC="cleared"
+else
+  TRIGGER_DESC="compacted"
+fi
+
+# --- Check for TDD implementation workflow ---
+TDD_STATE_FILE=""
+if ls -d docs/workflow-* 2>/dev/null | head -1 > /dev/null; then
+  TDD_STATE_FILE=$(find docs/workflow-* -name "*-state.md" -type f 2>/dev/null | head -1)
+fi
+
+TDD_ACTIVE=false
+if [ -n "$TDD_STATE_FILE" ] && [ -f "$TDD_STATE_FILE" ]; then
+  # Check YAML frontmatter status field first, fallback to markdown body
+  TDD_STATUS=$(sed -n '/^---$/,/^---$/{ /^status:/{ s/^status: *//; s/ *$//; p; } }' "$TDD_STATE_FILE" 2>/dev/null)
+  if [ "$TDD_STATUS" = "complete" ]; then
+    TDD_ACTIVE=false
+  elif [ -n "$TDD_STATUS" ]; then
+    TDD_ACTIVE=true
+  elif ! grep -qi "Current Phase.*COMPLETE\|^COMPLETE$" "$TDD_STATE_FILE" 2>/dev/null; then
+    TDD_ACTIVE=true
+  fi
+fi
+
+# --- Check for debug workflow ---
+DEBUG_STATE_FILE=""
+if ls -d docs/debug/*/ 2>/dev/null | head -1 > /dev/null; then
+  DEBUG_STATE_FILE=$(find docs/debug -name "*-state.md" -type f 2>/dev/null | head -1)
+fi
+
+DEBUG_ACTIVE=false
+if [ -n "$DEBUG_STATE_FILE" ] && [ -f "$DEBUG_STATE_FILE" ]; then
+  # Check YAML frontmatter status field first, fallback to markdown body
+  DEBUG_STATUS=$(sed -n '/^---$/,/^---$/{ /^status:/{ s/^status: *//; s/ *$//; p; } }' "$DEBUG_STATE_FILE" 2>/dev/null)
+  if [ "$DEBUG_STATUS" = "complete" ]; then
+    DEBUG_ACTIVE=false
+  elif [ -n "$DEBUG_STATUS" ]; then
+    DEBUG_ACTIVE=true
+  elif ! grep -qi "Current Phase.*COMPLETE\|^COMPLETE$" "$DEBUG_STATE_FILE" 2>/dev/null; then
+    DEBUG_ACTIVE=true
+  fi
+fi
+
+# No active workflow found
+if [ "$TDD_ACTIVE" = false ] && [ "$DEBUG_ACTIVE" = false ]; then
+  exit 0
+fi
+
+# Build context message
+CONTEXT=""
+
+# --- TDD implementation workflow context ---
+if [ "$TDD_ACTIVE" = true ]; then
+  WORKFLOW_DIR=$(dirname "$TDD_STATE_FILE")
+  FEATURE=$(basename "$WORKFLOW_DIR" | sed 's/^workflow-//')
+  TDD_STATE_CONTENT=$(cat "$TDD_STATE_FILE" 2>/dev/null)
+
+  CONTEXT="## TDD Implementation Workflow Resumed After Context Reset
+
+**Feature**: $FEATURE
+**State File**: docs/workflow-$FEATURE/$FEATURE-state.md
+**Trigger**: Context was $TRIGGER_DESC
+
+---
+
+### Workflow State (from state file)
+
+$TDD_STATE_CONTENT
+
+---
+
+### Instructions
+
+Context was $TRIGGER_DESC during an active TDD implementation workflow. To continue:
+
+1. **FIRST**: Use the Skill tool to invoke \`dev-workflow:tdd-implementation-workflow-guide\` to load workflow context
+2. Review the workflow state above to understand current progress
+3. Read the context restoration files listed in the state above
+4. Continue from where we left off
+
+**Key files to read** (based on workflow artifacts):
+- \`docs/workflow-$FEATURE/$FEATURE-state.md\` (already included above)
+- \`docs/workflow-$FEATURE/$FEATURE-original-prompt.md\` (if exists - the original request)
+- \`docs/workflow-$FEATURE/specs/$FEATURE-specs.md\` (if exists - the specification)
+- \`docs/workflow-$FEATURE/plans/$FEATURE-implementation-plan.md\` (if exists - the implementation plan)
+- \`docs/workflow-$FEATURE/plans/$FEATURE-architecture-plan.md\` (if exists - the architecture)
+- \`docs/workflow-$FEATURE/codebase-context/$FEATURE-exploration.md\` (if exists - codebase exploration)
+- \`CLAUDE.md\` (project conventions)
+
+**Continue the workflow now.** Read any additional files needed and proceed with the next action indicated in the state."
+fi
+
+# --- Debug workflow context ---
+if [ "$DEBUG_ACTIVE" = true ]; then
+  SESSION_DIR=$(dirname "$DEBUG_STATE_FILE")
+  BUG_NAME=$(basename "$SESSION_DIR")
+  DEBUG_STATE_CONTENT=$(cat "$DEBUG_STATE_FILE" 2>/dev/null)
+
+  # Add separator if both are active
+  if [ -n "$CONTEXT" ]; then
+    CONTEXT="$CONTEXT
+
+---
+
+"
+  fi
+
+  CONTEXT="${CONTEXT}## Debug Workflow Resumed After Context Reset
+
+**Bug**: $BUG_NAME
+**State File**: docs/debug/$BUG_NAME/$BUG_NAME-state.md
+**Trigger**: Context was $TRIGGER_DESC
+
+---
+
+### Debug Session State (from state file)
+
+$DEBUG_STATE_CONTENT
+
+---
+
+### Instructions
+
+Context was $TRIGGER_DESC during an active debug session. To continue:
+
+1. **FIRST**: Use the Skill tool to invoke \`dev-workflow:debug-workflow-guide\` to load workflow context
+2. Review the session state above to understand current progress
+3. Read the context restoration files listed in the state above
+4. Continue from where we left off
+
+**Key files to read** (based on debug artifacts):
+- \`docs/debug/$BUG_NAME/$BUG_NAME-state.md\` (already included above)
+- \`docs/debug/$BUG_NAME/$BUG_NAME-bug.md\` (if exists - the bug description)
+- \`docs/debug/$BUG_NAME/$BUG_NAME-exploration.md\` (if exists - codebase exploration)
+- \`docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md\` (if exists - ranked hypotheses)
+- \`docs/debug/$BUG_NAME/$BUG_NAME-analysis.md\` (if exists - log analysis results)
+- \`CLAUDE.md\` (project conventions)
+
+**Continue the debug session now.** Read any additional files needed and proceed with the next action indicated in the state."
+fi
+
+# Escape the context for JSON
+ESCAPED_CONTEXT=$(echo "$CONTEXT" | jq -Rs .)
+
+# Output JSON with additionalContext
+cat << EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": $ESCAPED_CONTEXT
+  }
+}
+EOF

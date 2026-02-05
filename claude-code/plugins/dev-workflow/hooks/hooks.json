@@ -1,0 +1,31 @@
+{
+  "description": "Dev workflow hooks - test feedback, context preservation, and auto-resume for TDD implementation and debug workflows",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/run-scoped-tests.sh"
+          },
+          {
+            "type": "agent",
+            "prompt": "Verify whether the workflow state file is up to date before allowing Claude to stop.\n\n## Step 1: Detection\n\nCheck for BOTH types of active workflow:\n\n### TDD Workflow\n1. Search for directories matching `docs/workflow-*` in the current project\n2. Within those directories, look for files matching `*-state.md`\n\n### Debug Workflow\n1. Search for directories matching `docs/debug/*/` in the current project\n2. Within those directories, look for files matching `*-state.md`\n\nIf no state file exists for either type: return {\"ok\": true} (no active workflow)\nIf state file(s) exist: proceed to verification for each found\n\n## Step 2: Gather Evidence\n\nFor each active state file found, thoroughly investigate:\n\n1. **Read the state file** - Note what phase, component/hypothesis status, and next action it claims\n2. **Check recent git changes** - Run `git diff` and `git status` to see what files changed\n3. **Review codebase state** - Glob for relevant source files, read key files mentioned in the state file\n4. **Review conversation context** - What work was discussed or completed?\n\n## Step 3: Verify Against Criteria\n\n### For TDD Workflow state files:\nThe state file is UP TO DATE only if ALL of the following are true:\n1. **Phase accuracy**: The \"Current Phase\" matches the actual phase evident from the work done\n2. **Component accuracy**: If in Phase 7/8, the current component being worked on is correctly identified\n3. **Next action accuracy**: The \"Next Action\" reflects what should actually be done next (not something already completed)\n4. **No stale progress**: The \"Session Progress\" section does not describe work from a previous session as current\n5. **Files reflect reality**: \"Files Modified This Session\" includes files that were actually changed recently\n\n### For Debug Workflow state files:\nThe state file is UP TO DATE only if ALL of the following are true:\n1. **Phase accuracy**: The \"Current Phase\" matches the actual phase evident from the work done\n2. **Hypothesis status accuracy**: If hypotheses have been evaluated, their verdicts (PENDING/CONFIRMED/REJECTED/INCONCLUSIVE) are current\n3. **Next action accuracy**: The \"Next Action\" reflects what should actually be done next (not something already completed)\n4. **No stale progress**: The \"Session Progress\" section does not describe work from a previous session as current\n5. **Fix attempt count accuracy**: If fixes were attempted, the \"Failed Fix Attempts\" counter reflects the actual number\n\nNote: If the debug state file contains \"Current Phase\" with value \"COMPLETE\", treat it as up to date.\n\n## Step 4: Decision\n\n- If NO state file found for either type: return {\"ok\": true}\n- If ALL found state files pass their criteria: return {\"ok\": true}\n- If ANY state file FAILS any criterion: return {\"ok\": false, \"reason\": \"State file is outdated: [specific criterion that failed and what needs to be corrected]\"}\n\nBe strict. If in doubt, fail the check - it is better to force an update than allow stale state.",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-resume-after-compact-or-clear.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
