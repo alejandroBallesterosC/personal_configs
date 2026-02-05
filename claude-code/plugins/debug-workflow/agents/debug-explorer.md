@@ -23,18 +23,12 @@ Given a bug description or area to investigate, you must:
 
 ### Step 1: File Discovery
 
-Search for files related to the bug:
+Search for files related to the bug using Glob and Grep tools:
 
-```bash
-# Find by keyword
-grep -r "keyword" --include="*.py" -l
-
-# Find by function/class name
-grep -r "def function_name\|class ClassName" --include="*.py" -l
-
-# Find by file pattern
-find . -name "*relevant*" -type f
-```
+- Find by keyword in file contents
+- Find by function/class name
+- Find by file naming patterns
+- Find test files for the affected area
 
 ### Step 2: Execution Flow
 
@@ -73,13 +67,9 @@ git blame path/to/file.py -L 10,20
 
 Identify existing tests:
 
-```bash
-# Find test files
-find . -name "test_*.py" -o -name "*_test.py"
-
-# Search for tests of specific function
-grep -r "def test.*function_name" --include="*.py"
-```
+- Find test files for the affected area
+- Search for tests of specific functions
+- Note what scenarios are covered and what gaps exist
 
 ## Output Format
 
@@ -96,9 +86,7 @@ Return a structured exploration report:
 
 ## Execution Flow
 
-```
-[entry] → [function] → [function] → [potential failure]
-```
+[entry] -> [function] -> [function] -> [potential failure]
 
 ## Dependencies
 

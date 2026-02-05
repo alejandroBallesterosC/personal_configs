@@ -1,30 +1,65 @@
 ---
 description: Verify bug fix and clean up instrumentation
 model: opus
-argument-hint: [bug-name]
+argument-hint: <bug-name>
 ---
 
-# Fix Verification
+# Fix Verification and Cleanup
 
 Verifying fix for: **$ARGUMENTS**
 
-## Verification Process
+## STEP 1: LOAD WORKFLOW CONTEXT
 
-### Step 1: Apply the Fix
+**REQUIRED**: Use the Skill tool to invoke `debug-workflow:debug-workflow-guide` to load the workflow source of truth.
 
-Ensure the proposed fix has been applied to the codebase.
+---
 
-### Step 2: Reproduce Original Scenario
+## STEP 2: VALIDATE PREREQUISITES
 
-Guide the user through exact reproduction steps:
+### 2.1 Check session exists
+
+Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md` exists. If not:
+
+**ERROR**: Output the following message and STOP:
+
+```
+Error: No debug session found for '$ARGUMENTS'
+
+The file docs/debug/$ARGUMENTS/$ARGUMENTS-state.md does not exist.
+
+To start a debug session, use:
+  /debug-workflow:debug <bug description or error message>
+```
+
+### 2.2 Check analysis exists
+
+Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-analysis.md` exists and contains a CONFIRMED hypothesis. If not:
+
+**WARNING**: "No confirmed root cause found in the analysis. Are you sure the fix is ready for verification?"
+
+### 2.3 Read context
+
+Read:
+- `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`
+- `docs/debug/$ARGUMENTS/$ARGUMENTS-analysis.md` (if exists)
+- `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md` (if exists)
+- `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md` (for reproduction steps)
+
+---
+
+## STEP 3: VERIFY THE FIX
+
+**HUMAN GATE**: The user must verify the fix works.
+
+### 3.1 Guide reproduction
+
+Provide the user with verification steps:
 
 ```markdown
 ## Verification Steps
 
 1. **Start the application** (same as before):
-   ```bash
    [command]
-   ```
 
 2. **Perform the exact steps that triggered the bug**:
    - [Step 1]
@@ -40,29 +75,50 @@ Guide the user through exact reproduction steps:
    - Should NOT see: [error indicators]
 ```
 
-### Step 3: Confirm Fix
+### 3.2 Confirm with user
 
-Ask user with AskUserQuestionTool:
-
+Use AskUserQuestionTool to ask:
 1. Does the expected behavior now occur?
 2. Are there any new errors or unexpected behavior?
 3. Do related features still work correctly?
 
-### Step 4: Check for Regressions
+### 3.3 Handle verification result
 
-Run relevant tests:
+**If fix confirmed:** Proceed to Step 4.
+
+**If fix failed:**
+1. Capture new log output from the user
+2. Check the 3-Fix Rule: read the fix attempt count from the state file
+3. If count >= 3: STOP and ask "We've tried 3 fixes without success. Should we question our fundamental approach?"
+4. If count < 3: Increment counter, loop back to analysis (`/debug-workflow:analyze $ARGUMENTS`)
+
+---
+
+## STEP 4: CHECK FOR REGRESSIONS
+
+### 4.1 Run tests
+
+Run relevant tests for the affected area:
 
 ```bash
-# Run tests for affected area
-pytest tests/test_[affected_module].py -v
+# Run tests for the affected module
+[test command for affected area]
 
 # Run full test suite if changes are broad
-pytest
+[full test command]
 ```
 
-### Step 5: Write Regression Test
+### 4.2 Handle test results
 
-**IMPORTANT**: Add a test that would have caught this bug.
+**If tests pass:** Proceed to Step 5.
+
+**If tests fail:** Investigate whether the fix introduced regressions. If so, refine the fix before proceeding.
+
+---
+
+## STEP 5: WRITE REGRESSION TEST
+
+**IMPORTANT**: Write a test that would have caught this bug.
 
 ```python
 def test_regression_bug_$ARGUMENTS():
@@ -80,55 +136,44 @@ def test_regression_bug_$ARGUMENTS():
     assert [expected behavior]
 ```
 
-## Verification Outcomes
+Verify:
+- Test FAILS without the fix (revert temporarily to confirm if practical)
+- Test PASSES with the fix
 
-### Fix Confirmed
+---
 
-If the bug is fixed and tests pass:
+## STEP 6: CLEAN UP INSTRUMENTATION
 
-1. Proceed to cleanup
-2. Commit the fix AND the regression test
-3. Update any documentation if behavior changed
+### 6.1 Remove debug statements
 
-### Fix Failed
+Search for and remove all debug artifacts from source files:
+- Find all `DEBUG-H[0-9]` markers
+- Remove the tagged log statements
+- Remove the `HYPOTHESIS:` and `DEBUG: Remove after fix` comment markers
+- Remove debug imports if no longer needed
+- Remove temporary debug files (`/tmp/debug-*.json`, `logs/debug/`)
 
-If the bug still occurs:
+### 6.2 Verify cleanup
 
-1. Capture new log output
-2. Return to analysis phase with new evidence
-3. Consider if fix was incomplete or wrong hypothesis
+- Run tests to ensure cleanup didn't break anything
+- Run linter if available
+- Confirm no `DEBUG-H` markers remain in the codebase
 
-### New Bug Introduced
-
-If fix caused new issues:
-
-1. Revert the fix
-2. Document the regression
-3. Refine the fix approach
-
-## Cleanup Phase
-
-Once fix is verified:
-
-### 1. Remove Debug Instrumentation
-
-```bash
-# Find all debug statements
-grep -rn "DEBUG-H[0-9]" --include="*.py" --include="*.js" --include="*.ts" --include="*.go" --include="*.rs"
-```
-
-### 2. Cleanup Checklist
+### 6.3 Cleanup checklist
 
 - [ ] Remove ALL `[DEBUG-Hx]` log statements
 - [ ] Remove debug imports (if no longer needed)
-- [ ] Remove temporary debug files (`/tmp/debug-*.json`)
-- [ ] Run tests to ensure cleanup didn't break anything
-- [ ] Run linter to catch any orphaned code
+- [ ] Remove temporary debug files
+- [ ] Tests pass after cleanup
+- [ ] No orphaned debug markers in codebase
 
-### 3. Commit Strategy
+---
+
+## STEP 7: COMMIT
+
+Commit the fix + regression test (NOT debug logs):
 
 ```bash
-# Commit the fix + regression test (NOT debug logs)
 git add [fixed files] [new test file]
 git commit -m "fix: [bug description]
 
@@ -136,35 +181,74 @@ Root cause: [brief explanation]
 Added regression test to prevent recurrence."
 ```
 
-### 4. Archive Debug Documentation
+---
 
-Move debug docs to archive (or delete):
+## STEP 8: ARCHIVE AND FINALIZE
 
-```bash
-# Option A: Archive
-mkdir -p docs/debug/archive
-mv docs/debug/$ARGUMENTS-* docs/debug/archive/
+### 8.1 Write resolution summary
 
-# Option B: Delete
-rm docs/debug/$ARGUMENTS-*
+Write to `docs/debug/$ARGUMENTS/$ARGUMENTS-resolution.md`:
+
+```markdown
+# Debug Resolution: $ARGUMENTS
+
+## Bug
+[description]
+
+## Root Cause
+[explanation]
+
+## Fix Applied
+[what was changed, which files]
+
+## Verification
+[how it was confirmed - user verification + test results]
+
+## Regression Test
+[test file path and what it covers]
+
+## Debug Session Stats
+- Hypotheses generated: [N]
+- Hypotheses confirmed: [which one]
+- Hypotheses rejected: [which ones]
+- Fix attempts: [N]
+- Phases completed: [list]
+
+## Lessons Learned
+[anything to add to CLAUDE.md or document for future reference]
 ```
 
-## Summary
+### 8.2 Consider CLAUDE.md update
+
+If this bug reveals a recurring pattern, suggest adding a gotcha to the project's CLAUDE.md:
+
+```markdown
+## Gotchas
+- [Pattern that caused this bug and how to avoid it]
+```
+
+### 8.3 Update state file
+
+Mark all phases complete. Set current phase to COMPLETE:
+
+```markdown
+## Current Phase
+COMPLETE
+```
+
+---
+
+## SUMMARY
+
+Output a final summary:
 
 ```markdown
 ## Debug Session Complete
 
-**Bug**: [description]
+**Bug**: $ARGUMENTS
 **Root Cause**: [explanation]
 **Fix**: [what was changed]
-**Verification**: [how it was confirmed]
+**Verification**: [confirmed by user + tests]
 **Regression Test**: [test added]
-**Cleanup**: [completed/pending]
-```
-
-## Next Session
-
-If you encounter a similar bug in the future:
-```
-/debug-workflow:debug <new bug description>
+**Cleanup**: Completed
 ```

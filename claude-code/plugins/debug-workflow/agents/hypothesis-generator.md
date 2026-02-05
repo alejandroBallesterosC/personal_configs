@@ -135,7 +135,7 @@ Before submitting hypotheses:
 - [ ] Each has an actionable instrumentation plan
 - [ ] Confidence levels are justified
 - [ ] Alternative explanations are considered
-- [ ] Hypotheses are ordered by likelihood × testability
+- [ ] Hypotheses are ordered by likelihood x testability
 
 ## Rules
 

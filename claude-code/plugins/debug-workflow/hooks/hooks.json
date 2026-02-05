@@ -1,0 +1,31 @@
+{
+  "description": "Debug workflow hooks - context preservation, state verification, and test feedback",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/run-scoped-tests.sh"
+          },
+          {
+            "type": "agent",
+            "prompt": "Verify whether the debug workflow state file is up to date before allowing Claude to stop.\n\n## Step 1: Detection\n\n1. Search for directories matching `docs/debug/*/` in the current project\n2. Within those directories, look for files matching `*-state.md`\n3. If no state file exists: return {\"ok\": true} (no active debug session)\n4. If the state file contains \"Current Phase\" with value \"COMPLETE\": return {\"ok\": true} (session finished)\n5. If state file exists and session is active: proceed to verification\n\n## Step 2: Gather Evidence\n\nThoroughly investigate:\n\n1. **Read the state file** - Note what phase, hypothesis status, fix attempt count, and next action it claims\n2. **Check recent git changes** - Run `git diff` and `git status` to see what files changed\n3. **Check for debug artifacts** - Look for files in the debug session directory (exploration, hypotheses, analysis, resolution)\n4. **Check for instrumentation** - Search for `DEBUG-H[0-9]` markers in the codebase to determine if instrumentation is active\n5. **Review conversation context** - What work was discussed or completed?\n\n## Step 3: Verify Against Strict Criteria\n\nThe state file is UP TO DATE only if ALL of the following are true:\n\n1. **Phase accuracy**: The \"Current Phase\" in the state file matches the actual phase evident from the work done (e.g., if hypotheses were just generated, phase should be at least Phase 3)\n2. **Hypothesis status accuracy**: If hypotheses have been evaluated, their verdicts (PENDING/CONFIRMED/REJECTED/INCONCLUSIVE) are current and match the analysis\n3. **Next action accuracy**: The \"Next Action\" reflects what should actually be done next (not something already completed)\n4. **No stale progress**: The \"Session Progress\" section does not describe work from a previous session as current\n5. **Fix attempt count accuracy**: If fixes were attempted, the \"Failed Fix Attempts\" counter reflects the actual number of attempts\n\n## Step 4: Decision\n\n- If NO state file found: return {\"ok\": true}\n- If state file shows COMPLETE: return {\"ok\": true}\n- If state file passes ALL criteria: return {\"ok\": true}\n- If state file FAILS any criterion: return {\"ok\": false, \"reason\": \"Debug state file is outdated: [specific criterion that failed and what needs to be corrected]\"}\n\nBe strict. If in doubt, fail the check - it is better to force an update than allow stale state.",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-resume-after-compact-or-clear.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

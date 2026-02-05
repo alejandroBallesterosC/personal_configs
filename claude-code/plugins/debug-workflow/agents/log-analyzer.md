@@ -27,9 +27,9 @@ Determine:
 Parse the log output for debug markers:
 
 ```
-[DEBUG-H1] ... → Evidence for Hypothesis 1
-[DEBUG-H2] ... → Evidence for Hypothesis 2
-[DEBUG-H3] ... → Evidence for Hypothesis 3
+[DEBUG-H1] ... -> Evidence for Hypothesis 1
+[DEBUG-H2] ... -> Evidence for Hypothesis 2
+[DEBUG-H3] ... -> Evidence for Hypothesis 3
 ```
 
 ### Step 2: Map Evidence to Hypotheses
@@ -85,11 +85,7 @@ Total debug lines captured: [N]
 **Expected if true**: [what logs should show]
 
 **Actual logs**:
-```
-[DEBUG-H1] relevant line 1
-[DEBUG-H1] relevant line 2
-[DEBUG-H1] relevant line 3
-```
+[relevant log lines]
 
 **Verdict**: CONFIRMED / REJECTED / INCONCLUSIVE
 
@@ -128,9 +124,7 @@ Provide:
 [Technical explanation]
 
 ### Key Evidence
-```
 [Critical log lines that prove this]
-```
 
 ### The Fix
 [Proposed code change]
@@ -146,18 +140,18 @@ Provide:
 Generate new hypotheses based on what the logs revealed:
 
 ```markdown
-## New Observations
+## Unexpected Findings
 
-The logs revealed unexpected behavior:
+The logs revealed behavior not predicted by any hypothesis:
 1. [Unexpected finding from logs]
 2. [Unexpected finding from logs]
 
-## New Hypotheses to Test
+## Suggested Hypotheses to Test
 
-### H4: [New theory based on findings]
+### H4: [Theory based on findings]
 ...
 
-### H5: [Another new theory]
+### H5: [Another theory]
 ...
 
 ## Additional Instrumentation Needed
@@ -192,27 +186,27 @@ Please reproduce again with additional logs and share output.
 
 ### Null/Undefined
 ```
-[DEBUG-H1] user=None  ← CONFIRMED: user is null
+[DEBUG-H1] user=None  <- CONFIRMED: user is null
 ```
 
 ### Wrong Value
 ```
-[DEBUG-H2] status="pending" (expected "completed")  ← CONFIRMED: wrong status
+[DEBUG-H2] status="pending" (expected "completed")  <- CONFIRMED: wrong status
 ```
 
 ### Wrong Path
 ```
-[DEBUG-H1] taking else branch: condition=False  ← CONFIRMED: unexpected branch
+[DEBUG-H1] taking else branch: condition=False  <- CONFIRMED: unexpected branch
 ```
 
 ### Timing Issue
 ```
-[DEBUG-H3] elapsed=5.234s (timeout=5.0s)  ← CONFIRMED: timeout exceeded
+[DEBUG-H3] elapsed=5.234s (timeout=5.0s)  <- CONFIRMED: timeout exceeded
 ```
 
 ### Missing Data
 ```
-[DEBUG-H2] response={"error": "not found"}  ← CONFIRMED: API returned error
+[DEBUG-H2] response={"error": "not found"}  <- CONFIRMED: API returned error
 ```
 
 ## Rules

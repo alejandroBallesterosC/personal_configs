@@ -5,7 +5,9 @@ description: Hypothesis-driven debugging with instrumentation and tracing. Use w
 
 # Structured Debugging Skill
 
-Hypothesis-driven debugging using systematic exploration, instrumentation, and log tracing. Based on practices from Boris Cherny, Anthropic's engineering team, and Cursor's Debug Mode.
+Hypothesis-driven debugging methodology using systematic exploration, instrumentation, and log tracing. Based on practices from Boris Cherny, Cursor's Debug Mode, Anthropic's engineering team, and the @obra/superpowers systematic debugging skill.
+
+**For workflow navigation and phase details**, see the `debug-workflow-guide` skill. This skill covers the **debugging methodology and technique**.
 
 ## When to Activate
 
@@ -22,88 +24,93 @@ Activate when:
 
 > "Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result." - Boris Cherny
 
-> "The systematic-debugging skill enforces a disciplined 'Iron Law': no fixes are attempted until a root cause is proven." - Claude Skills Community
+> "AI doesn't fail because it's not smart enough. It fails because it can't see what you see." - Nathan Onn
+
+### The Iron Law
+
+> **NO FIXES WITHOUT ROOT CAUSE PROVEN FIRST**
+
+### The 3-Fix Rule
+
+If 3+ fixes have failed, STOP and question the architecture. The problem is structural, not implementation.
+
+### Red Flags (Return to Investigation)
+
+If you catch yourself thinking any of these, STOP:
+- "Quick fix for now, investigate later"
+- "Just try changing X and see if it works"
+- "Add multiple changes, run tests"
+- "Skip the test, I'll manually verify"
+- "It's probably X, let me fix that"
+
 
 ## The Debugging Loop
 
 ```
-EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE → FIX → VERIFY → CLEAN
+EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX -> VERIFY -> CLEAN
 ```
 
-### Phase 1: EXPLORE
-
-Before debugging, understand the relevant systems:
-
-1. **Find relevant files** based on error/bug description
-2. **Map execution flow** from entry to failure
-3. **Check recent changes** via git history
-4. **Review test coverage** for gaps
-
-```bash
-# Recent changes to relevant files
-git log --oneline -10 -- path/to/relevant/
-
-# Who touched this code
-git blame path/to/file.py -L 50,70
-```
-
-#### Relevant Commands:
-- `/debug-workflow:explore <area or bug description>` - Deep dive into specific code area
+For the full 9-phase workflow with execution details, see the `debug-workflow-guide` skill or run `/debug-workflow:debug`.
 
 
-### Phase 2: DESCRIBE
+## Hypothesis-Driven Approach
 
-Gather complete bug context:
+The core of this methodology is forming hypotheses BEFORE making changes.
+
+### Generating Hypotheses
+
+Read the code. Base hypotheses on evidence, not guessing.
 
 ```markdown
-## Bug Description Checklist
-- [ ] What is the expected behavior?
-- [ ] What is the actual behavior?
-- [ ] What are the exact steps to reproduce?
-- [ ] When did it start happening?
-- [ ] What changed recently?
-- [ ] What error messages appear (exact text)?
-- [ ] What environment/conditions trigger it?
-```
-
-**Ask clarifying questions** using AskUserQuestionTool if any information is missing.
-
-### Phase 3: HYPOTHESIZE
-
-Generate **3-5 hypotheses** about root cause BEFORE writing any code:
-
-```markdown
-## Hypotheses
-
 ### H1: [Most likely cause]
 - **Theory**: [What you think is wrong]
 - **Evidence needed**: [What logs/data would confirm this]
 - **Confidence**: High/Medium/Low
 - **Instrumentation**: [Where to add logs]
-
-### H2: [Second most likely]
-...
 ```
 
-**Key principle**: Generate hypotheses by reading code, not guessing.
+### Common Root Cause Categories
 
-#### Relevant Commands:
-- `/debug-workflow:hypothesize <bug-name>` - Generate hypotheses for current bug
+| Category | Examples |
+|----------|----------|
+| **Data** | Null/undefined, wrong type, encoding, whitespace |
+| **State** | Race condition, stale cache, mutation side effect |
+| **Logic** | Off-by-one, wrong operator, missing case |
+| **Integration** | API contract, timeout, auth, serialization |
+| **Environment** | Config, permissions, resources, versions |
+| **Timing** | Async ordering, timeout, debounce |
+
+### Verdict Definitions
+
+| Verdict | Meaning | Next Action |
+|---------|---------|-------------|
+| **CONFIRMED** | Logs prove this hypothesis | Proceed to fix |
+| **REJECTED** | Logs disprove this hypothesis | Eliminate, try next |
+| **INCONCLUSIVE** | Not enough evidence | Add more instrumentation |
 
 
-### Phase 4: INSTRUMENT
+## Instrumentation Rules
 
-Add targeted logging to test hypotheses.
-
-#### Instrumentation Rules
+### The 5 Rules
 
 1. **Tag every log with hypothesis ID** (e.g., `[DEBUG-H1]`)
-2. **Mark as DEBUG** in comment for easy cleanup
+2. **Mark as DEBUG** with `DEBUG: Remove after fix` for easy cleanup
 3. **Log at decision points**, not every line
 4. **Include context**: variable names AND values
 5. **Use structured format** for complex data
 
-#### Language Examples
+### What to Log
+
+| Location | What to Capture |
+|----------|----------------|
+| Function entry | Parameters, relevant state |
+| Conditionals | Which branch taken and why |
+| Loop iterations | Item being processed, state |
+| Return values | Result being returned |
+| Error paths | Exception type, context |
+| External calls | Request data, response, timing |
+
+### Language Examples
 
 **Python:**
 ```python
@@ -126,124 +133,13 @@ console.log('[DEBUG-H1]', { userId, status, timestamp: Date.now() });
 log.Printf("[DEBUG-H1] user=%+v config=%+v", user, config)
 ```
 
-#### What to Log
-
-| Location | What to Capture |
-|----------|----------------|
-| Function entry | Parameters, relevant state |
-| Conditionals | Which branch taken and why |
-| Loop iterations | Item being processed, state |
-| Return values | Result being returned |
-| Error paths | Exception type, context |
-
-#### Relevant Commands:
-- `/debug-workflow:instrument <bug-name>` - Add instrumentation to test hypotheses
-
-
-### Phase 5: REPRODUCE
-
-Provide clear reproduction instructions:
-
-```markdown
-## Reproduction Steps
-
-1. Start the application: `[command]`
-2. Trigger the bug: [exact steps]
-3. Capture output from: [log file/console/stderr]
-
-**Log markers to look for:**
-- [DEBUG-H1]: Tests [hypothesis 1]
-- [DEBUG-H2]: Tests [hypothesis 2]
+**Rust:**
+```rust
+// HYPOTHESIS: H1 - Ownership issue
+// DEBUG: Remove after fix
+eprintln!("[DEBUG-H1] data={:?} state={:?}", data, state);
 ```
 
-### Phase 6: ANALYZE
-
-Match logs against each hypothesis:
-
-```markdown
-## Log Analysis
-
-### H1: [Hypothesis name]
-- **Expected if true**: [what logs should show]
-- **Actual logs**: `[relevant lines]`
-- **Verdict**: CONFIRMED / REJECTED / INCONCLUSIVE
-- **Reasoning**: [explanation]
-```
-
-**If all hypotheses rejected:**
-1. Generate new hypotheses from log findings
-2. Add more instrumentation
-3. Repeat the loop
-
-#### Relevant Commands:
-- `/debug-workflow:analyze <bug-name>` - Analyze log output against hypotheses
-
-
-### Phase 7: FIX
-
-Once root cause is confirmed:
-
-1. **Explain clearly** to the user
-2. **Propose minimal fix** - don't over-engineer
-3. **Keep instrumentation** until verified
-
-```markdown
-## Root Cause Analysis
-
-**The bug**: [clear explanation]
-**Why it happens**: [technical cause]
-**The fix**: [proposed change]
-```
-
-#### Relevant Commands:
-- `/debug-workflow:verify <bug-name>` - Apply fix, verify fix, cleanup, and commit
-
-
-### Phase 8: VERIFY
-
-1. Apply the fix
-2. Reproduce the original scenario
-3. Confirm expected behavior occurs
-4. Check for regressions
-
-If not fixed, return to HYPOTHESIZE with new information.
-
-#### Relevant Commands:
-- `/debug-workflow:verify <bug-name>` - (Contn'd)
-
-
-### Phase 9: CLEAN
-
-Remove all debug instrumentation:
-
-```bash
-# Find all debug logs
-grep -rn "DEBUG-H[0-9]" --include="*.py" --include="*.js" --include="*.ts"
-```
-
-**Cleanup checklist:**
-- [ ] Remove all `[DEBUG-Hx]` log statements
-- [ ] Remove debug imports if no longer needed
-- [ ] Run tests to ensure cleanup didn't break anything
-- [ ] Commit the fix (not the debug logs)
-
-#### Relevant Commands:
-- `/debug-workflow:verify <bug-name>` - (Contn'd)
-
-
-## Quick Reference
-
-| Phase | Action | Output |
-|-------|--------|--------|
-| EXPLORE | Understand relevant code | Context for hypotheses |
-| DESCRIBE | Gather bug details | Clear reproduction steps |
-| HYPOTHESIZE | Generate 3-5 theories | Ranked hypotheses |
-| INSTRUMENT | Add targeted logs | Tagged debug statements |
-| REPRODUCE | User triggers bug | Log output |
-| ANALYZE | Match logs to hypotheses | Confirmed root cause |
-| FIX | Minimal code change | Proposed fix |
-| VERIFY | User confirms fix | Bug resolved |
-| CLEAN | Remove instrumentation | Clean codebase |
 
 ## Anti-Patterns to Avoid
 
@@ -266,6 +162,11 @@ grep -rn "DEBUG-H[0-9]" --include="*.py" --include="*.js" --include="*.ts"
 ### 5. Skipping Verification
 - **Bad**: Assume fix works after code change
 - **Good**: Always reproduce and verify
+
+### 6. Guessing Without Evidence
+- **Bad**: "It's probably a race condition" → fix race condition
+- **Good**: "It might be a race condition" → add timing logs → confirm/reject
+
 
 ## Advanced Techniques
 
@@ -304,6 +205,20 @@ result = slow_operation()
 logging.debug(f"[DEBUG-H2] elapsed={time.time()-start:.3f}s")
 ```
 
+### ASCII Diagrams for Complex Bugs
+
+For multi-layer bugs where even the error message is misleading, use ASCII diagrams to map the error chain:
+
+```
+Error Chain:
+  [Symptom: 500 error]
+    <- [Trigger: null user profile]
+      <- [Root: cache TTL expired during request]
+```
+
+Forcing systematic diagramming before proposing fixes helps identify the real root cause.
+
+
 ## Integration with TDD
 
 After fixing a bug:
@@ -329,6 +244,7 @@ def test_regression_issue_123():
     assert result == expected
 ```
 
+
 ## CLAUDE.md Integration
 
 After fixing a recurring bug type, consider adding to CLAUDE.md:
@@ -340,3 +256,34 @@ After fixing a recurring bug type, consider adding to CLAUDE.md:
 ```
 
 This prevents the same bug class from recurring.
+
+
+## Quick Reference
+
+| Phase | Action | Output |
+|-------|--------|--------|
+| EXPLORE | Understand relevant code | Context for hypotheses |
+| DESCRIBE | Gather bug details | Clear reproduction steps |
+| HYPOTHESIZE | Generate 3-5 theories | Ranked hypotheses |
+| INSTRUMENT | Add targeted logs | Tagged debug statements |
+| REPRODUCE | User triggers bug | Log output |
+| ANALYZE | Match logs to hypotheses | Confirmed root cause |
+| FIX | Minimal code change | Proposed fix |
+| VERIFY | User confirms fix | Bug resolved |
+| CLEAN | Remove instrumentation | Clean codebase |
+
+
+## Debug Workflow Commands
+
+For the full orchestrated workflow:
+
+| Command | Purpose |
+|---------|---------|
+| `/debug-workflow:debug <bug>` | Start full workflow |
+| `/debug-workflow:explore <area>` | Explore codebase |
+| `/debug-workflow:hypothesize <name>` | Generate hypotheses |
+| `/debug-workflow:instrument <name>` | Add logging |
+| `/debug-workflow:analyze <name>` | Analyze logs |
+| `/debug-workflow:verify <name>` | Verify fix + cleanup |
+| `/debug-workflow:continue-workflow <name>` | Resume session |
+| `/debug-workflow:help` | Show help |

@@ -1,69 +1,145 @@
 ---
 description: Add targeted instrumentation to test debug hypotheses
 model: opus
-argument-hint: [bug-name]
+argument-hint: <bug-name>
 ---
 
 # Debug Instrumentation
 
 Adding instrumentation for: **$ARGUMENTS**
 
-## Prerequisites
+## STEP 1: LOAD WORKFLOW CONTEXT
 
-Ensure hypotheses exist:
-- `docs/debug/$ARGUMENTS-hypotheses.md` exists
+**REQUIRED**: Use the Skill tool to invoke `debug-workflow:debug-workflow-guide` to load the workflow source of truth.
 
-## Instrumentation Rules
+---
 
-### 1. Tag Every Log
+## STEP 2: VALIDATE PREREQUISITES
 
-```python
-# HYPOTHESIS: H1 - Variable state incorrect
-# DEBUG: Remove after fix
-logging.debug(f"[DEBUG-H1] user_id={user_id}, status={status}")
+### 2.1 Check hypotheses exist
+
+Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md` exists. If not:
+
+**ERROR**: Output the following message and STOP:
+
+```
+Error: Hypotheses not found
+
+The file docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md does not exist.
+Hypotheses must be generated before adding instrumentation.
+
+Run: /debug-workflow:hypothesize $ARGUMENTS
 ```
 
-### 2. Mark for Cleanup
+### 2.2 Read context
 
-Every debug statement must have:
-- `HYPOTHESIS: Hx` comment explaining purpose
-- `DEBUG: Remove after fix` marker
+Read:
+- `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
+- `docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md` (for file paths)
+- `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md` (if exists)
 
-### 3. Log at Decision Points
+---
 
-Focus on:
-- Function entry/exit with parameters
-- Conditional branches (which path taken)
-- Loop iterations with relevant state
-- Return values
-- Error handling paths
+## STEP 3: ADD INSTRUMENTATION
 
-### 4. Include Full Context
+Use the Task tool with `subagent_type: "debug-workflow:instrumenter"` to add targeted logging.
 
-Bad:
-```python
-print("here")  # Useless
+Provide the agent with:
+- The full hypotheses file
+- File paths from the exploration
+- Bug description for context
+
+### Instrumentation Rules
+
+The instrumenter must follow these rules:
+
+1. **Tag every log** with hypothesis ID: `[DEBUG-H1]`, `[DEBUG-H2]`
+2. **Mark for cleanup**: Every debug statement needs TWO markers:
+   - `HYPOTHESIS: Hx - description` (explains purpose)
+   - `DEBUG: Remove after fix` (marks for cleanup)
+3. **Log at decision points**, not every line
+4. **Include context**: Variable names AND values
+5. **Use structured format** for complex data
+
+---
+
+## STEP 4: VERIFY INSTRUMENTATION
+
+After the instrumenter agent completes, verify the work:
+
+### 4.1 Check tagging
+
+Confirm all logs are tagged with hypothesis IDs. Search for:
+- `[DEBUG-H1]`, `[DEBUG-H2]`, `[DEBUG-H3]` markers
+- `DEBUG: Remove after fix` cleanup markers
+
+### 4.2 Check coverage
+
+For each hypothesis, verify logs will capture the evidence needed:
+- [ ] **Entry point**: Function called with what arguments
+- [ ] **Decision points**: Which branch was taken and why
+- [ ] **State changes**: Before and after mutations
+- [ ] **External calls**: Request and response data
+- [ ] **Exit point**: Return value or error
+
+### 4.3 Check safety
+
+Verify instrumentation does NOT:
+- Change program behavior
+- Introduce side effects
+- Break existing functionality
+
+---
+
+## STEP 5: CREATE REPRODUCTION INSTRUCTIONS
+
+Write clear instructions for the user:
+
+```markdown
+## Reproduction Instructions
+
+1. **Start the application**:
+   [command to start with debug logging enabled]
+
+2. **Trigger the bug**:
+   - [Step 1]
+   - [Step 2]
+   - [Step 3]
+
+3. **Capture logs**:
+   - Check `logs/debug/` directory if configured
+   - Or capture console/stderr output
+
+4. **Log markers to look for**:
+   - `[DEBUG-H1]`: Tests [hypothesis 1 summary]
+   - `[DEBUG-H2]`: Tests [hypothesis 2 summary]
+   - `[DEBUG-H3]`: Tests [hypothesis 3 summary]
+
+Share the log output and I'll analyze it against the hypotheses.
 ```
 
-Good:
-```python
-# DEBUG: Remove after fix
-logging.debug(f"[DEBUG-H1] process_order entry: order_id={order.id}, status={order.status}, items={len(order.items)}")
-```
+---
 
-## Language-Specific Patterns
+## STEP 6: UPDATE STATE FILE
+
+Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+- Mark Phase 4 complete
+- Update current phase to Phase 5 (Reproduce)
+- Note which files were instrumented
+
+---
+
+## LANGUAGE-SPECIFIC PATTERNS
 
 ### Python
 
 ```python
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(message)s')
 
-# HYPOTHESIS: H1 - Order status not updated
+# HYPOTHESIS: H1 - Variable state incorrect
 # DEBUG: Remove after fix
-logging.debug(f"[DEBUG-H1] before save: order.status={order.status}")
-order.save()
-logging.debug(f"[DEBUG-H1] after save: order.status={order.status}")
+logging.debug(f"[DEBUG-H1] var={var}, expected={expected}")
 ```
 
 ### JavaScript/TypeScript
@@ -71,14 +147,7 @@ logging.debug(f"[DEBUG-H1] after save: order.status={order.status}")
 ```javascript
 // HYPOTHESIS: H1 - Promise rejection not handled
 // DEBUG: Remove after fix
-console.log('[DEBUG-H1] entering fetchUser', { userId, options });
-
-try {
-  const result = await fetchUser(userId);
-  console.log('[DEBUG-H1] fetchUser success', { result });
-} catch (error) {
-  console.log('[DEBUG-H1] fetchUser error', { error: error.message, stack: error.stack });
-}
+console.log('[DEBUG-H1]', { var, expected, timestamp: Date.now() });
 ```
 
 ### Go
@@ -87,72 +156,32 @@ try {
 // HYPOTHESIS: H1 - Nil pointer dereference
 // DEBUG: Remove after fix
 log.Printf("[DEBUG-H1] user=%+v config=%+v", user, config)
-
-if user != nil {
-    log.Printf("[DEBUG-H1] user.Name=%s", user.Name)
-}
 ```
 
 ### Rust
 
 ```rust
-// HYPOTHESIS: H1 - Borrow checker issue
+// HYPOTHESIS: H1 - Ownership issue
 // DEBUG: Remove after fix
-eprintln!("[DEBUG-H1] data before mutation: {:?}", data);
-data.mutate();
-eprintln!("[DEBUG-H1] data after mutation: {:?}", data);
+eprintln!("[DEBUG-H1] data={:?} state={:?}", data, state);
 ```
 
-## Instrumentation Checklist
+### Java
 
-For each hypothesis, add logs to capture:
-
-- [ ] **Entry point**: Function called with what arguments
-- [ ] **Decision points**: Which branch was taken and why
-- [ ] **State changes**: Before and after mutations
-- [ ] **External calls**: Request and response data
-- [ ] **Exit point**: Return value or error
-
-### CRITICAL:
-ENSURE THE LOGS FROM YOUR INSTRUMENTATION WILL BE WRITTEN TO A STANDALONE LOG FILE IN LOGS/DEBUG/
-(Create this directory if it doesn't yet exist in the root of the repo)
-
-## Output
-
-After adding instrumentation, provide reproduction instructions:
-
-```markdown
-## Reproduction Instructions
-
-1. Start the application:
-   ```bash
-   [command to start with debug logging enabled]
-   ```
-
-2. Trigger the bug:
-   - [Step 1]
-   - [Step 2]
-   - [Step 3]
-
-3. Capture logs:
-   ```bash
-   [command to capture relevant logs]
-   ```
-
-4. Look for these markers:
-   - `[DEBUG-H1]`: Tests [hypothesis 1 description]
-   - `[DEBUG-H2]`: Tests [hypothesis 2 description]
-   - `[DEBUG-H3]`: Tests [hypothesis 3 description]
-
-Share the log output and I'll analyze it against the hypotheses.
+```java
+// HYPOTHESIS: H1 - Null pointer exception
+// DEBUG: Remove after fix
+System.out.println("[DEBUG-H1] object=" + object + " field=" + object.getField());
 ```
 
-## Advanced Techniques
+---
+
+## ADVANCED TECHNIQUES
 
 ### Conditional Logging (Hard to Reproduce)
 
 ```python
-# DEBUG: Remove after fix - only log for specific user
+# DEBUG: Remove after fix - only log for specific conditions
 if user_id == "problem_user_123":
     logging.debug(f"[DEBUG-H1] conditional capture: state={state}")
 ```
@@ -183,7 +212,9 @@ elapsed = time.time() - start
 logging.debug(f"[DEBUG-H2] slow_operation took {elapsed:.3f}s")
 ```
 
-## Next Steps
+---
+
+## NEXT STEPS
 
 After user captures logs:
 ```

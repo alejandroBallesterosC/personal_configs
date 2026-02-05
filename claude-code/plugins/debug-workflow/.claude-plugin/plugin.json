@@ -1,7 +1,7 @@
 {
   "name": "debug-workflow",
-  "version": "1.0.0",
-  "description": "Systematic hypothesis-driven debugging workflow with codebase exploration, instrumentation, and verification loops",
+  "version": "2.0.0",
+  "description": "Systematic hypothesis-driven debugging workflow with codebase exploration, instrumentation, verification loops, and context management",
   "author": {
     "name": "jandro"
   },
@@ -11,6 +11,7 @@
     "hypothesis-driven",
     "instrumentation",
     "systematic",
-    "verification"
+    "verification",
+    "context-management"
   ]
 }

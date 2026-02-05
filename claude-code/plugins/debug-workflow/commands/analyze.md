@@ -1,144 +1,195 @@
 ---
 description: Analyze log output against debug hypotheses
 model: opus
-argument-hint: [bug-name]
+argument-hint: <bug-name>
 ---
 
 # Log Analysis
 
 Analyzing logs for: **$ARGUMENTS**
 
-## Prerequisites
+## STEP 1: LOAD WORKFLOW CONTEXT
 
-- `docs/debug/$ARGUMENTS-hypotheses.md` exists
-- User has provided log output from reproduction
+**REQUIRED**: Use the Skill tool to invoke `debug-workflow:debug-workflow-guide` to load the workflow source of truth.
 
-## Analysis Process
+---
 
-### 1. Parse Log Output
+## STEP 2: VALIDATE PREREQUISITES
 
-Extract all debug markers:
-- `[DEBUG-H1]` lines → Hypothesis 1 evidence
-- `[DEBUG-H2]` lines → Hypothesis 2 evidence
-- `[DEBUG-H3]` lines → Hypothesis 3 evidence
+### 2.1 Check hypotheses exist
 
-### 2. Evaluate Each Hypothesis
+Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md` exists. If not:
 
-For each hypothesis, determine verdict:
+**ERROR**: Output the following message and STOP:
+
+```
+Error: Hypotheses not found
+
+The file docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md does not exist.
+Hypotheses must be generated before analyzing logs.
+
+Run: /debug-workflow:hypothesize $ARGUMENTS
+```
+
+### 2.2 Check for log output
+
+Ensure the user has provided log output. If not, ask:
+
+"Please share the log output from reproducing the bug. I need the console/log output that contains the `[DEBUG-H1]`, `[DEBUG-H2]`, etc. markers."
+
+### 2.3 Read context
+
+Read:
+- `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
+- `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md` (if exists, to check for previous analysis rounds)
+
+---
+
+## STEP 3: ANALYZE LOGS
+
+Use the Task tool with `subagent_type: "debug-workflow:log-analyzer"` to analyze the log output against hypotheses.
+
+Provide the agent with:
+- The log output from the user
+- The full hypotheses file
+- Any previous analysis results (for loopback rounds)
+
+The agent should:
+1. Extract all debug markers (`[DEBUG-H1]`, `[DEBUG-H2]`, etc.)
+2. Map evidence to each hypothesis
+3. Evaluate each hypothesis against expected evidence
+4. Determine verdicts: CONFIRMED / REJECTED / INCONCLUSIVE
+
+---
+
+## STEP 4: SAVE ANALYSIS
+
+Write to: `docs/debug/$ARGUMENTS/$ARGUMENTS-analysis.md`
+
+Use this template:
 
 ```markdown
-## Log Analysis Results
+# Log Analysis: $ARGUMENTS
 
-### H1: [Hypothesis summary]
+## Log Summary
+Total debug lines captured: [N]
+- [DEBUG-H1]: [count] lines
+- [DEBUG-H2]: [count] lines
+- [DEBUG-H3]: [count] lines
+
+---
+
+## H1: [Hypothesis Summary]
 
 **Expected if true**: [what logs should show]
 
 **Actual logs**:
-```
 [relevant log lines]
-```
 
 **Verdict**: CONFIRMED / REJECTED / INCONCLUSIVE
 
-**Reasoning**: [why the logs lead to this verdict]
+**Reasoning**: [detailed explanation]
 
 ---
 
-### H2: [Hypothesis summary]
+## H2: [Hypothesis Summary]
 ...
+
+---
+
+## Overall Conclusion
+
+**Root Cause**: [If confirmed, explain the bug]
+**Confidence**: High / Medium / Low
+**Evidence Summary**:
+1. [Key evidence]
+2. [Key evidence]
 ```
 
-### 3. Verdict Definitions
+---
 
-| Verdict | Meaning | Next Action |
-|---------|---------|-------------|
-| **CONFIRMED** | Logs prove this hypothesis | Proceed to FIX |
-| **REJECTED** | Logs disprove this hypothesis | Eliminate, try next |
-| **INCONCLUSIVE** | Logs don't provide enough evidence | Add more instrumentation |
+## STEP 5: HANDLE ANALYSIS RESULTS
 
-### 4. Handle Results
+### 5.1 If a hypothesis is CONFIRMED
 
-**If CONFIRMED hypothesis found:**
-- Proceed to fix phase
-- Explain root cause clearly
-- Propose minimal fix
-
-**If all hypotheses REJECTED:**
-- Generate new hypotheses from log insights
-- What did the logs reveal that was unexpected?
-- Add instrumentation for new theories
-
-**If INCONCLUSIVE:**
-- Identify what additional logs are needed
-- Add targeted instrumentation
-- Request another reproduction
-
-## Root Cause Template
-
-When hypothesis is confirmed:
+Proceed to the fix phase:
 
 ```markdown
 ## Root Cause Analysis
 
-### The Bug
-[Clear one-sentence description of what's wrong]
-
-### Why It Happens
-[Technical explanation of the cause]
-
-### Evidence
-```
-[Key log lines that prove this]
+**The Bug**: [clear one-sentence description]
+**Why It Happens**: [technical explanation]
+**Key Evidence**: [critical log lines]
+**The Fix**: [proposed code change]
+**Why This Fixes It**: [how fix addresses root cause]
 ```
 
-### The Fix
-[Proposed code change]
+Update state file: mark hypothesis as CONFIRMED, advance to Phase 7.
 
-### Why This Fixes It
-[Explanation of how the fix addresses the root cause]
+### 5.2 If all hypotheses are REJECTED
 
-### Regression Test
-[Test case that would catch this bug]
-```
+Generate new hypotheses from unexpected log findings:
 
-## Analysis Checklist
+1. Review what the logs DID reveal (unexpected values, paths, timing)
+2. Generate new hypotheses H4, H5 based on these findings
+3. Inform the user: "All initial hypotheses were rejected. The logs revealed: [findings]. Generating new hypotheses."
+4. Loop back to Phase 3 (hypothesize) with the new context
 
-- [ ] All log markers extracted and categorized
-- [ ] Each hypothesis evaluated against evidence
-- [ ] Verdicts have clear reasoning
-- [ ] Unexpected findings noted
-- [ ] Root cause identified (if confirmed)
-- [ ] Fix proposed (if confirmed)
+Update state file: mark rejected hypotheses, note unexpected findings, set phase back to Phase 3.
 
-## Common Log Analysis Patterns
+### 5.3 If INCONCLUSIVE
+
+Identify what additional instrumentation is needed:
+
+1. What evidence is missing?
+2. Where should new logs be added?
+3. Loop back to Phase 4 (instrument) to add more targeted logging
+
+Update state file: note what's inconclusive, set phase back to Phase 4.
+
+---
+
+## STEP 6: UPDATE STATE FILE
+
+Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+- Update hypothesis verdicts
+- Record key findings from log analysis
+- Update current phase based on results (Phase 7, or loopback to 3/4)
+- Update next action
+
+---
+
+## COMMON LOG ANALYSIS PATTERNS
 
 ### Null/Undefined Detection
 ```
-[DEBUG-H1] user=null  ← H1 CONFIRMED: user is null when expected
+[DEBUG-H1] user=null  <- H1 CONFIRMED: user is null when expected
 ```
 
 ### Wrong Branch Taken
 ```
-[DEBUG-H2] condition=false, taking else branch  ← H2 CONFIRMED: wrong path
+[DEBUG-H2] condition=false, taking else branch  <- H2 CONFIRMED: wrong path
 ```
 
 ### State Not Updated
 ```
 [DEBUG-H3] before save: status=pending
-[DEBUG-H3] after save: status=pending  ← H3 CONFIRMED: save didn't work
+[DEBUG-H3] after save: status=pending  <- H3 CONFIRMED: save didn't work
 ```
 
 ### Timing Issue
 ```
 [DEBUG-H1] request sent at 12:00:00.000
-[DEBUG-H1] response received at 12:00:05.001  ← Timeout confirmed
+[DEBUG-H1] response received at 12:00:05.001  <- Timeout confirmed
 ```
 
-## Next Steps
+---
+
+## NEXT STEPS
 
 **If root cause found:**
 ```
-Apply the fix, then verify:
+Proceed to fix phase, then verify:
 /debug-workflow:verify $ARGUMENTS
 ```
 
