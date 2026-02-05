@@ -19,42 +19,44 @@ else
 fi
 
 # --- Check for TDD implementation workflow ---
+# Loop through all workflow dirs, find first with active (non-complete) YAML status
 TDD_STATE_FILE=""
-if ls -d docs/workflow-* 2>/dev/null | head -1 > /dev/null; then
-  TDD_STATE_FILE=$(find docs/workflow-* -name "*-state.md" -type f 2>/dev/null | head -1)
-fi
-
 TDD_ACTIVE=false
-if [ -n "$TDD_STATE_FILE" ] && [ -f "$TDD_STATE_FILE" ]; then
-  # Check YAML frontmatter status field first, fallback to markdown body
-  TDD_STATUS=$(sed -n '/^---$/,/^---$/{ /^status:/{ s/^status: *//; s/ *$//; p; } }' "$TDD_STATE_FILE" 2>/dev/null)
-  if [ "$TDD_STATUS" = "complete" ]; then
-    TDD_ACTIVE=false
-  elif [ -n "$TDD_STATUS" ]; then
+for state_file in docs/workflow-*/*-state.md; do
+  [ -f "$state_file" ] || continue
+  status=$(sed -n '/^---$/,/^---$/{ /^status:/{ s/^status: *//; s/ *$//; p; } }' "$state_file" 2>/dev/null)
+  if [ "$status" = "in_progress" ]; then
+    TDD_STATE_FILE="$state_file"
     TDD_ACTIVE=true
-  elif ! grep -qi "Current Phase.*COMPLETE\|^COMPLETE$" "$TDD_STATE_FILE" 2>/dev/null; then
+    break
+  elif [ -z "$status" ] && ! grep -qi "Current Phase.*COMPLETE\|^COMPLETE$" "$state_file" 2>/dev/null; then
+    # Fallback: no YAML status field, check markdown body
+    TDD_STATE_FILE="$state_file"
     TDD_ACTIVE=true
+    break
   fi
-fi
+done
 
 # --- Check for debug workflow ---
+# Loop through debug session dirs, skip archive directory, find first active session
 DEBUG_STATE_FILE=""
-if ls -d docs/debug/*/ 2>/dev/null | head -1 > /dev/null; then
-  DEBUG_STATE_FILE=$(find docs/debug -name "*-state.md" -type f 2>/dev/null | head -1)
-fi
-
 DEBUG_ACTIVE=false
-if [ -n "$DEBUG_STATE_FILE" ] && [ -f "$DEBUG_STATE_FILE" ]; then
-  # Check YAML frontmatter status field first, fallback to markdown body
-  DEBUG_STATUS=$(sed -n '/^---$/,/^---$/{ /^status:/{ s/^status: *//; s/ *$//; p; } }' "$DEBUG_STATE_FILE" 2>/dev/null)
-  if [ "$DEBUG_STATUS" = "complete" ]; then
-    DEBUG_ACTIVE=false
-  elif [ -n "$DEBUG_STATUS" ]; then
+for state_file in docs/debug/*/*-state.md; do
+  [ -f "$state_file" ] || continue
+  # Skip the archive directory
+  case "$state_file" in docs/archive/*) continue ;; esac
+  status=$(sed -n '/^---$/,/^---$/{ /^status:/{ s/^status: *//; s/ *$//; p; } }' "$state_file" 2>/dev/null)
+  if [ "$status" = "in_progress" ]; then
+    DEBUG_STATE_FILE="$state_file"
     DEBUG_ACTIVE=true
-  elif ! grep -qi "Current Phase.*COMPLETE\|^COMPLETE$" "$DEBUG_STATE_FILE" 2>/dev/null; then
+    break
+  elif [ -z "$status" ] && ! grep -qi "Current Phase.*COMPLETE\|^COMPLETE$" "$state_file" 2>/dev/null; then
+    # Fallback: no YAML status field, check markdown body
+    DEBUG_STATE_FILE="$state_file"
     DEBUG_ACTIVE=true
+    break
   fi
-fi
+done
 
 # No active workflow found
 if [ "$TDD_ACTIVE" = false ] && [ "$DEBUG_ACTIVE" = false ]; then

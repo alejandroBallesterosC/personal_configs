@@ -64,7 +64,7 @@ Error: TDD implementation workflow for '$1' is already complete
 The workflow at docs/workflow-$1/$1-state.md shows status COMPLETE.
 
 To start a fresh workflow:
-1. Archive or delete: docs/workflow-$1/
+1. Archive: mkdir -p docs/archive && mv docs/workflow-$1 docs/archive/workflow-$1
 2. Run: /dev-workflow:1-start-tdd-implementation $1 "<description>"
 ```
 
@@ -124,7 +124,7 @@ Error: Debug session for '$1' is already complete
 The session at docs/debug/$1/$1-state.md shows status COMPLETE.
 
 To start a fresh debug session:
-1. Archive or delete: docs/debug/$1/
+1. Archive: mkdir -p docs/archive && mv docs/debug/$1 docs/archive/debug-$1
 2. Run: /dev-workflow:1-start-debug <bug description>
 ```
 

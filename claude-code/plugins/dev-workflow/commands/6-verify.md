@@ -229,11 +229,31 @@ If this bug reveals a recurring pattern, suggest adding a gotcha to the project'
 
 ### 8.3 Update state file
 
-Mark all phases complete. Set current phase to COMPLETE:
+Update the YAML frontmatter at the top of `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+
+```yaml
+---
+workflow_type: debug
+name: $ARGUMENTS
+status: complete
+current_phase: "COMPLETE"
+---
+```
+
+Then update the markdown body - mark all phases complete and set current phase:
 
 ```markdown
 ## Current Phase
 COMPLETE
+```
+
+### 8.4 Archive debug session directory
+
+Move the debug session directory to the archive:
+
+```bash
+mkdir -p docs/archive
+mv docs/debug/$ARGUMENTS docs/archive/debug-$ARGUMENTS
 ```
 
 ---

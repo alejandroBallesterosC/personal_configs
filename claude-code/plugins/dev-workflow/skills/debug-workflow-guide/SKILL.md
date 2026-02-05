@@ -433,7 +433,7 @@ docs/debug/<bug-name>/
 └── <bug-name>-resolution.md     # Final resolution summary
 ```
 
-Completed sessions are archived to `docs/debug/archive/`.
+Completed sessions are archived to `docs/archive/debug-<bug-name>/`.
 
 ---
 

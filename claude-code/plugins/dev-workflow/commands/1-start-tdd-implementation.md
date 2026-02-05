@@ -27,6 +27,30 @@ Before starting, complete these steps:
 
 ---
 
+## GUARD: SINGLE ACTIVE WORKFLOW
+
+Before creating a workflow, check if one is already active:
+
+1. Search for any existing `docs/workflow-*/*-state.md` files
+2. For each found, read the YAML frontmatter `status` field
+3. If any has `status: in_progress`, output the following error and **STOP**:
+
+```
+Error: An active TDD workflow already exists
+
+Active workflow found: docs/workflow-<name>/<name>-state.md
+Status: in_progress
+Current phase: <phase from state file>
+
+Only one TDD workflow can be active at a time. To proceed, either:
+1. Continue the existing workflow: /dev-workflow:continue-workflow <name>
+2. Complete or archive it first, then start a new one
+```
+
+If no active workflow is found (no state files, or all have `status: complete`), proceed.
+
+---
+
 ## CONTEXT MANAGEMENT
 
 Context is managed **automatically via hooks** - no manual intervention needed:
@@ -237,7 +261,22 @@ After completion:
 
 ## COMPLETION
 
-When all phases are complete, update `docs/workflow-$1/$1-state.md`:
+When all phases are complete:
+
+### 1. Update YAML frontmatter in `docs/workflow-$1/$1-state.md`
+
+Update the YAML frontmatter at the top of the state file to set completion status:
+
+```yaml
+---
+workflow_type: tdd-implementation
+name: $1
+status: complete
+current_phase: "COMPLETE"
+---
+```
+
+### 2. Update markdown body in `docs/workflow-$1/$1-state.md`
 
 ```markdown
 ## Current Phase
@@ -247,13 +286,24 @@ COMPLETE
 ✅ COMPLETE
 ```
 
-Generate a completion report summarizing:
+### 3. Generate completion report
+
+Summarize:
 - Components implemented
 - Test coverage (unit, integration, E2E)
 - External integrations (real vs mocked)
 - Review findings addressed
 - Files changed
 - Next steps
+
+### 4. Archive workflow directory
+
+Move the workflow directory to the archive:
+
+```bash
+mkdir -p docs/archive
+mv docs/workflow-$1 docs/archive/workflow-$1
+```
 
 ---
 

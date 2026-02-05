@@ -23,6 +23,30 @@ Starting debug workflow for: $ARGUMENTS
 
 ---
 
+## STEP 1.5: GUARD: SINGLE ACTIVE DEBUG SESSION
+
+Before creating a debug session, check if one is already active:
+
+1. Search for any existing `docs/debug/*/*-state.md` files (skip `docs/archive/`)
+2. For each found, read the YAML frontmatter `status` field
+3. If any has `status: in_progress`, output the following error and **STOP**:
+
+```
+Error: An active debug session already exists
+
+Active session found: docs/debug/<name>/<name>-state.md
+Status: in_progress
+Current phase: <phase from state file>
+
+Only one debug session can be active at a time. To proceed, either:
+1. Continue the existing session: /dev-workflow:continue-workflow <name>
+2. Complete or archive it first, then start a new one
+```
+
+If no active debug session is found (no state files, or all have `status: complete`), proceed.
+
+---
+
 ## STEP 2: CREATE DEBUG SESSION
 
 ### 2.1 Create artifact directory
@@ -438,7 +462,27 @@ If this bug reveals a recurring pattern, suggest adding a gotcha to the project'
 
 ### 11.6 Update state file
 
-Mark Phase 9 complete. Mark workflow as COMPLETE.
+Update the YAML frontmatter at the top of `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+
+```yaml
+---
+workflow_type: debug
+name: $ARGUMENTS
+status: complete
+current_phase: "COMPLETE"
+---
+```
+
+Then update the markdown body - mark Phase 9 complete, set current phase to COMPLETE.
+
+### 11.7 Archive debug session directory
+
+Move the debug session directory to the archive:
+
+```bash
+mkdir -p docs/archive
+mv docs/debug/$ARGUMENTS docs/archive/debug-$ARGUMENTS
+```
 
 ---
 

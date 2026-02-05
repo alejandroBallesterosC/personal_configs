@@ -267,4 +267,10 @@ Show the consolidated review findings to the user.
 
 ## Final Step
 
-Review complete. This is Phase 9 (final phase). Address Critical issues and complete the workflow.
+Review complete. This is Phase 9 (final phase). Address Critical issues, then:
+
+1. **Update YAML frontmatter** in the state file (`docs/workflow-$ARGUMENTS/$ARGUMENTS-state.md`):
+   - Set `status: complete`
+   - Set `current_phase: "COMPLETE"`
+2. **Update markdown body**: Set "Current Phase" to "COMPLETE" and "Status" to "✅ COMPLETE"
+3. Return to the orchestrator (`1-start-tdd-implementation`) which handles the completion report and archive
