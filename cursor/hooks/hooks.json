@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "description": "TDD workflow hooks for Cursor - test feedback, context preservation, auto-resume, and ralph-loop",
+  "hooks": {
+    "stop": [
+      {
+        "command": "$HOME/.cursor/hooks/scripts/run-scoped-tests.sh"
+      },
+      {
+        "type": "prompt",
+        "prompt": "Verify whether the TDD workflow state file is up to date before allowing Claude to stop.\n\n## Step 1: Detection\n\n1. Search for directories matching `docs/workflow-*` in the current project\n2. Within those directories, look for files matching `*-state.md`\n3. If no state file exists: return {\"continue\": true} (no active workflow)\n4. If state file exists: proceed to verification\n\n## Step 2: Gather Evidence\n\nThoroughly investigate:\n\n1. **Read the state file** - Note what phase, component, and next action it claims\n2. **Check recent git changes** - Run `git diff` and `git status` to see what files changed\n3. **Review codebase state** - Glob for relevant source files, read key files mentioned in the state file\n4. **Review conversation context** - What work was discussed or completed?\n\n## Step 3: Verify Against Strict Criteria\n\nThe state file is UP TO DATE only if ALL of the following are true:\n\n1. **Phase accuracy**: The \"Current Phase\" in the state file matches the actual phase evident from the work done\n2. **Component accuracy**: If in Phase 7/8, the current component being worked on is correctly identified\n3. **Next action accuracy**: The \"Next Action\" reflects what should actually be done next (not something already completed)\n4. **No stale progress**: The \"Session Progress\" section does not describe work from a previous session as current\n5. **Files reflect reality**: \"Files Modified This Session\" includes files that were actually changed recently\n\n## Step 4: Decision\n\n- If NO state file found: return {\"continue\": true}\n- If state file passes ALL criteria: return {\"continue\": true}\n- If state file FAILS any criterion: return {\"continue\": false, \"userMessage\": \"State file is outdated: [specific criterion that failed and what needs to be corrected]\"}",
+        "timeout": 120
+      },
+      {
+        "command": "$HOME/.cursor/hooks/scripts/ralph-loop-stop-hook.sh",
+        "loop_limit": null
+      }
+    ],
+    "sessionStart": [
+      {
+        "matcher": "compact|clear",
+        "command": "$HOME/.cursor/hooks/scripts/auto-resume-after-compact-or-clear.sh"
+      }
+    ]
+  }
+}

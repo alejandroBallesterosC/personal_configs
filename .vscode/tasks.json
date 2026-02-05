@@ -4,7 +4,7 @@
         {
             "label": "Compile & Run Current File",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/run_file.sh",
+            "command": "${workspaceFolder}/.vscode/scripts/run_file.sh",
             "args": ["${file}"],
             "options": {
                 "env": {
@@ -27,7 +27,7 @@
             "type": "shell",
             "command": "npx tsc --noEmit -p tsconfig.app.json",
             "options": {
-                "cwd": "${workspaceFolder}/I_frontend"
+                "cwd": "${workspaceFolder}/frontend"
             },
             "group": {
                 "kind": "build",
@@ -41,9 +41,9 @@
             }
         },
         {
-            "label": "Run App",
+            "label": "Run App Start Script",
             "type": "shell",
-            "command": "./scripts/run_app.sh",
+            "command": "${workspaceFolder}/scripts/start.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -56,9 +56,9 @@
             }
         },
         {
-            "label": "Sync Commands to Global",
+            "label": "Sync Claude Code Commands to Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_commands_to_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_commands_to_global.sh",
             "args": ["${file}"],
             "options": {
                 "env": {
@@ -77,9 +77,9 @@
             }
         },
                 {
-            "label": "Sync Commands from Global",
+            "label": "Sync Claude Code Commands from Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_commands_from_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_commands_from_global.sh",
             "args": ["${file}"],
             "options": {
                 "env": {
@@ -98,9 +98,9 @@
             }
         },
         {
-            "label": "Sync Docs to Global",
+            "label": "Sync Claude Code Docs to Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_docs_to_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_docs_to_global.sh",
             "args": ["${file}"],
             "options": {
                 "env": {
@@ -119,9 +119,9 @@
             }
         },
         {
-            "label": "Sync Docs from Global",
+            "label": "Sync Claude Code Docs from Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_docs_from_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_docs_from_global.sh",
             "args": ["${file}"],
             "options": {
                 "env": {
@@ -140,9 +140,9 @@
             }
         },
         {
-            "label": "Sync MCP Servers from Global",
+            "label": "Sync Claude Code MCP Servers from Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_mcp_servers_from_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_mcp_servers_from_global.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -155,9 +155,9 @@
             }
         },
         {
-            "label": "Sync MCP Servers to Global",
+            "label": "Sync Claude Code MCP Servers to Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_mcp_servers_to_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_mcp_servers_to_global.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -170,9 +170,9 @@
             }
         },
         {
-            "label": "Sync Claude to Global",
+            "label": "Sync Claude-MD to Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_claude_to_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_claude_to_global.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -185,9 +185,9 @@
             }
         },
         {
-            "label": "Sync Claude from Global",
+            "label": "Sync Claude-MD from Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_claude_from_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_claude_from_global.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -200,9 +200,9 @@
             }
         },
         {
-            "label": "Sync Skills to Global",
+            "label": "Sync Claude Code Skills to Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_skills_to_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_skills_to_global.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -215,9 +215,9 @@
             }
         },
         {
-            "label": "Sync Skills from Global",
+            "label": "Sync Claude Code Skills from Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_skills_from_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_skills_from_global.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -230,9 +230,9 @@
             }
         },
         {
-            "label": "Sync Plugins to Global",
+            "label": "Sync Claude Code Plugins to Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_plugins_to_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_plugins_to_global.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -245,9 +245,24 @@
             }
         },
         {
-            "label": "Sync Plugins from Global",
+            "label": "Sync Claude Code Plugins from Global",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/sync_plugins_from_global.sh",
+            "command": "${workspaceFolder}/sync-content-scripts/claude-code/sync_plugins_from_global.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Sync Cursor (All Content) to Global",
+            "type": "shell",
+            "command": "${workspaceFolder}/sync-content-scripts/cursor/sync_to_cursor.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
