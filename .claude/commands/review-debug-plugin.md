@@ -12,7 +12,7 @@ Conduct thorough research and provide holistic feedback on the Debug workflow pl
 
 ## Research Phase (Parallel Subagents)
 
-Launch the following research subagents in parallel:
+Launch the following research subagents in parallel using subagents:
 
 ### 1. Official Anthropic Research
 Research best practices for a workflow like this with Claude Code from official Anthropic sources:
