@@ -77,7 +77,7 @@ echo ""
 echo "Installed to $TARGET_DIR:"
 echo "  commands/     - $(ls "$TARGET_DIR/commands/" 2>/dev/null | wc -l | tr -d ' ') files"
 echo "  skills/       - $(ls -d "$TARGET_DIR/skills/"*/ 2>/dev/null | wc -l | tr -d ' ') directories"
-echo "  subagents/    - $(ls "$TARGET_DIR/subagents/"*.md 2>/dev/null | wc -l | tr -d ' ') files"
+echo "  agents/    - $(ls "$TARGET_DIR/agents/"*.md 2>/dev/null | wc -l | tr -d ' ') files"
 echo "  hooks/scripts - $(ls "$TARGET_DIR/hooks/scripts/"*.sh 2>/dev/null | wc -l | tr -d ' ') scripts"
 
 # Check if playwright needs setup
