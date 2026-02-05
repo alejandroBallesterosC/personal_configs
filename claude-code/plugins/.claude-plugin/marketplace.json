@@ -52,6 +52,15 @@
       "category": "devops"
     },
     {
+      "name": "ralph-loop",
+      "description": "Implementation of the Ralph Wiggum technique - continuous self-referential AI loops for interactive iterative development. Run Claude in a while-true loop with the same prompt until task completion.",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./ralph-loop",
+      "category": "development"
+    },
+    {
       "name": "claude-md-best-practices",
       "description": "Guide for writing and maintaining effective CLAUDE.md files",
       "author": {
