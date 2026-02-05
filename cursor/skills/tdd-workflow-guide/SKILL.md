@@ -205,6 +205,8 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
   - `refactorer`: Improve while keeping tests green
 - Main instance runs tests after each subagent task
 
+**Test Scope File**: The `.tdd-test-scope` file controls which tests run. It MUST be written to the **repository root** (where `.git/` lives). See the `testing` skill for format details.
+
 **Output**: Working code with test coverage
 
 **Command**: `/7-implement <feature> "<description>"`

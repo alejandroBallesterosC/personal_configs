@@ -215,7 +215,7 @@ model: sonnet|opus
 
 ### Testing Strategy
 - **No unit tests**: Configuration repo, not application
-- **Auto-detection**: `run-tests.sh` detects pytest, jest, vitest, go, cargo, rspec, minitest, mix
+- **Auto-detection**: `run-scoped-tests.sh` detects pytest, jest, vitest, go, cargo, rspec, minitest, mix
 - **PostToolUse hook**: Runs tests after every Write/Edit
 - **TDD workflow**: 8-phase methodology enforced by plugin
 
@@ -249,7 +249,7 @@ model: sonnet|opus
   - Completion: Stops when output contains the completion promise string
   - Source: `plugins/tdd-workflow/commands/7-implement.md:68-157`
 - [x] **Test detection silent exit**: By design. Exit 0 when no framework found allows repos without tests to use TDD workflow for planning phases.
-  - Source: `plugins/tdd-workflow/hooks/run-tests.sh:83-85`
+  - Source: `plugins/tdd-workflow/hooks/run-scoped-tests.sh` (case statement default)
 - [x] **Marketplace.json coverage**: All 6 plugins ARE in marketplace.json. Previous concern was unfounded.
   - Source: `plugins/.claude-plugin/marketplace.json:8-63`
 - [x] **Debug-workflow no hooks**: Design choice. Debug workflow is single-session (investigate → fix → done). TDD is multi-session (planning across days/weeks).
@@ -361,9 +361,9 @@ SessionStart (after /compact or /clear)
 ### Test Auto-Run Flow
 
 ```
-PostToolUse (after Write|Edit)
+Stop hook (after Claude responds)
     │
-    └─ run-tests.sh
+    └─ run-scoped-tests.sh (reads .tdd-test-scope from repo root)
         │
         ├─ detect-test-runner.sh → returns framework name
         │

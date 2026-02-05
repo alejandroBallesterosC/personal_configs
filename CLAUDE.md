@@ -44,7 +44,7 @@ No dependencies, no build, no deployment.
 |--------|---------|
 | Sync plugins to global | `./scripts/sync_plugins_to_global.sh` |
 | Sync all to global | Run VS Code tasks (15 sync tasks) |
-| Test runner detection | `claude-code/plugins/tdd-workflow/hooks/run-tests.sh` (auto via PostToolUse hook) |
+| Test runner detection | `claude-code/plugins/tdd-workflow/hooks/run-scoped-tests.sh` (auto via Stop hook) |
 
 ## Key Files
 

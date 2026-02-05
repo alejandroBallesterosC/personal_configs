@@ -281,6 +281,8 @@ cassettes/  # VCR recordings
 
 The `.tdd-test-scope` file controls which tests the verification hook runs. It supports file paths (universal), keywords, and runner-specific options.
 
+**Location**: The `.tdd-test-scope` file MUST be placed in the **repository root** (the directory containing `.git/`). The hook script automatically finds the git repo root and looks for the file there. This ensures consistent behavior regardless of what subdirectory you're working in.
+
 #### Format
 
 ```bash
@@ -356,6 +358,7 @@ mix:--exclude slow                  # Exclude tests with @tag :slow
 
 **RED phase** (just wrote a failing test):
 ```bash
+# Write to repo root: .tdd-test-scope
 # Scope to the specific test file
 tests/test_gemini_client.py
 ```
@@ -386,12 +389,12 @@ none
 
 #### How It Works
 
-1. Claude writes `.tdd-test-scope` specifying which tests to verify
-2. Stop hook reads the file when Claude finishes responding
-3. Hook detects the test runner and runs only specified tests
+1. Claude writes `.tdd-test-scope` to the **repository root** specifying which tests to verify
+2. Stop hook finds the repo root (via `git rev-parse --show-toplevel`) and reads the file
+3. Hook detects the test runner and runs only specified tests from the repo root
 4. Scope file is deleted after running (one-shot verification)
 
-If no `.tdd-test-scope` file exists, no tests run (Claude must explicitly request verification).
+If no `.tdd-test-scope` file exists in the repo root, no tests run (Claude must explicitly request verification).
 
 ---
 

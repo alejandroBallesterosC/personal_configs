@@ -222,7 +222,6 @@ All progress tracked in `docs/workflow-<feature>/<feature>-state.md`:
 ```
 hooks/
 ├── hooks.json                    # Hook configuration
-├── run-tests.sh                  # Test runner (standalone)
 ├── run-scoped-tests.sh           # Scoped test runner (used by Stop hook)
 ├── detect-test-runner.sh         # Test framework detection
 └── auto-resume-after-compact-or-clear.sh  # Context restoration hook
