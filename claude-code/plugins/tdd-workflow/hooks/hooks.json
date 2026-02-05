@@ -7,35 +7,16 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/run-scoped-tests.sh"
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "matcher": "auto|manual",
-        "hooks": [
+          },
           {
             "type": "agent",
-            "prompt": "Before context compaction, save TDD workflow state if one is active.\n\n## Detection\n\n1. Look for directories matching `docs/workflow-*` in the current project\n2. Within those directories, look for files matching `*-state.md`\n3. If no state file exists, output nothing and exit (no active TDD workflow)\n4. If a state file exists, proceed to extract and update it\n\n## Extraction\n\nAnalyze the current conversation context (available in $ARGUMENTS) and extract:\n\n1. **Current Phase**: Which phase (2-9) are we in? What's the phase name?\n2. **Current Component**: If in Phase 7/8, which component is being worked on?\n3. **Current Requirement**: If in Phase 7, which specific requirement within the component?\n4. **Progress**: What has been completed in this session?\n5. **Key Decisions**: Any important decisions made this session (technical choices, user preferences)\n6. **Blockers/Issues**: Any unresolved problems or blockers\n7. **Next Action**: What should be done next when context is restored?\n8. **Files Modified**: List files changed in this session\n\n## Update State File\n\nRead the existing state file (located at `docs/workflow-<feature>/<feature>-state.md`) and update it with the extracted information. Preserve the existing format but add/update these sections:\n\n```markdown\n## Session Progress (Auto-saved)\n- **Phase**: [current phase number and name]\n- **Component**: [if applicable]\n- **Requirement**: [if applicable]\n- **Next Action**: [specific next step]\n\n## Recent Decisions\n- [decision 1]\n- [decision 2]\n\n## Blockers\n- [blocker 1, if any]\n\n## Files Modified This Session\n- [file 1]\n- [file 2]\n```\n\nAlso update the main \"Current Phase\" and \"Completed Phases\" sections if progress was made.\n\n## Output\n\nAfter updating the state file, output a brief confirmation:\n```\nTDD workflow state saved for [feature-name]. Phase [N], next action: [brief description]\n```",
-            "model": "opus"
+            "prompt": "Verify whether the TDD workflow state file is up to date before allowing Claude to stop.\n\n## Step 1: Detection\n\n1. Search for directories matching `docs/workflow-*` in the current project\n2. Within those directories, look for files matching `*-state.md`\n3. If no state file exists: return {\"ok\": true} (no active workflow)\n4. If state file exists: proceed to verification\n\n## Step 2: Gather Evidence\n\nThoroughly investigate:\n\n1. **Read the state file** - Note what phase, component, and next action it claims\n2. **Check recent git changes** - Run `git diff` and `git status` to see what files changed\n3. **Review codebase state** - Glob for relevant source files, read key files mentioned in the state file\n4. **Review conversation context** - What work was discussed or completed?\n\n## Step 3: Verify Against Strict Criteria\n\nThe state file is UP TO DATE only if ALL of the following are true:\n\n1. **Phase accuracy**: The \"Current Phase\" in the state file matches the actual phase evident from the work done\n2. **Component accuracy**: If in Phase 7/8, the current component being worked on is correctly identified\n3. **Next action accuracy**: The \"Next Action\" reflects what should actually be done next (not something already completed)\n4. **No stale progress**: The \"Session Progress\" section does not describe work from a previous session as current\n5. **Files reflect reality**: \"Files Modified This Session\" includes files that were actually changed recently\n\n## Step 4: Decision\n\n- If NO state file found: return {\"ok\": true}\n- If state file passes ALL criteria: return {\"ok\": true}\n- If state file FAILS any criterion: return {\"ok\": false, \"reason\": \"State file is outdated: [specific criterion that failed and what needs to be corrected]\"}\n\nBe strict. If in doubt, fail the check - it is better to force an update than allow stale state.",
+            "timeout": 120
           }
         ]
       }
     ],
-    "SessionEnd": [
-      {
-        "matcher": "logout|clear|prompt_input_exit|other",
-        "hooks": [
-          {
-            "type": "agent",
-            "prompt": "Before session ends, save TDD workflow state if one is active.\n\n## Detection\n\n1. Look for directories matching `docs/workflow-*` in the current project\n2. Within those directories, look for files matching `*-state.md`\n3. If no state file exists, output nothing and exit (no active TDD workflow)\n4. If a state file exists, proceed to extract and update it\n\n## Extraction\n\nAnalyze the current conversation context (available in $ARGUMENTS) and extract:\n\n1. **Current Phase**: Which phase (2-9) are we in? What's the phase name?\n2. **Current Component**: If in Phase 7/8, which component is being worked on?\n3. **Current Requirement**: If in Phase 7, which specific requirement within the component?\n4. **Progress**: What has been completed in this session?\n5. **Key Decisions**: Any important decisions made this session (technical choices, user preferences)\n6. **Blockers/Issues**: Any unresolved problems or blockers\n7. **Next Action**: What should be done next when context is restored?\n8. **Files Modified**: List files changed in this session\n\n## Update State File\n\nRead the existing state file (located at `docs/workflow-<feature>/<feature>-state.md`) and update it with the extracted information. Preserve the existing format but add/update these sections:\n\n```markdown\n## Session Progress (Auto-saved)\n- **Phase**: [current phase number and name]\n- **Component**: [if applicable]\n- **Requirement**: [if applicable]\n- **Next Action**: [specific next step]\n\n## Recent Decisions\n- [decision 1]\n- [decision 2]\n\n## Blockers\n- [blocker 1, if any]\n\n## Files Modified This Session\n- [file 1]\n- [file 2]\n```\n\nAlso update the main \"Current Phase\" and \"Completed Phases\" sections if progress was made.\n\n## Output\n\nAfter updating the state file, output a brief confirmation:\n```\nTDD workflow state saved for [feature-name]. Phase [N], next action: [brief description]\n```",
-            "model": "opus"
-          }
-        ]
-      }
-    ],
-  "SessionStart": [
+    "SessionStart": [
       {
         "matcher": "compact|clear",
         "hooks": [

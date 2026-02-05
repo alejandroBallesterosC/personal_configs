@@ -30,8 +30,10 @@ Before starting, complete these steps:
 ## CONTEXT MANAGEMENT
 
 Context is managed **automatically via hooks** - no manual intervention needed:
-- **PreCompact hook** saves progress to `docs/workflow-$1/$1-state.md` before compaction
-- **SessionStart hook** restores context after compaction (and instructs to load the skill)
+- **Stop hook** (agent) verifies state file is up to date before Claude stops; blocks stopping if outdated
+- **SessionStart hook** (command) restores context after compaction or clear
+
+The main Claude instance is responsible for keeping `docs/workflow-$1/$1-state.md` current.
 
 ---
 

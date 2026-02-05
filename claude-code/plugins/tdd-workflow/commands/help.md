@@ -86,29 +86,29 @@ Context is managed **automatically via hooks** - no manual intervention needed.
 
 ### Automatic Context Preservation (Hooks)
 
-Context is managed **automatically** via hooks - no manual commands needed to resume:
+Context is managed via two hooks:
 
-| Hook | Event | Purpose |
-|------|-------|---------|
-| PreCompact (agent) | Before compaction | Saves session progress to state file |
-| SessionStart (command) | After compaction | Reads state file, injects context to resume |
+| Hook | Event | Type | Purpose |
+|------|-------|------|---------|
+| Stop | Before Claude stops | agent | Verifies state file is up to date; blocks stopping if outdated |
+| SessionStart | After context reset | command | Reads state file, injects context to resume |
 
-**What gets auto-saved before compaction:**
-- Current phase, component, and requirement
-- Session progress and key decisions
-- Blockers and issues
-- Files modified
-- Next action to take
+**State file verification (enforced by Stop hook):**
+- Phase accuracy matches actual work done
+- Component accuracy (if in Phase 7/8)
+- Next action reflects what should actually be done
+- No stale progress from previous sessions
+- Files modified list matches reality
 
-**What happens after compaction:**
+**What happens after context reset:**
 - Detects active workflow from `docs/workflow-*/*-state.md`
 - Reads the entire state file and injects it into context
 - Lists all relevant artifact files to read
 - Claude continues the workflow automatically
 
 This works for both:
-- **Auto-compaction**: When context fills up during long sessions
-- **Manual `/clear`**: When you optionally want to reset context
+- **Auto-compaction / `/compact`**: Stop hook ensures state is current first
+- **Manual `/clear`**: Stop hook ensures state is current first
 
 ### Manual Continuation
 

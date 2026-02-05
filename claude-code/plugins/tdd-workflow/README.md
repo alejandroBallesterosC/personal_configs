@@ -87,16 +87,16 @@ Long workflows degrade in quality as context fills. This workflow uses **automat
 
 ### How It Works
 
-Context is managed **automatically** via hooks:
+Context is managed via two hooks:
 
-1. **PreCompact hook** saves session progress to `docs/workflow-<feature>/<feature>-state.md` before any compaction
-2. **SessionStart hook** detects the active workflow after context reset (`/compact` or `/clear`) and injects full context
-3. Claude automatically continues from where it left off
+1. **Stop hook** (agent): Before Claude stops responding, verifies the state file is up to date. If outdated, blocks Claude from stopping until the state file is updated.
+2. **SessionStart hook** (command): After context reset (`/compact` or `/clear`), reads the state file and injects full context for seamless resume.
+
+The main Claude instance is responsible for keeping `docs/workflow-<feature>/<feature>-state.md` current. The Stop hook enforces this by blocking Claude from stopping if the state file is stale.
 
 This works for:
-- **Auto-compaction / `/compact`**: PreCompact hook saves current progress, then SessionStart restores full context
-- **Manual `/clear`**: SessionEnd hook saves current progress, then SessionStart restores full context
-- **Session exit** (logout, Ctrl+C, etc.): SessionEnd hook saves progress for next session
+- **Auto-compaction / `/compact`**: Stop hook ensures state is current, SessionStart restores full context after
+- **Manual `/clear`**: Stop hook ensures state is current, SessionStart restores full context after
 
 ### Manual Continuation
 
@@ -110,20 +110,20 @@ This command validates the workflow exists and is in progress, loads all context
 
 ### Auto-Context Preservation (Hooks)
 
-| Hook | Event | Matcher | Purpose |
-|------|-------|---------|---------|
-| PreCompact (agent) | Before compaction | `auto\|manual` | Extracts and saves session progress to state file |
-| SessionEnd (agent) | Before session ends | `logout\|clear\|prompt_input_exit\|other` | Saves session progress before session terminates |
-| SessionStart (command) | After context reset | `compact\|clear` | Reads state file, injects full context for seamless resume |
+| Hook | Event | Purpose |
+|------|-------|---------|
+| Stop (command) | After Claude responds | Runs tests after code changes |
+| Stop (agent) | Before Claude stops | Verifies state file is up to date; blocks stopping if outdated |
+| SessionStart (command) | After context reset | Reads state file, injects full context for seamless resume |
 
-**What gets auto-saved (before compaction or session end):**
-- Current phase, component, and requirement
-- Session progress and key decisions
-- Blockers and issues
-- Files modified
-- Next action to take
+**State file verification criteria (enforced by Stop hook):**
+- Phase accuracy matches actual work done
+- Component accuracy (if in Phase 7/8)
+- Next action reflects what should actually be done
+- No stale progress from previous sessions
+- Files modified list matches reality
 
-**What happens after compaction:**
+**What happens after context reset:**
 - Detects active workflow from `docs/workflow-*/*-state.md`
 - Reads the **entire state file** and injects it into context
 - Lists all relevant artifact files to read
@@ -211,19 +211,19 @@ All progress tracked in `docs/workflow-<feature>/<feature>-state.md`:
 
 ## Hooks
 
-| Hook | Event | Matcher | Purpose |
-|------|-------|---------|---------|
-| run-tests.sh | PostToolUse | `Write\|Edit` | Auto-run tests after code changes |
-| PreCompact agent | PreCompact | `auto\|manual` | Save workflow state before compaction |
-| SessionEnd agent | SessionEnd | `logout\|clear\|prompt_input_exit\|other` | Save workflow state before session ends |
-| auto-resume-after-compact-or-clear.sh | SessionStart | `compact\|clear` | Inject context to resume workflow after context reset |
+| Hook | Event | Type | Purpose |
+|------|-------|------|---------|
+| run-scoped-tests.sh | Stop | command | Run tests after Claude responds |
+| State verification | Stop | agent | Verify state file is up to date; block stopping if outdated |
+| auto-resume-after-compact-or-clear.sh | SessionStart | command | Inject context to resume workflow after context reset |
 
 ### Hook Files
 
 ```
 hooks/
 ├── hooks.json                    # Hook configuration
-├── run-tests.sh                  # Test runner hook
+├── run-tests.sh                  # Test runner (standalone)
+├── run-scoped-tests.sh           # Scoped test runner (used by Stop hook)
 ├── detect-test-runner.sh         # Test framework detection
 └── auto-resume-after-compact-or-clear.sh  # Context restoration hook
 ```

@@ -76,45 +76,38 @@ Long workflows degrade in quality as context fills. This plugin uses **hooks for
 
 ### How It Works
 
-Context is managed **automatically** via hooks - no manual commands needed:
+Context is managed via two hooks:
 
-1. **PreCompact hook** (agent): Before any compaction, extracts and saves session progress to `docs/workflow-<feature>/<feature>-state.md`
-2. **SessionEnd hook** (agent): Before session ends (logout, clear, exit), saves session progress to state file
-3. **SessionStart hook** (command): After context reset, reads the state file and injects full context for seamless resume
+1. **Stop hook** (agent): Before Claude stops responding, verifies the state file is up to date. If outdated, blocks Claude from stopping until the state file is updated.
+2. **SessionStart hook** (command): After context reset (`/compact` or `/clear`), reads the state file and injects full context for seamless resume.
 
-**What gets auto-saved:**
-- Current phase, component, and requirement
-- Session progress and key decisions
-- Blockers and issues
-- Files modified
-- Next action to take
+**The key insight**: The main Claude instance is responsible for keeping `docs/workflow-<feature>/<feature>-state.md` current. The Stop hook enforces this by blocking Claude from stopping if the state file is stale.
 
-**What happens after context reset (`/compact` or `/clear`):**
-- Detects active workflow from `docs/workflow-*/*-state.md`
-- Reads the entire state file and injects it into context
-- Lists all relevant artifact files to read
-- Claude continues the workflow automatically
+### State File Verification Criteria
 
-This works for:
-- **Auto-compaction / `/compact`**: PreCompact hook saves current progress, then SessionStart restores full context
-- **Manual `/clear`**: SessionEnd hook saves current progress, then SessionStart restores full context
-- **Session exit** (logout, Ctrl+C, etc.): SessionEnd hook saves progress for next session
+The Stop hook verifies the state file against these criteria:
+- **Phase accuracy**: Current phase matches actual work done
+- **Component accuracy**: Current component (if in Phase 7/8) is correctly identified
+- **Next action accuracy**: Next action reflects what should actually be done (not something completed)
+- **No stale progress**: Session progress doesn't describe work from a previous session
+- **Files reflect reality**: Modified files list matches actual recent changes
 
-### How Context Preservation Works
+If any criterion fails, Claude is blocked from stopping and must update the state file first.
 
-For `/compact` (auto or manual):
-1. **PreCompact hook** saves state to `docs/workflow-<feature>/<feature>-state.md` before compaction
-2. **SessionStart hook** restores context after compaction
-3. **Workflow continues** automatically from where it left off
+### What Happens After Context Reset
 
-For `/clear`:
-1. **SessionEnd hook** saves state before context is cleared
-2. **SessionStart hook** restores context after clear
-3. **Workflow continues** automatically from where it left off
+After `/compact` or `/clear`:
+1. **SessionStart hook** detects active workflow from `docs/workflow-*/*-state.md`
+2. Reads the entire state file and injects it into context
+3. Lists all relevant artifact files to read
+4. Claude continues the workflow automatically
 
-For session exit:
-1. **SessionEnd hook** saves state before session terminates
-2. Next session can use `/tdd-workflow:continue-workflow <feature>` to resume
+### Manual Continuation
+
+For fresh sessions (not triggered by compaction/clear):
+```bash
+/tdd-workflow:continue-workflow <feature-name>
+```
 
 No specific phase or "checkpoint" required - works at any point in the workflow.
 
@@ -275,7 +268,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 When user invokes `/tdd-workflow:1-start <feature> "<description>"`:
 1. The `1-start.md` command orchestrates all phases in sequence
 2. Each phase references its individual command file for detailed execution instructions
-3. State is saved automatically by hooks (PreCompact before compaction, SessionEnd before session ends)
+3. The Stop hook verifies state file is up to date before Claude stops responding
 4. After context reset (`/compact` or `/clear`), SessionStart hook restores context
 
 ### After Context Reset
@@ -371,7 +364,7 @@ These principles guide all phases of the workflow:
 3. **Real integrations first** - Only mock when real integration is truly impossible
 4. **Verify continuously** - Main instance runs tests after every subagent task
 5. **Front-load planning** - Thorough questioning eliminates implementation rework
-6. **Automatic context management** - Hooks preserve state before compaction/session end and restore it after context reset
+6. **Automatic context management** - Stop hook enforces state file accuracy, SessionStart hook restores context after reset
 7. **Automatic orchestration** - User only provides input when needed
 
 ---

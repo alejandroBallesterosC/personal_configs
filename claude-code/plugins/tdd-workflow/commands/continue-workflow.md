@@ -203,12 +203,11 @@ If the current phase is a planning phase:
 ### Automatic Context Preservation
 
 The TDD workflow uses hooks for automatic context preservation:
-- **PreCompact hook**: Saves state before any compaction
-- **SessionStart hook**: Restores context after compaction
+- **Stop hook** (agent): Verifies state file is up to date before Claude stops; blocks stopping if outdated
+- **SessionStart hook** (command): Restores context after compaction or clear
 
 This command (`/continue-workflow`) is for **manual continuation** in scenarios where:
-- You're starting a fresh session (not triggered by compaction)
-- The automatic hooks didn't fire
+- You're starting a fresh session (not triggered by compaction/clear)
 - You want to explicitly resume a specific workflow by name
 
 ### ralph-loop Dependency
@@ -225,8 +224,8 @@ Phases 7, 8, and 9 require the `ralph-loop` plugin. Ensure it's installed:
 ### Maintaining State
 
 As you continue the workflow:
-- The state file will be automatically updated by the PreCompact hook
-- If making significant progress, you can manually update `docs/workflow-$1/$1-state.md`
+- The Stop hook will verify the state file is up to date before Claude stops responding
+- If the state file is outdated, Claude is blocked from stopping until it updates the state file
 - Key decisions should be recorded in the "Key Decisions" section
 
 ---
