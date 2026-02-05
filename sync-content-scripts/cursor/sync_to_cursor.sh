@@ -17,7 +17,7 @@ echo ""
 echo "Creating directories..."
 mkdir -p "$TARGET_DIR/commands"
 mkdir -p "$TARGET_DIR/skills"
-mkdir -p "$TARGET_DIR/subagents"
+mkdir -p "$TARGET_DIR/agents"
 mkdir -p "$TARGET_DIR/hooks/scripts"
 
 # Sync commands
@@ -39,10 +39,10 @@ if [ -d "$SOURCE_DIR/skills" ] && [ "$(ls -A "$SOURCE_DIR/skills" 2>/dev/null)" 
 fi
 
 # Sync subagents
-if [ -d "$SOURCE_DIR/subagents" ] && [ "$(ls "$SOURCE_DIR/subagents/"*.md 2>/dev/null)" ]; then
+if [ -d "$SOURCE_DIR/agents" ] && [ "$(ls "$SOURCE_DIR/agents/"*.md 2>/dev/null)" ]; then
     echo "Syncing subagents..."
-    cp "$SOURCE_DIR/subagents/"*.md "$TARGET_DIR/subagents/"
-    echo "  - $(ls "$SOURCE_DIR/subagents/"*.md | wc -l | tr -d ' ') subagent files"
+    cp "$SOURCE_DIR/agents/"*.md "$TARGET_DIR/agents/"
+    echo "  - $(ls "$SOURCE_DIR/agents/"*.md | wc -l | tr -d ' ') agent files"
 fi
 
 # Sync hook scripts
