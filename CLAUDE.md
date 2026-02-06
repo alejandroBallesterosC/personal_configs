@@ -6,16 +6,18 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 
 ```
 claude-code/
-├── plugins/           # 6 encapsulated plugins
-│   ├── dev-workflow/  # 11 agents, 17 commands, 6 skills, 3 hooks (TDD implementation + Debug)
+├── plugins/           # 6 encapsulated plugins (installed via marketplace)
+│   ├── dev-workflow/  # 11 agents, 17 commands, 6 skills, 3 hooks (TDD + Debug)
 │   ├── playwright/    # Browser automation (JS + skill)
 │   ├── claude-session-feedback/ # 4 commands
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
 │   ├── claude-md-best-practices/ # 1 skill
 │   └── ralph-loop/   # Iterative AI loops (3 commands, 1 hook)
-├── commands/          # Shared command templates
-├── docs/              # Python, UV, Docker best practices
-└── CLAUDE.md          # Global template (syncs to ~/.claude/)
+├── commands/          # 6 shared global commands (syncs to ~/.claude/commands/)
+├── docs/              # Python, UV, Docker best practices (syncs to ~/.claude/docs/)
+└── CLAUDE.md          # Global coding standards template (syncs to ~/.claude/)
+sync-content-scripts/  # 9 bidirectional sync scripts
+cursor/                # Cursor IDE mirror (37 files, unidirectional sync)
 ```
 
 ## Key Patterns
@@ -40,8 +42,12 @@ No dependencies, no build, no deployment.
 
 | Action | Command |
 |--------|---------|
-| Sync plugins to global | `./sync-content-scripts/claude-code/sync_plugins_to_global.sh` |
+| Sync commands to global | `./sync-content-scripts/claude-code/sync_commands_to_global.sh` |
+| Sync docs to global | `./sync-content-scripts/claude-code/sync_docs_to_global.sh` |
+| Sync MCP config to global | `./sync-content-scripts/claude-code/sync_mcp_servers_to_global.sh` |
+| Sync CLAUDE.md to global | `./sync-content-scripts/claude-code/sync_claude_to_global.sh` |
 | Sync all to global | Run VS Code tasks (15 sync tasks) |
+| Install plugins | `/plugin marketplace add alejandroBallesterosC/personal_configs` then `/plugin install <name>` |
 | Test runner detection | `claude-code/plugins/dev-workflow/hooks/run-scoped-tests.sh` (auto via Stop hook) |
 
 ## Key Files
@@ -85,13 +91,17 @@ Then install plugins via `/plugin install <name>`.
 
 ## Sync Usage
 
-Commands, skills, and docs still sync to `~/.claude/` via scripts:
+Commands, docs, MCP config, and CLAUDE.md sync to `~/.claude/` via scripts:
 ```bash
-./sync-content-scripts/claude-code/sync_commands_to_global.sh
-./sync-content-scripts/claude-code/sync_skills_to_global.sh
+./sync-content-scripts/claude-code/sync_commands_to_global.sh [--overwrite]
+./sync-content-scripts/claude-code/sync_docs_to_global.sh [--overwrite]
+./sync-content-scripts/claude-code/sync_mcp_servers_to_global.sh
+./sync-content-scripts/claude-code/sync_claude_to_global.sh
 ```
 
-Sync behavior: Last sync wins (no merge - `rm -rf` then `cp -r`).
+Plugins install via marketplace (not file sync). Skills and plugins scripts were removed in favor of the plugin system.
+
+Sync behavior: Last sync wins (`cp -f`, optional `--overwrite` clears destination first).
 
 ## Documentation
 

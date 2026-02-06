@@ -19,7 +19,7 @@ personal_configs/
 │   ├── CLAUDE.md                   # Global coding standards template
 │   └── global_mcp_settings.json    # MCP server configuration
 ├── cursor/                         # Cursor IDE parallel configs
-├── sync-content-scripts/           # 13 sync scripts (bidirectional)
+├── sync-content-scripts/           # 9 sync scripts (bidirectional + cursor)
 ├── .vscode/                        # VS Code tasks (15 sync tasks)
 ├── docs/
 │   └── CODEBASE.md                 # Comprehensive codebase analysis
@@ -130,16 +130,20 @@ Bidirectional sync between this repo and `~/.claude/` via `sync-content-scripts/
 
 | Script | Direction |
 |--------|-----------|
-| `sync_plugins_to_global.sh` | Plugins → ~/.claude/plugins/ |
 | `sync_commands_to_global.sh` | Commands → ~/.claude/commands/ |
-| `sync_skills_to_global.sh` | Skills → ~/.claude/skills/ |
 | `sync_docs_to_global.sh` | Docs → ~/.claude/docs/ |
 | `sync_claude_to_global.sh` | CLAUDE.md → ~/.claude/ |
 | `sync_mcp_servers_to_global.sh` | MCP config → ~/.claude/ |
 
-All scripts support `--overwrite` flag. Reverse sync scripts (`*_from_global.sh`) also available.
+Reverse sync scripts (`*_from_global.sh`) also available for each. Cursor sync: `sync-content-scripts/cursor/sync_to_cursor.sh` (unidirectional).
 
-Sync behavior: Last sync wins (no merge — `rm -rf` then `cp -r`).
+Plugins install via the marketplace system (not file sync):
+```bash
+/plugin marketplace add alejandroBallesterosC/personal_configs
+/plugin install dev-workflow
+```
+
+Sync behavior: Last sync wins (`cp -f`, optional `--overwrite` clears destination first).
 
 ## Usage
 

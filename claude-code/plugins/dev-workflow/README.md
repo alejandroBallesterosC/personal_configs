@@ -95,7 +95,7 @@ Long workflows degrade in quality as context fills. This plugin uses **automatic
 | State verification | Stop | agent | Verifies state files are up to date; blocks stopping if outdated |
 | auto-resume | SessionStart | command | Restores context after `/compact` or `/clear` (checks both TDD and debug) |
 
-The unified Stop hook checks both `docs/workflow-*/*-state.md` (TDD) and `docs/debug/*-state.md` (debug) for stale state.
+The unified Stop hook checks both `docs/workflow-*/*-state.md` (TDD) and `docs/debug/*/*-state.md` (debug) for stale state.
 
 The unified SessionStart hook detects which workflow type is active and injects the appropriate context.
 
