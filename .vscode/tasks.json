@@ -23,12 +23,9 @@
             }
         },
         {
-            "label": "Compile Frontend Typescript",
+            "label": "Run App Start Script",
             "type": "shell",
-            "command": "npx tsc --noEmit -p tsconfig.app.json",
-            "options": {
-                "cwd": "${workspaceFolder}/frontend"
-            },
+            "command": "${workspaceFolder}/.vscode/scripts/start.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -41,9 +38,12 @@
             }
         },
         {
-            "label": "Run App Start Script",
+            "label": "Compile Frontend Typescript",
             "type": "shell",
-            "command": "${workspaceFolder}/scripts/start.sh",
+            "command": "npx tsc --noEmit -p tsconfig.app.json",
+            "options": {
+                "cwd": "${workspaceFolder}/frontend"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
