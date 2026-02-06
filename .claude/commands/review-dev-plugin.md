@@ -12,7 +12,7 @@ Conduct thorough research and provide holistic feedback on the dev workflow plug
 
 ## Research Phase (Parallel Subagents)
 
-Launch the following research subagents in parallel using subagents:
+Conduct the following research in parallel by launching parallel sonnet subagents:
 
 ### 1. Official Anthropic Research
 Research best practices for agentic long-horizon coding with Claude Code from official Anthropic sources:
@@ -22,7 +22,7 @@ Research best practices for agentic long-horizon coding with Claude Code from of
 - Official guides on dev, testing workflows, or iterative development with Claude
 - How to structure long-running coding tasks
 - Best practices for context management
-- How to design effective agent workflows
+- How to design effective agent workflows for the highest quality code outputs
 - Recommended patterns for iterative development
 - Quality assurance and verification approaches
 
@@ -36,7 +36,12 @@ Research insights and best practices from Claude Code power users:
 - Common pitfalls and how to avoid them
 - Patterns that experienced users have found effective
 
-### 3. dev Workflow Plugin Analysis
+
+## Explore & Review Plugin Phase (Parallel Subagents)
+
+Launch the following in parallel using sonnet subagents to explore the dev-workflow plugin in this repo:
+
+### 1. dev-workflow Plugin Analysis
 Thoroughly explore the dev workflow plugin at `claude-code/plugins/dev-workflow/`:
 - Overall plugin structure and architecture
 - All commands - their purpose and implementation
@@ -47,6 +52,7 @@ Thoroughly explore the dev workflow plugin at `claude-code/plugins/dev-workflow/
 - How workflow phases connect and transition
 - State management and context preservation mechanisms
 - Integration points with other plugins
+- Internal consistency within plugin (are there inconsistencies across the plugin?)
 
 ### 4. Plugin Dependencies Analysis
 Explore dependencies and related plugins that dev workflow relies on:
@@ -59,7 +65,7 @@ Explore dependencies and related plugins that dev workflow relies on:
 
 ## Synthesis Phase
 
-After all research completes, synthesize findings into holistic feedback:
+After all research and analysis completes, synthesize findings into holistic feedback:
 
 ### What is Good?
 Identify strengths that align with best practices:
@@ -74,10 +80,12 @@ Identify gaps and areas for enhancement:
 - Missing features that power users rely on
 - Potential issues or edge cases not handled
 - Documentation or usability gaps
+- Internal consistency issues within the plugin
+- Possible gaps/flaws in real usage
 
 ### Priority Recommendations
 Rank improvements by:
-1. **Critical** - Issues that could cause workflow failures
+1. **Critical** - Issues that could cause workflow failures and inconsistencies
 2. **High Priority** - Significant quality or UX improvements
 3. **Medium Priority** - Nice-to-have enhancements
 4. **Lower Priority** - Polish and refinements
