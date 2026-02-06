@@ -143,17 +143,26 @@ Sync behavior: Last sync wins (no merge — `rm -rf` then `cp -r`).
 
 ## Usage
 
-### First-time Setup
+### Plugin Installation
+
+Register this repo as a Claude Code plugin marketplace, then install plugins:
 
 ```bash
-# Sync plugins to global
-./sync-content-scripts/claude-code/sync_plugins_to_global.sh
+# From GitHub
+/plugin marketplace add alejandroBallesterosC/personal_configs
 
-# Load plugin (option 1)
-claude --plugin-dir ~/.claude/plugins/dev-workflow
+# From a local clone
+/plugin marketplace add /path/to/personal_configs/claude-code/plugins
+```
 
-# Or add local marketplace (option 2)
-/plugin marketplace add ~/.claude/plugins
+Then install plugins:
+```bash
+/plugin install dev-workflow
+/plugin install playwright
+/plugin install claude-session-feedback
+/plugin install infrastructure-as-code
+/plugin install ralph-loop
+/plugin install claude-md-best-practices
 ```
 
 ### Install External Dependencies

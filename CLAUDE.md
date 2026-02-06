@@ -60,7 +60,6 @@ No dependencies, no build, no deployment.
 
 ## Gotchas
 
-- Plugins must be synced to `~/.claude/plugins/` before use
 - `ralph-loop` is external dependency - install via plugin marketplace (see Dependencies)
 - `claude-code/CLAUDE.md` is a TEMPLATE (syncs to ~/.claude/), not this repo's CLAUDE.md
 - Test auto-detection exits 0 when no framework found (non-fatal for repos without tests)
@@ -70,26 +69,29 @@ No dependencies, no build, no deployment.
 - MCP servers require env vars: `CONTEXT7_API_KEY`, `EXA_API_KEY` (in `.env`, gitignored)
 - `dev-workflow` plugin contains both TDD implementation and debug workflows
 
+## Plugin Installation
+
+Register this repo as a Claude Code plugin marketplace, then install plugins:
+
+```bash
+# From GitHub
+/plugin marketplace add alejandroBallesterosC/personal_configs
+
+# From a local clone
+/plugin marketplace add /path/to/personal_configs/claude-code/plugins
+```
+
+Then install plugins via `/plugin install <name>`.
+
 ## Sync Usage
 
-After modifying configs:
+Commands, skills, and docs still sync to `~/.claude/` via scripts:
 ```bash
-./sync-content-scripts/claude-code/sync_plugins_to_global.sh   # Copies all 6 plugins
 ./sync-content-scripts/claude-code/sync_commands_to_global.sh
 ./sync-content-scripts/claude-code/sync_skills_to_global.sh
 ```
 
 Sync behavior: Last sync wins (no merge - `rm -rf` then `cp -r`).
-
-Then load plugins:
-```bash
-claude --plugin-dir ~/.claude/plugins/dev-workflow
-```
-
-Or add local marketplace:
-```
-/plugin marketplace add ~/.claude/plugins
-```
 
 ## Documentation
 
