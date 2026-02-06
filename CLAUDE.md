@@ -1,17 +1,18 @@
 # Personal Configs
 
-Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 4 plugins (Dev Workflow, Playwright, Session Feedback, Infrastructure-as-Code, CLAUDE.md Best Practices), configuration sync scripts, and IDE integrations.
+Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 6 plugins (Dev Workflow, Playwright, Session Feedback, Infrastructure-as-Code, CLAUDE.md Best Practices, Ralph Loop), configuration sync scripts, and IDE integrations.
 
 ## Architecture
 
 ```
 claude-code/
-├── plugins/           # 5 encapsulated plugins
-│   ├── dev-workflow/  # 11 agents, 17 commands, 6 skills, 4 hooks (TDD implementation + Debug)
+├── plugins/           # 6 encapsulated plugins
+│   ├── dev-workflow/  # 11 agents, 17 commands, 6 skills, 3 hooks (TDD implementation + Debug)
 │   ├── playwright/    # Browser automation (JS + skill)
 │   ├── claude-session-feedback/ # 4 commands
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
-│   └── claude-md-best-practices/ # 1 skill
+│   ├── claude-md-best-practices/ # 1 skill
+│   └── ralph-loop/   # Iterative AI loops (3 commands, 1 hook)
 ├── commands/          # Shared command templates
 ├── docs/              # Python, UV, Docker best practices
 └── CLAUDE.md          # Global template (syncs to ~/.claude/)
@@ -39,7 +40,7 @@ No dependencies, no build, no deployment.
 
 | Action | Command |
 |--------|---------|
-| Sync plugins to global | `./scripts/sync_plugins_to_global.sh` |
+| Sync plugins to global | `./sync-content-scripts/claude-code/sync_plugins_to_global.sh` |
 | Sync all to global | Run VS Code tasks (15 sync tasks) |
 | Test runner detection | `claude-code/plugins/dev-workflow/hooks/run-scoped-tests.sh` (auto via Stop hook) |
 
@@ -73,9 +74,9 @@ No dependencies, no build, no deployment.
 
 After modifying configs:
 ```bash
-./scripts/sync_plugins_to_global.sh   # Copies all 5 plugins
-./scripts/sync_commands_to_global.sh
-./scripts/sync_skills_to_global.sh
+./sync-content-scripts/claude-code/sync_plugins_to_global.sh   # Copies all 6 plugins
+./sync-content-scripts/claude-code/sync_commands_to_global.sh
+./sync-content-scripts/claude-code/sync_skills_to_global.sh
 ```
 
 Sync behavior: Last sync wins (no merge - `rm -rf` then `cp -r`).
