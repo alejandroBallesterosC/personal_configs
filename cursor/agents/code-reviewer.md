@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Comprehensive code review with confidence-scored findings and focus areas
-model: inherit
+model: sonnet
 ---
 
 # Code Reviewer Agent

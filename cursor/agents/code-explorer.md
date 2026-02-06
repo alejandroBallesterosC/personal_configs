@@ -1,7 +1,7 @@
 ---
 name: code-explorer
 description: Deep codebase exploration with 1M context window for comprehensive analysis
-model: inherit
+model: sonnet
 ---
 
 # Code Explorer Agent
