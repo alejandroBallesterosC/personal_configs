@@ -1,0 +1,64 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "personal-configs",
+  "description": "Claude Code plugins for AI-assisted development workflows",
+  "owner": {
+    "name": "jandro"
+  },
+  "plugins": [
+    {
+      "name": "dev-workflow",
+      "description": "Unified TDD implementation and hypothesis-driven debugging workflows with 11 agents, 17 commands, and automatic context preservation",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/dev-workflow",
+      "category": "development"
+    },
+    {
+      "name": "playwright",
+      "description": "Browser automation with Playwright - test pages, fill forms, take screenshots, validate UX, and automate any browser task",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/playwright",
+      "category": "testing"
+    },
+    {
+      "name": "claude-session-feedback",
+      "description": "Tools for exporting conversation history, reading past sessions, and getting feedback on Claude Code usage",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/claude-session-feedback",
+      "category": "productivity"
+    },
+    {
+      "name": "infrastructure-as-code",
+      "description": "Terraform and AWS infrastructure management with safety-first practices",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/infrastructure-as-code",
+      "category": "devops"
+    },
+    {
+      "name": "ralph-loop",
+      "description": "Implementation of the Ralph Wiggum technique - continuous self-referential AI loops for interactive iterative development. Run Claude in a while-true loop with the same prompt until task completion.",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/ralph-loop",
+      "category": "development"
+    },
+    {
+      "name": "claude-md-best-practices",
+      "description": "Guide for writing and maintaining effective CLAUDE.md files",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/claude-md-best-practices",
+      "category": "documentation"
+    }
+  ]
+}
