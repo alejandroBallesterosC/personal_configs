@@ -26,11 +26,11 @@ Research best practices for agentic long-horizon coding with Claude Code from of
 - Recommended patterns for iterative development
 - Quality assurance and verification approaches
 
-### 2. Power User Insights Research
+### 2. Reputable Power User Insights Research
 Research insights and best practices from Claude Code power users:
 - Boris Cherny - tweets, blog posts, content about Claude Code usage patterns
-- Thariq Shihab - content about Claude Code and agentic workflows
-- Other notable Claude Code power users and their shared insights
+- Thariq Shihab - tweets, blog posts, content about Claude Code and agentic workflows
+- Other reputable top tier programmers that are Claude Code power users and their shared insights from blogs and tweets
 - Community discussions about effective Claude Code workflows
 - Real-world tips for long-horizon agentic coding
 - Common pitfalls and how to avoid them
