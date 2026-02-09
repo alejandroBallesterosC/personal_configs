@@ -24,7 +24,7 @@ TDD_STATE_FILE=""
 TDD_ACTIVE=false
 for state_file in docs/workflow-*/*-state.md; do
   [ -f "$state_file" ] || continue
-  status=$(sed -n '/^---$/,/^---$/{ /^status:/{ s/^status: *//; s/ *$//; p; } }' "$state_file" 2>/dev/null)
+  status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
   if [ "$status" = "in_progress" ]; then
     TDD_STATE_FILE="$state_file"
     TDD_ACTIVE=true
@@ -45,7 +45,7 @@ for state_file in docs/debug/*/*-state.md; do
   [ -f "$state_file" ] || continue
   # Skip the archive directory
   case "$state_file" in docs/archive/*) continue ;; esac
-  status=$(sed -n '/^---$/,/^---$/{ /^status:/{ s/^status: *//; s/ *$//; p; } }' "$state_file" 2>/dev/null)
+  status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
   if [ "$status" = "in_progress" ]; then
     DEBUG_STATE_FILE="$state_file"
     DEBUG_ACTIVE=true

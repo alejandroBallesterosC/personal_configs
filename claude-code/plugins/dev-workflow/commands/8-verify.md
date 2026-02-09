@@ -90,7 +90,7 @@ Use AskUserQuestionTool to ask:
 1. Capture new log output from the user
 2. Check the 3-Fix Rule: read the fix attempt count from the state file
 3. If count >= 3: STOP and ask "We've tried 3 fixes without success. Should we question our fundamental approach?"
-4. If count < 3: Increment counter, loop back to analysis (`/dev-workflow:5-analyze $ARGUMENTS`)
+4. If count < 3: Increment counter, loop back to analysis (`/dev-workflow:6-analyze $ARGUMENTS`)
 
 ---
 
@@ -150,8 +150,9 @@ Search for and remove all debug artifacts from source files:
 - Find all `DEBUG-H[0-9]` markers
 - Remove the tagged log statements
 - Remove the `HYPOTHESIS:` and `DEBUG: Remove after fix` comment markers
+- Remove the entry point debug log file initialization block
 - Remove debug imports if no longer needed
-- Remove temporary debug files (`/tmp/debug-*.json`, `logs/debug/`)
+- Delete `logs/debug-output.log` and remove temporary debug files (`/tmp/debug-*.json`)
 
 ### 6.2 Verify cleanup
 
@@ -162,8 +163,9 @@ Search for and remove all debug artifacts from source files:
 ### 6.3 Cleanup checklist
 
 - [ ] Remove ALL `[DEBUG-Hx]` log statements
+- [ ] Remove entry point debug log file initialization block
 - [ ] Remove debug imports (if no longer needed)
-- [ ] Remove temporary debug files
+- [ ] Delete `logs/debug-output.log`
 - [ ] Tests pass after cleanup
 - [ ] No orphaned debug markers in codebase
 

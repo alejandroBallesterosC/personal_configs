@@ -1,9 +1,9 @@
 ---
 name: testing
-description: Provides TDD guidance when writing tests or implementation code. Use when the user is doing test-driven development, writing tests, or implementing features.
+description: TDD guidance, .tdd-test-scope file usage, and test optimization. Use when writing tests, implementing TDD RED/GREEN/REFACTOR cycles, configuring .tdd-test-scope for the dev-workflow stop hook, using test markers or tiering, caching API responses in tests, or doing visual/frontend testing with Playwright. Also activates during orchestrated TDD implementation (Phase 7) or E2E testing (Phase 8) when loaded by workflow commands.
 ---
 
-# TDD Guide Skill
+# Testing Skill
 
 This skill provides guidance for Test-Driven Development practices.
 
@@ -19,6 +19,17 @@ Activate when:
 **Announce at start:** "I'm using the testing skill."
 
 ## TDD Core Principles
+
+### Test With Real Services and Real APIs
+
+Always strongly prefer using real data and real APIs for testing. Only resort to implementing a mock mode for tests when you absolutely positively have to.
+If you are ntegrating with other internal components or services that are being developed in parallel (in the same code base) and are thus not currently available you can implement a mock for testing (only if this component is truly not available yet).
+In the rare case an external API is not working after many many attempts you can implement a mock in tests to unblock yourself (this should be a last resort and exceedingly rare).
+ALWAYS proactively inform the user when you have tested with a mock rather than with a real API.
+
+### DO NOT Hard Code or Hack Your Way Around Tests
+
+Do not just hard code an implementation or hack your way into passing tests. Actually stick to the goal of the project and implementation faithfully. Your implementations and tests should be honest, faithful, and genuine, not a hack to get around tests.
 
 ### The TDD Cycle
 
@@ -179,11 +190,11 @@ Each test should:
 
 ## Test Optimization for TDD Loops
 
-When doing TDD with real APIs and services, optimize for fast feedback.
+When doing TDD with real APIs and services, optimize for fast feedback to the extent possible by doing the following:
 
 ### Test Tiering with Markers
 
-Always tier tests using pytest markers to enable selective execution:
+Tier tests. If using python and pytest, you can use markers to enable selective execution:
 
 ```python
 import pytest
@@ -226,7 +237,7 @@ def test_gemini_image_generation():
 
 ### API Response Caching
 
-For tests that call external APIs, use caching to avoid re-pinging on every run:
+For tests that call external APIs, use caching to avoid re-pinging on every run. If using python and pytest you can do this like so:
 
 **Using pytest-recording (VCR-style):**
 ```python
@@ -277,9 +288,11 @@ def test_gemini_response_parsing(cached_gemini_response):
 cassettes/  # VCR recordings
 ```
 
-### Test Scope File
+### Test Scope File (Relevant when using dev-workflow)
 
-The `.tdd-test-scope` file controls which tests the verification hook runs. It supports file paths (universal), keywords, and runner-specific options.
+If using dev-workflow plugin a stop hook will run all tests declared in .tdd-test-scope file (this file should be written in the root of the project's repo).
+
+The `.tdd-test-scope` file controls which tests the stop hook in the dev-workflow runs. It supports file paths (universal), keywords, and runner-specific options.
 
 **Location**: The `.tdd-test-scope` file MUST be placed in the **repository root** (the directory containing `.git/`). The hook script automatically finds the git repo root and looks for the file there. This ensures consistent behavior regardless of what subdirectory you're working in.
 
@@ -400,26 +413,25 @@ If no `.tdd-test-scope` file exists in the repo root, no tests run (Claude must 
 
 ## Visual and Frontend Testing
 
-When working on applications with frontends or UIs, use **Playwright** to verify:
+When working on applications with frontends or UIs, you must load the playwright:playwright skill and use **Playwright** to verify:
 - **Functional correctness**: UI interactions work as expected
 - **Visual appearance**: The UI looks correct and matches design expectations
 - **Integration**: Frontend and backend work together properly
+  
+Specifically, you must load the playwright:playwright skill and use Playwright tests when:
+- Building or modifying frontend/UI components
+- Implementing user-facing features
+- Verifying visual design matches expectations
+- Testing end-to-end user flows
+- Ensuring responsive design works across viewports
 
-**See the `playwright` skill** (from the playwright plugin) for detailed guidance on:
+**the `playwright:playwright` skill** contains detailed guidance on:
 - Writing Playwright tests
 - Taking screenshots for visual verification
 - Visual regression testing
 - Responsive design testing across viewports
 - TDD with frontend components
 
-### When to Use Playwright
-
-Use Playwright tests when:
-- Building or modifying frontend/UI components
-- Implementing user-facing features
-- Verifying visual design matches expectations
-- Testing end-to-end user flows
-- Ensuring responsive design works across viewports
 
 ### Playwright Test Scope
 

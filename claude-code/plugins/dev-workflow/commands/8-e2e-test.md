@@ -13,6 +13,8 @@ argument-hint: <feature-name> "<feature description>"
 
 Verify that all implemented components work together correctly. The **main instance runs ralph-loop** and owns the feedback loop, spawning subagents to fix specific issues.
 
+**REQUIRED**: Use the Skill tool to invoke `dev-workflow:testing` to load TDD testing guidance and `.tdd-test-scope` usage.
+
 ---
 
 ## PREREQUISITES
@@ -98,6 +100,7 @@ Return the fix and files modified.
 
 ### 3. Validate Fix
 After subagent returns:
+- Write a `.tdd-test-scope` file to the repository root with `all` to run the full test suite
 - RUN THE E2E TESTS YOURSELF
 - RUN ALL UNIT TESTS (regression check)
 - If still failing, provide more context to subagent

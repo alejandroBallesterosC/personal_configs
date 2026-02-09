@@ -13,7 +13,9 @@ argument-hint: <feature-name> "<feature description>"
 
 Implement the feature using **orchestrated TDD** where the **main instance runs ralph-loop** and owns the feedback loop, spawning subagents for discrete tasks.
 
-For workflow overview and key principles, see the **tdd-implementation-workflow-guide** skill.
+**REQUIRED**: Use the Skill tool to invoke `dev-workflow:tdd-implementation-workflow-guide` to load the workflow source of truth.
+
+**REQUIRED**: Use the Skill tool to invoke `dev-workflow:testing` to load TDD testing guidance and `.tdd-test-scope` usage.
 
 ---
 
@@ -53,14 +55,19 @@ Before parallel implementation, create the shared foundation and make the contra
 
 This must complete before parallel components begin.
 
-### Step 2: Identify Parallel Components
+### Step 2: Categorize Components by Dependencies
 
-Read `docs/workflow-$1/plans/$1-implementation-plan.md` and identify:
-- Independent components that can be implemented in parallel
-- Dependencies between components
-- Integration points
+Read `docs/workflow-$1/plans/$1-implementation-plan.md` and categorize:
+- **Independent components** (no shared state, no dependencies on other components) → implement in PARALLEL
+- **Dependent components** (requires another component to be complete first) → implement SEQUENTIALLY after dependency
 
 ### Step 3: Orchestrated TDD Implementation
+
+**For independent components**: Launch ralph-loop instances in PARALLEL using multiple Task tool calls in a single message. Each ralph-loop orchestrates its own TDD cycle for one component.
+
+**For dependent components**: Launch ralph-loop instances SEQUENTIALLY, waiting for each dependency to complete before starting the next.
+
+**CRITICAL**: Always use subagents (test-designer, implementer, refactorer) for ALL implementation work, even when implementing sequentially. The main orchestrator should NEVER write code directly - it runs tests and coordinates. This preserves context in the orchestrator for the full workflow lifecycle.
 
 For each component, the **main instance runs ralph-loop** and owns the feedback loop:
 
@@ -99,6 +106,7 @@ Return the test file path and test name.
 '''
 
 After subagent returns:
+- Write a `.tdd-test-scope` file to the repository root containing the test file path(s) to run
 - RUN THE TESTS YOURSELF to confirm RED (failure)
 - If test passes unexpectedly, ask subagent to write a more specific test
 - Commit: git commit -m 'red: [$1][Component] test for [requirement]'
@@ -120,6 +128,7 @@ Return the implementation file path.
 '''
 
 After subagent returns:
+- Write a `.tdd-test-scope` file to the repository root containing the test file path(s) to run
 - RUN THE TESTS YOURSELF to confirm GREEN (pass)
 - If test still fails, spawn implementer again with error context
 - Commit: git commit -m 'green: [$1][Component] [requirement]'
@@ -141,6 +150,7 @@ Return list of changes made.
 '''
 
 After subagent returns:
+- Write a `.tdd-test-scope` file to the repository root containing the test file path(s) to run
 - RUN THE TESTS YOURSELF to confirm still GREEN
 - If tests fail, revert and try smaller refactor
 - Commit: git commit -m 'refactor: [$1][Component] [description]'
@@ -156,18 +166,7 @@ When ALL requirements for this component pass:
 " --max-iterations 50 --completion-promise "COMPONENT_[$1]_[Component]_COMPLETE"
 ```
 
-### Step 4: Implement Each Component
-
-For **each component** from the plan:
-1. Run the ralph-loop above
-2. Wait for completion
-3. Move to next component
-
-For **truly independent** components (no shared state):
-- Can run separate ralph-loop instances in parallel
-- Each ralph-loop orchestrates its own TDD cycle
-
-### Step 5: Integration Layer
+### Step 4: Integration Layer
 
 After all components complete, implement integration using orchestrated TDD:
 
@@ -189,6 +188,7 @@ Write ONE integration test that verifies component interaction.
 '''
 
 After subagent returns:
+- Write a `.tdd-test-scope` file to the repository root containing the test file path(s) to run
 - RUN THE TESTS YOURSELF to confirm RED
 
 ### 2. GREEN - Spawn implementer for wiring
@@ -197,6 +197,7 @@ Wire components together to make integration test pass.
 '''
 
 After subagent returns:
+- Write a `.tdd-test-scope` file to the repository root containing the test file path(s) to run
 - RUN THE TESTS YOURSELF to confirm GREEN
 
 ### 3. Continue

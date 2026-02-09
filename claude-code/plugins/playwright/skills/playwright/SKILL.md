@@ -1,6 +1,6 @@
 ---
 name: playwright
-description: Complete browser automation with Playwright. Auto-detects dev servers, writes clean test scripts to /tmp. Test pages, fill forms, take screenshots, check responsive design, validate UX, test login flows, check links, automate any browser task. Use when user wants to test websites, automate browser interactions, validate web functionality, or perform any browser-based testing.
+description: Browser automation with Playwright for testing websites, web apps, and UIs. Use when the user wants to test web pages, take screenshots, check responsive design, validate UX, test login flows, fill forms, check broken links, automate browser interactions, perform visual regression testing, or do end-to-end frontend testing. Auto-detects dev servers, writes scripts to /tmp, runs with visible browser by default.
 ---
 
 **IMPORTANT - Path Resolution:**

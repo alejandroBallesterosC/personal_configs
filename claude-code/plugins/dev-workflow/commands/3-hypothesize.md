@@ -28,7 +28,7 @@ Error: Exploration not found
 The file docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md does not exist.
 Exploration must be completed before generating hypotheses.
 
-Run: /dev-workflow:2-explore-debug $ARGUMENTS
+Run: /dev-workflow:1-explore-debug $ARGUMENTS
 ```
 
 ### 2.2 Check bug description exists

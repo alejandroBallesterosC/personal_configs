@@ -31,15 +31,16 @@ Hypotheses must be generated before analyzing logs.
 Run: /dev-workflow:3-hypothesize $ARGUMENTS
 ```
 
-### 2.2 Check for log output
+### 2.2 Read debug log output
 
-Ensure the user has provided log output. If not, ask:
+Read `logs/debug-output.log` from the repository root. This file contains the debug output from the user's latest bug reproduction run (overwritten on each application run, so only the latest logs are present).
 
-"Please share the log output from reproducing the bug. I need the console/log output that contains the `[DEBUG-H1]`, `[DEBUG-H2]`, etc. markers."
+If the file is empty or missing, ask the user to confirm they reproduced the bug and check that the application ran correctly.
 
 ### 2.3 Read context
 
 Read:
+- `logs/debug-output.log` (the debug output)
 - `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
 - `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md` (if exists, to check for previous analysis rounds)
 
@@ -50,7 +51,7 @@ Read:
 Use the Task tool with `subagent_type: "dev-workflow:log-analyzer"` to analyze the log output against hypotheses.
 
 Provide the agent with:
-- The log output from the user
+- The contents of `logs/debug-output.log`
 - The full hypotheses file
 - Any previous analysis results (for loopback rounds)
 
@@ -190,7 +191,7 @@ Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
 **If root cause found:**
 ```
 Proceed to fix phase, then verify:
-/dev-workflow:6-verify $ARGUMENTS
+/dev-workflow:8-verify $ARGUMENTS
 ```
 
 **If more investigation needed:**

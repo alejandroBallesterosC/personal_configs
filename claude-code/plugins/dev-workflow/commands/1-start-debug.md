@@ -49,6 +49,38 @@ If no active debug session is found (no state files, or all have `status: comple
 
 ## STEP 2: CREATE DEBUG SESSION
 
+### 2.0 Ensure Project CLAUDE.md
+
+Before creating debug artifacts, ensure the project has a CLAUDE.md at the repository root.
+
+**If CLAUDE.md does NOT exist**, create one with:
+
+```markdown
+# [Project Name]
+
+[Brief project description - infer from codebase or leave as TODO]
+
+## Development Workflows
+
+- TDD implementation: `/dev-workflow:1-start-tdd-implementation <feature> "<description>"`
+- Debug: `/dev-workflow:1-start-debug <bug description>`
+- Continue workflow: `/dev-workflow:continue-workflow <name>`
+- Workflow guides: `dev-workflow:tdd-implementation-workflow-guide` and `dev-workflow:debug-workflow-guide` skills
+- Workflow artifacts: `docs/workflow-*/` and `docs/debug/*/`
+
+## Testing
+
+- For TDD practices and test optimization, load the `dev-workflow:testing` skill
+- The `.tdd-test-scope` file (written to repo root) controls which tests the dev-workflow stop hook runs
+- Framework: [to be filled - check for pyproject.toml, package.json, Cargo.toml, etc.]
+
+## Gotchas
+
+[To be filled as workflows discover patterns]
+```
+
+**If CLAUDE.md already exists**, read it and append any missing sections (Development Workflows with guide skill references, Testing with `dev-workflow:testing` skill reference and `.tdd-test-scope` mention, Gotchas) without overwriting existing content.
+
 ### 2.1 Create artifact directory
 
 Create the directory structure for this debug session:
@@ -256,31 +288,29 @@ Give the user clear instructions:
 ## Reproduction Instructions
 
 1. **Start the application**:
-   [command to start with debug logging enabled]
+   [command to start]
 
 2. **Trigger the bug**:
    - [Step 1]
    - [Step 2]
    - [Step 3]
 
-3. **Capture logs**:
-   - Check `logs/debug/` directory if configured
-   - Or capture console/stderr output
+3. **Debug logs are captured automatically** to `logs/debug-output.log` (repo root).
+   The file is overwritten on each run, so only your latest reproduction attempt is captured.
 
-4. **Log markers to look for**:
-   - `[DEBUG-H1]`: Tests [hypothesis 1 summary]
-   - `[DEBUG-H2]`: Tests [hypothesis 2 summary]
-   - `[DEBUG-H3]`: Tests [hypothesis 3 summary]
-
-Share the log output and I'll analyze it against the hypotheses.
+4. **When done**, just let me know and I'll read the log file directly.
 ```
 
 ### 7.2 Collect log output
 
-Wait for the user to share log output. If the user cannot reproduce:
+Wait for the user to confirm they've reproduced the bug. Then read `logs/debug-output.log` from the repository root to get the debug output.
+
+If the user cannot reproduce:
 - Suggest conditional instrumentation for specific triggers
 - Suggest enabling persistent logging
 - Consider adding metrics/counters
+
+If `logs/debug-output.log` is empty or missing, ask the user to check that the application ran correctly.
 
 ### 7.3 Update state file
 
@@ -292,10 +322,10 @@ Mark Phase 5 complete. Update current phase to Phase 6.
 
 ### 8.1 Analyze logs
 
-Use the Task tool with `subagent_type: "dev-workflow:log-analyzer"` to analyze the log output.
+Read `logs/debug-output.log` from the repository root. Then use the Task tool with `subagent_type: "dev-workflow:log-analyzer"` to analyze the log output.
 
 Provide the agent with:
-- The log output from the user
+- The contents of `logs/debug-output.log`
 - Hypotheses from `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
 
 ### 8.2 Save analysis
@@ -405,8 +435,9 @@ Mark Phase 8 complete. Update current phase to Phase 9.
 Search for and remove all debug artifacts:
 - Find all `DEBUG-H[0-9]` markers in source files
 - Remove debug log statements
+- Remove the entry point debug log file initialization block
 - Remove debug imports if no longer needed
-- Remove temporary debug files
+- Delete `logs/debug-output.log`
 
 ### 11.2 Verify cleanup
 
@@ -451,14 +482,12 @@ Write resolution summary to `docs/debug/$ARGUMENTS/$ARGUMENTS-resolution.md`:
 [anything to add to CLAUDE.md or document for future reference]
 ```
 
-### 11.5 Consider CLAUDE.md update
+### 11.5 Update CLAUDE.md with debug learnings
 
-If this bug reveals a recurring pattern, suggest adding a gotcha to the project's CLAUDE.md:
-
-```markdown
-## Gotchas
-- [Pattern that caused this bug and how to avoid it]
-```
+Distill any durable project knowledge discovered during this debug session into the project's CLAUDE.md:
+- Add new entries to the **Gotchas** section for patterns, pitfalls, or constraints that caused this bug
+- Update the **Testing** section if test infrastructure changed
+- Do NOT add debug-session-specific or ephemeral information - only durable project knowledge
 
 ### 11.6 Update state file
 

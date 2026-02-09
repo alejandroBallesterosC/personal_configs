@@ -1,6 +1,6 @@
 ---
 name: structured-debug
-description: Hypothesis-driven debugging with instrumentation and tracing. Use when debugging errors, unexpected behavior, or investigating bugs.
+description: Hypothesis-driven debugging methodology with instrumentation and log tracing. Use when debugging errors, investigating bugs, diagnosing unexpected behavior, performing root cause analysis, adding debug logging, writing regression tests after fixes, or when tests fail for unclear reasons. Covers hypothesis generation, tagged instrumentation ([DEBUG-H1]), the 3-Fix Rule, git bisect, and anti-patterns to avoid.
 ---
 
 # Structured Debugging Skill
@@ -91,13 +91,14 @@ Read the code. Base hypotheses on evidence, not guessing.
 
 ## Instrumentation Rules
 
-### The 5 Rules
+### The 6 Rules
 
 1. **Tag every log with hypothesis ID** (e.g., `[DEBUG-H1]`)
 2. **Mark as DEBUG** with `DEBUG: Remove after fix` for easy cleanup
 3. **Log at decision points**, not every line
 4. **Include context**: variable names AND values
 5. **Use structured format** for complex data
+6. **Write to `logs/debug-output.log`**: All debug output goes to this file (repo root). The file is **overwritten** at application startup so only the latest run's logs are present. Claude reads this file directly after reproduction - the user does not need to copy/paste logs.
 
 ### What to Log
 
@@ -112,33 +113,37 @@ Read the code. Base hypotheses on evidence, not guessing.
 
 ### Language Examples
 
-**Python:**
+All debug logs write to `logs/debug-output.log`. Add a one-time entry point initialization that creates the `logs/` directory and opens the file in overwrite mode (`w`), then all debug log statements append to it during the run.
+
+**Python** (entry point adds FileHandler with `mode="w"`, instrumentation points use the logger):
 ```python
 # HYPOTHESIS: H1 - User object is null
 # DEBUG: Remove after fix
-logging.debug(f"[DEBUG-H1] user={user}, user_id={user_id}")
+logging.getLogger("debug_hypotheses").debug(f"[DEBUG-H1] user={user}, user_id={user_id}")
 ```
 
-**JavaScript/TypeScript:**
+**JavaScript/TypeScript** (entry point creates file + `globalThis._debugLog` helper):
 ```javascript
 // HYPOTHESIS: H1 - Promise rejection not handled
 // DEBUG: Remove after fix
-console.log('[DEBUG-H1]', { userId, status, timestamp: Date.now() });
+globalThis._debugLog(`[DEBUG-H1] ${JSON.stringify({ userId, status, timestamp: Date.now() })}`);
 ```
 
-**Go:**
+**Go** (entry point creates `debugLog` via `log.New` with `os.Create`):
 ```go
 // HYPOTHESIS: H1 - Nil pointer dereference
 // DEBUG: Remove after fix
-log.Printf("[DEBUG-H1] user=%+v config=%+v", user, config)
+debugLog.Printf("[DEBUG-H1] user=%+v config=%+v", user, config)
 ```
 
-**Rust:**
+**Rust** (entry point creates `debug_file` via `File::create`):
 ```rust
 // HYPOTHESIS: H1 - Ownership issue
 // DEBUG: Remove after fix
-eprintln!("[DEBUG-H1] data={:?} state={:?}", data, state);
+writeln!(debug_file, "[DEBUG-H1] data={:?} state={:?}", data, state).ok();
 ```
+
+See the `instrumenter` agent or `4-instrument` command for full entry point initialization templates.
 
 
 ## Anti-Patterns to Avoid
@@ -280,10 +285,10 @@ For the full orchestrated workflow:
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:1-start-debug <bug>` | Start full workflow |
-| `/dev-workflow:2-explore-debug <area>` | Explore codebase |
+| `/dev-workflow:1-explore-debug <area>` | Explore codebase |
 | `/dev-workflow:3-hypothesize <name>` | Generate hypotheses |
 | `/dev-workflow:4-instrument <name>` | Add logging |
-| `/dev-workflow:5-analyze <name>` | Analyze logs |
-| `/dev-workflow:6-verify <name>` | Verify fix + cleanup |
+| `/dev-workflow:6-analyze <name>` | Analyze logs |
+| `/dev-workflow:8-verify <name>` | Verify fix + cleanup |
 | `/dev-workflow:continue-workflow <name>` | Resume session |
 | `/dev-workflow:help` | Show help |

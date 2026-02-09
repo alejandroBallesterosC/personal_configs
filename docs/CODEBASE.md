@@ -47,7 +47,7 @@ Sync script ──distributes──> Plugin → ~/.claude/ (bidirectional)
 personal_configs/
 ├── claude-code/
 │   ├── plugins/                    # 6 isolated plugins (no cross-imports)
-│   │   ├── dev-workflow/           # 11 agents, 17 commands, 6 skills, 3 hooks
+│   │   ├── dev-workflow/           # 11 agents, 17 commands, 6 skills, 4 hooks
 │   │   ├── playwright/             # Browser automation (JS skill)
 │   │   ├── ralph-loop/             # Self-referential AI loops (3 commands, 1 hook)
 │   │   ├── claude-session-feedback/ # Session management (4 commands)
@@ -216,9 +216,9 @@ One-shot file: deleted after execution (`run-scoped-tests.sh:279`).
 
 ### Areas of Complexity
 
-- **dev-workflow plugin**: 11 agents, 17 commands, 6 skills, 3 hooks — by far the most complex component
+- **dev-workflow plugin**: 11 agents, 17 commands, 6 skills, 4 hooks — by far the most complex component
 - **MCP server merge script**: `sync_mcp_servers_to_global.sh` embeds 100+ lines of inline Python for JSON merging
-- **YAML parsing via sed**: `auto-resume-after-compact-or-clear.sh:27` uses fragile regex for frontmatter extraction
+- **YAML parsing**: `auto-resume-after-compact-or-clear.sh` uses `yq` for frontmatter extraction with grep fallback
 
 ## 6. Code Quality & Patterns
 
@@ -258,7 +258,7 @@ No traditional tests in this repo (it's configuration, not application code). Te
 | Doc Claim | Reality | File Reference |
 |-----------|---------|----------------|
 | CLAUDE.md says "6 plugins" | Correct: 6 plugin directories with plugin.json | `claude-code/plugins/` |
-| CLAUDE.md says "11 agents, 17 commands, 6 skills, 3 hooks" for dev-workflow | Correct: verified file counts | `claude-code/plugins/dev-workflow/` |
+| CLAUDE.md says "11 agents, 17 commands, 6 skills, 4 hooks" for dev-workflow | Correct: verified file counts (3 Stop + 1 SessionStart) | `claude-code/plugins/dev-workflow/` |
 | CLAUDE.md says ralph-loop is "required for TDD implementation phase" | Accurate: Phase 7 invokes `/ralph-loop` | `commands/7-implement.md` |
 | CLAUDE.md says "Last sync wins (no merge - rm -rf then cp -r)" | Partially accurate: sync scripts use `cp -f` with optional `--overwrite` flag for rm | `sync-content-scripts/claude-code/sync_commands_to_global.sh` |
 | README.md lists 15 sync tasks | Verified: `.vscode/tasks.json` contains 15 task definitions | `.vscode/tasks.json` |
@@ -370,13 +370,17 @@ DURING WORK:
   Main instance keeps docs/workflow-X/X-state.md updated
 
 WHEN CLAUDE STOPS:
-  ├─ Hook 1 (command): run-scoped-tests.sh
+  ├─ Hook 1 (command): archive-completed-workflows.sh
+  │   ├─ Checks YAML status: complete in state files
+  │   └─ Moves completed workflows to docs/archive/
+  │
+  ├─ Hook 2 (command): run-scoped-tests.sh
   │   ├─ Reads .tdd-test-scope from git repo root
   │   ├─ Detects test runner via detect-test-runner.sh
   │   ├─ Runs scoped tests (framework-specific)
   │   └─ Deletes .tdd-test-scope (one-shot)
   │
-  └─ Hook 2 (agent): State verification
+  └─ Hook 3 (agent): State verification
       ├─ Finds docs/workflow-*/*-state.md and docs/debug/*/*-state.md
       ├─ Checks git diff + git status for recent changes
       ├─ Verifies 5 criteria (phase, component, next action, staleness, files)
@@ -461,7 +465,7 @@ Installation flow:
 
 ### Answered (Iteration 3)
 
-- [x] **Debug workflow completion**: Verified by reading `1-start-debug.md` and `6-verify.md`. Debug workflow does NOT use ralph-loop. Verification is a **HUMAN GATE** (Phase 8/Step 10): user manually confirms fix via AskUserQuestionTool. If fix fails, loops back to analysis phase. 3-Fix Rule caps attempts. No completion promise mechanism.
+- [x] **Debug workflow completion**: Verified by reading `1-start-debug.md` and `8-verify.md`. Debug workflow does NOT use ralph-loop. Verification is a **HUMAN GATE** (Phase 8/Step 10): user manually confirms fix via AskUserQuestionTool. If fix fails, loops back to analysis phase. 3-Fix Rule caps attempts. No completion promise mechanism. Debug instrumentation writes to `logs/debug-output.log` (overwritten per app run); Claude reads this file directly after reproduction.
 - [x] **Shared commands vs plugin commands**: The 6 shared commands in `claude-code/commands/` (`commit`, `readonly`, `understand-repo`, `update-docs-and-todos`, `choose-worktree-implementation`, `clean-up-worktrees`) are **global commands** synced to `~/.claude/commands/` — available in all projects. Plugin commands are **namespaced** (e.g., `dev-workflow:7-implement`). No overlap or conflict — different namespaces.
 - [x] **Cursor hooks.json format**: Documented in `cursor/README.md:88-97`. Format differences: Claude Code uses `{"decision": "block", "reason": "..."}` while Cursor uses `{"continue": false, "agentMessage": "..."}`. Also: hook events are camelCase in Cursor (`stop`), PascalCase in Claude Code (`Stop`). Cursor hooks.json requires `"version": 1`.
 - [x] **CLAUDE.md template vs project CLAUDE.md**: `claude-code/CLAUDE.md` is a global template synced to `~/.claude/CLAUDE.md` (applies to all projects). The repo root `CLAUDE.md` is project-specific and loaded only in this repo's context. At runtime, Claude loads both: global first, project-specific overrides/extends. They compose additively — global provides coding standards, project provides repo-specific context.
@@ -472,11 +476,11 @@ Installation flow:
 - [ ] **Skill activation mechanics**: How exactly does the "description" field trigger skill loading? Is it semantic matching by the Claude runtime, or pattern-based? (Claude Code internal behavior — cannot determine from code alone)
 - [ ] **State file locking**: No concurrency control — what happens if two Claude sessions modify state simultaneously? (Mitigated by single-active-workflow guard, but still possible via separate terminals)
 - [ ] **MCP tool token cost**: CLAUDE.md claims "20 tools = ~14,000 tokens" — is this measured or estimated? (Cannot verify from code)
-- [ ] **Hook execution order**: When dev-workflow and ralph-loop both register Stop hooks, which runs first? Both could block. This matters because dev-workflow's test runner should complete before ralph-loop re-injects the prompt. (Claude Code internal behavior)
+- [x] **Hook execution order**: All matching hooks run **in parallel** (official docs). Dev-workflow has 3 Stop hooks (archive, test runner, state verification agent) + ralph-loop has 1. All fire simultaneously, all complete before Claude makes a decision. Any blocker wins. No ordering concern — hooks are independent validators.
 
 ## 10. Ambiguities
 
-1. **Plugin load order**: If dev-workflow and ralph-loop both register Stop hooks, which runs first? Does order matter for state verification? (The test runner should complete before ralph-loop re-injects — if reversed, tests might not run.)
+1. **Plugin load order**: Resolved — all Stop hooks run in parallel per official docs. Dev-workflow (3 Stop hooks) and ralph-loop (1 Stop hook) all fire simultaneously. Any blocker prevents stopping. No ordering dependency.
 2. **Sync timing**: When should users run sync scripts? Before/after editing? The VS Code tasks suggest manual triggering but there's no automation. (Recommendation: sync FROM global after editing in production, sync TO global after editing in repo.)
 3. **Cursor parity**: Cursor directory is actively maintained (37 files, sync script exists). Missing: debug workflow commands (only TDD). Cursor has 14 commands vs Claude Code's 17 — no debug commands in Cursor yet.
 4. **State file format stability**: The YAML frontmatter schema isn't formally defined. Adding new fields is safe (sed only extracts `status:` field — see `auto-resume-after-compact-or-clear.sh:27`). However, changing the `status` field format would break parsing.

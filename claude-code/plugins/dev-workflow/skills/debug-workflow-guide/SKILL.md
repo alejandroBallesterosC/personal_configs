@@ -1,13 +1,13 @@
 ---
 name: debug-workflow-guide
-description: Guide for using the debug workflow plugin. Activates when starting or navigating the debug workflow phases.
+description: Source of truth for the debug workflow (9 phases - explore, describe, hypothesize, instrument, reproduce, analyze, fix, verify, clean). Use when starting, navigating, or continuing a debug session, understanding debug phase transitions, checking debug state file format, managing context after /compact or /clear, or asking about debug workflow commands, agents, human gates, or loopback flows.
 ---
 
 # Debug Workflow Guide Skill
 
 This skill provides **navigation guidance** for the debug workflow plugin's 9 phases. Based on practices from Boris Cherny (Claude Code creator), Cursor's Debug Mode, Anthropic's engineering team, and the @obra/superpowers systematic debugging skill.
 
-**Important:** This skill is the **source of truth** for understanding the workflow (overview, principles, context management, state file format). The command files (`1-start-debug.md`, `2-explore-debug.md`, etc.) contain the **execution instructions** only.
+**Important:** This skill is the **source of truth** for understanding the workflow (overview, principles, context management, state file format). The command files (`1-start-debug.md`, `1-explore-debug.md`, etc.) contain the **execution instructions** only.
 
 ## When to Activate
 
@@ -26,7 +26,7 @@ Activate when:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 1: EXPLORE - /2-explore-debug                                         │
+│ PHASE 1: EXPLORE - /1-explore-debug                                         │
 │   File Discovery │ Execution Flow │ Dependencies │ Git History │ Tests     │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
@@ -53,7 +53,7 @@ Activate when:
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 6: ANALYZE - /5-analyze                                              │
+│ PHASE 6: ANALYZE - /6-analyze                                              │
 │   Match logs to hypotheses │ CONFIRMED/REJECTED/INCONCLUSIVE verdicts      │
 │   If all rejected → loop back to Phase 3 with new findings                 │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -65,13 +65,13 @@ Activate when:
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 8: VERIFY - /6-verify                                                │
+│ PHASE 8: VERIFY - /8-verify                                                │
 │   Reproduce original scenario │ Run tests │ Write regression test          │
 │   HUMAN GATE: User confirms bug is fixed                                   │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 9: CLEAN - /6-verify (continued)                                     │
+│ PHASE 9: CLEAN - /8-verify (continued)                                     │
 │   Remove DEBUG markers │ Remove debug imports │ Run tests │ Commit         │
 │   Archive debug artifacts                                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -151,7 +151,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 ## Phase Details
 
-**Note:** These summaries explain what each phase does. For **execution instructions**, see the individual phase commands (`2-explore-debug.md`, `3-hypothesize.md`, etc.). The `1-start-debug.md` command orchestrates all phases in sequence.
+**Note:** These summaries explain what each phase does. For **execution instructions**, see the individual phase commands (`1-explore-debug.md`, `3-hypothesize.md`, etc.). The `1-start-debug.md` command orchestrates all phases in sequence.
 
 ### Phase 1: EXPLORE
 **Purpose**: Understand the relevant systems before debugging begins
@@ -164,7 +164,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 **Output**: `docs/debug/<bug-name>/<bug-name>-exploration.md`
 
-**Command**: `/dev-workflow:2-explore-debug <bug description>`
+**Command**: `/dev-workflow:1-explore-debug <bug description>`
 
 ---
 
@@ -217,10 +217,11 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 **What happens**:
 - Clear reproduction instructions provided
-- Log markers explained
-- User runs application and captures output
+- User runs application and triggers the bug
+- Debug output is captured automatically to `logs/debug-output.log` (overwritten on each run)
+- User confirms reproduction, Claude reads the log file directly
 
-**Human gate**: User reproduces bug and shares log output
+**Human gate**: User reproduces bug and confirms it's done
 
 ---
 
@@ -228,7 +229,8 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 **Purpose**: Match log output against hypotheses to determine root cause
 
 **What happens**:
-- log-analyzer agent extracts debug markers
+- Claude reads `logs/debug-output.log` from the repository root
+- log-analyzer agent extracts debug markers and matches to hypotheses
 - Each hypothesis evaluated: CONFIRMED / REJECTED / INCONCLUSIVE
 - If CONFIRMED → proceed to Phase 7
 - If all REJECTED → loop back to Phase 3 with new findings
@@ -236,7 +238,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 **Output**: `docs/debug/<bug-name>/<bug-name>-analysis.md`
 
-**Command**: `/dev-workflow:5-analyze <bug-name>`
+**Command**: `/dev-workflow:6-analyze <bug-name>`
 
 ---
 
@@ -263,7 +265,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 **Human gate**: User confirms bug is fixed
 
-**Command**: `/dev-workflow:6-verify <bug-name>`
+**Command**: `/dev-workflow:8-verify <bug-name>`
 
 ---
 
@@ -277,7 +279,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Commit fix + regression test (not debug logs)
 - Archive debug artifacts
 
-**Command**: `/dev-workflow:6-verify <bug-name>` (continued)
+**Command**: `/dev-workflow:8-verify <bug-name>` (continued)
 
 ---
 
@@ -287,11 +289,11 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:1-start-debug <bug>` | Start full orchestrated debug workflow |
-| `/dev-workflow:2-explore-debug <area>` | Phase 1: Explore codebase for context |
+| `/dev-workflow:1-explore-debug <area>` | Phase 1: Explore codebase for context |
 | `/dev-workflow:3-hypothesize <bug-name>` | Phase 3: Generate ranked hypotheses |
 | `/dev-workflow:4-instrument <bug-name>` | Phase 4: Add targeted instrumentation |
-| `/dev-workflow:5-analyze <bug-name>` | Phase 6: Analyze logs against hypotheses |
-| `/dev-workflow:6-verify <bug-name>` | Phases 8-9: Verify fix and cleanup |
+| `/dev-workflow:6-analyze <bug-name>` | Phase 6: Analyze logs against hypotheses |
+| `/dev-workflow:8-verify <bug-name>` | Phases 8-9: Verify fix and cleanup |
 | `/dev-workflow:continue-workflow <bug-name>` | **Continue an in-progress debug session** |
 | `/dev-workflow:help` | Show help |
 

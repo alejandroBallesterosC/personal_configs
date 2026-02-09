@@ -8,7 +8,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 personal_configs/
 ├── claude-code/
 │   ├── plugins/                    # 6 encapsulated workflow plugins
-│   │   ├── dev-workflow/           # 11 agents, 17 commands, 6 skills, 3 hooks (TDD + Debug)
+│   │   ├── dev-workflow/           # 11 agents, 17 commands, 6 skills, 4 hooks (TDD + Debug)
 │   │   ├── playwright/             # Browser automation (JS + skill)
 │   │   ├── claude-session-feedback/ # 4 commands
 │   │   ├── infrastructure-as-code/ # 1 command, 1 skill
@@ -79,7 +79,7 @@ Phase 2: EXPLORE (5 parallel agents) → Phase 3: INTERVIEW (40+ questions)
 EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE → FIX → VERIFY → CLEAN
 ```
 
-**Iron Law:** No fixes until root cause is proven. **3-Fix Rule:** After 3 failed fixes, question the architecture.
+**Iron Law:** No fixes until root cause is proven. **3-Fix Rule:** After 3 failed fixes, question the architecture. Debug instrumentation writes to `logs/debug-output.log` (overwritten per run) — Claude reads it directly, no copy/paste needed.
 
 **Commands:**
 ```bash
@@ -87,12 +87,12 @@ EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE �
 /dev-workflow:1-start-debug "API returns 500 error when user has emoji in name"
 
 # Run individual phases
-/dev-workflow:2-explore-debug user-api
+/dev-workflow:1-explore-debug user-api
 /dev-workflow:3-hypothesize emoji-bug
 /dev-workflow:4-instrument emoji-bug
-# [user reproduces and shares logs]
-/dev-workflow:5-analyze emoji-bug
-/dev-workflow:6-verify emoji-bug
+# [user reproduces bug, logs captured to logs/debug-output.log]
+/dev-workflow:6-analyze emoji-bug
+/dev-workflow:8-verify emoji-bug
 ```
 
 ### Other Plugins

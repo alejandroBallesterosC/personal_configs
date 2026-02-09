@@ -60,6 +60,7 @@ The instrumenter must follow these rules:
 3. **Log at decision points**, not every line
 4. **Include context**: Variable names AND values
 5. **Use structured format** for complex data
+6. **Write to `logs/debug-output.log`**: All debug output MUST go to this file (relative to repo root). The file MUST be **overwritten** at application startup so only the latest run's logs are present. Add a one-time initialization block near the entry point that creates the `logs/` directory and truncates the file, then all debug logs append to it during that run. Add `logs/` to `.gitignore` if not already present.
 
 ---
 
@@ -99,23 +100,17 @@ Write clear instructions for the user:
 ## Reproduction Instructions
 
 1. **Start the application**:
-   [command to start with debug logging enabled]
+   [command to start]
 
 2. **Trigger the bug**:
    - [Step 1]
    - [Step 2]
    - [Step 3]
 
-3. **Capture logs**:
-   - Check `logs/debug/` directory if configured
-   - Or capture console/stderr output
+3. **Debug logs are captured automatically** to `logs/debug-output.log` (repo root).
+   The file is overwritten on each run, so only your latest reproduction attempt is captured.
 
-4. **Log markers to look for**:
-   - `[DEBUG-H1]`: Tests [hypothesis 1 summary]
-   - `[DEBUG-H2]`: Tests [hypothesis 2 summary]
-   - `[DEBUG-H3]`: Tests [hypothesis 3 summary]
-
-Share the log output and I'll analyze it against the hypotheses.
+4. **When done**, just let me know and I'll read the log file directly.
 ```
 
 ---
@@ -133,45 +128,93 @@ Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
 
 ### Python
 
+**Entry point** (add once near app startup):
 ```python
-import logging
-logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(message)s')
+# DEBUG: Remove after fix - debug log file setup
+import os, logging
+os.makedirs("logs", exist_ok=True)
+_debug_handler = logging.FileHandler("logs/debug-output.log", mode="w")
+_debug_handler.setFormatter(logging.Formatter("%(message)s"))
+_debug_logger = logging.getLogger("debug_hypotheses")
+_debug_logger.addHandler(_debug_handler)
+_debug_logger.setLevel(logging.DEBUG)
+```
 
+**At instrumentation points:**
+```python
 # HYPOTHESIS: H1 - Variable state incorrect
 # DEBUG: Remove after fix
-logging.debug(f"[DEBUG-H1] var={var}, expected={expected}")
+logging.getLogger("debug_hypotheses").debug(f"[DEBUG-H1] var={var}, expected={expected}")
 ```
 
 ### JavaScript/TypeScript
 
+**Entry point** (add once at app startup):
+```javascript
+// DEBUG: Remove after fix - debug log file setup
+const fs = require('fs');
+const path = require('path');
+const _debugLogPath = path.join(process.cwd(), 'logs/debug-output.log');
+fs.mkdirSync(path.dirname(_debugLogPath), { recursive: true });
+fs.writeFileSync(_debugLogPath, '');
+globalThis._debugLog = (msg) => fs.appendFileSync(_debugLogPath, msg + '\n');
+```
+
+**At instrumentation points:**
 ```javascript
 // HYPOTHESIS: H1 - Promise rejection not handled
 // DEBUG: Remove after fix
-console.log('[DEBUG-H1]', { var, expected, timestamp: Date.now() });
+globalThis._debugLog(`[DEBUG-H1] ${JSON.stringify({ var, expected, timestamp: Date.now() })}`);
 ```
 
 ### Go
 
+**Entry point** (add once in `main()`):
+```go
+// DEBUG: Remove after fix - debug log file setup
+os.MkdirAll("logs", 0755)
+debugFile, _ := os.Create("logs/debug-output.log")
+debugLog := log.New(debugFile, "", log.Ltime)
+```
+
+**At instrumentation points:**
 ```go
 // HYPOTHESIS: H1 - Nil pointer dereference
 // DEBUG: Remove after fix
-log.Printf("[DEBUG-H1] user=%+v config=%+v", user, config)
+debugLog.Printf("[DEBUG-H1] user=%+v config=%+v", user, config)
 ```
 
 ### Rust
 
+**Entry point** (add once in `main()`):
+```rust
+// DEBUG: Remove after fix - debug log file setup
+std::fs::create_dir_all("logs").ok();
+let debug_file = std::fs::File::create("logs/debug-output.log").unwrap();
+```
+
+**At instrumentation points:**
 ```rust
 // HYPOTHESIS: H1 - Ownership issue
 // DEBUG: Remove after fix
-eprintln!("[DEBUG-H1] data={:?} state={:?}", data, state);
+writeln!(debug_file, "[DEBUG-H1] data={:?} state={:?}", data, state).ok();
 ```
 
 ### Java
 
+**Entry point** (add once in `main()`):
+```java
+// DEBUG: Remove after fix - debug log file setup
+new java.io.File("logs").mkdirs();
+java.io.PrintWriter debugLog = new java.io.PrintWriter(new java.io.FileWriter("logs/debug-output.log", false));
+```
+
+**At instrumentation points:**
 ```java
 // HYPOTHESIS: H1 - Null pointer exception
 // DEBUG: Remove after fix
-System.out.println("[DEBUG-H1] object=" + object + " field=" + object.getField());
+debugLog.println("[DEBUG-H1] object=" + object + " field=" + object.getField());
+debugLog.flush();
 ```
 
 ---
@@ -218,5 +261,5 @@ logging.debug(f"[DEBUG-H2] slow_operation took {elapsed:.3f}s")
 
 After user captures logs:
 ```
-/dev-workflow:5-analyze $ARGUMENTS
+/dev-workflow:6-analyze $ARGUMENTS
 ```

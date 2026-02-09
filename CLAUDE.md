@@ -7,7 +7,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 ```
 claude-code/
 ├── plugins/           # 6 encapsulated plugins (installed via marketplace)
-│   ├── dev-workflow/  # 11 agents, 17 commands, 6 skills, 3 hooks (TDD + Debug)
+│   ├── dev-workflow/  # 11 agents, 17 commands, 6 skills, 4 hooks (TDD + Debug)
 │   ├── playwright/    # Browser automation (JS + skill)
 │   ├── claude-session-feedback/ # 4 commands
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
@@ -26,7 +26,7 @@ cursor/                # Cursor IDE mirror (37 files, unidirectional sync)
 - **Agent YAML frontmatter**: Defines `name`, `tools`, `model` (sonnet|opus)
 - **Skill activation**: Skills auto-activate when context matches their description
 - **Hooks**: Event-driven automation (Stop + SessionStart in dev-workflow plugin)
-  - `Stop`: Run scoped tests + verify state file is up to date (agent)
+  - `Stop`: Archive completed workflows + run scoped tests + verify state file is up to date (agent)
   - `SessionStart`: Auto-restore context after reset (checks both TDD implementation and debug state)
 
 ## No Application Code

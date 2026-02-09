@@ -19,12 +19,12 @@ This **single command** orchestrates the entire TDD implementation workflow auto
 /dev-workflow:1-start-debug "API returns 500 error when user has emoji in name"
 
 # Or step through manually
-/dev-workflow:2-explore-debug user-api
+/dev-workflow:1-explore-debug user-api
 /dev-workflow:3-hypothesize emoji-bug
 /dev-workflow:4-instrument emoji-bug
-# [user reproduces and shares logs]
-/dev-workflow:5-analyze emoji-bug
-/dev-workflow:6-verify emoji-bug
+# [user reproduces bug, logs captured to logs/debug-output.log]
+/dev-workflow:6-analyze emoji-bug
+/dev-workflow:8-verify emoji-bug
 ```
 
 ## TDD Workflow (Phases 2-9)
@@ -62,19 +62,19 @@ EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX 
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:1-start-debug <bug>` | **Start full debug workflow** |
-| `/dev-workflow:2-explore-debug <area>` | Phase 1: Explore codebase for context |
+| `/dev-workflow:1-explore-debug <area>` | Phase 1: Explore codebase for context |
 | `/dev-workflow:3-hypothesize <name>` | Phase 3: Generate ranked hypotheses |
 | `/dev-workflow:4-instrument <name>` | Phase 4: Add debug logging |
-| `/dev-workflow:5-analyze <name>` | Phase 6: Analyze log output |
-| `/dev-workflow:6-verify <name>` | Phases 8-9: Verify fix and cleanup |
+| `/dev-workflow:6-analyze <name>` | Phase 6: Analyze log output |
+| `/dev-workflow:8-verify <name>` | Phases 8-9: Verify fix and cleanup |
 
-### Key Principles
+### Key Features
 
-1. **Hypothesis-first**: Never fix without understanding root cause
-2. **Evidence-driven**: Let logs decide, not intuition
-3. **Minimal changes**: Fix the bug, don't refactor the world
-4. **3-Fix Rule**: After 3 failed fixes, question the architecture
-5. **Human in the loop**: Three verification gates at Phases 2, 5, and 8
+- **File-based log capture**: Instrumentation writes to `logs/debug-output.log` (overwritten on each app run). Claude reads the file directly after reproduction — no copy/paste needed.
+- **Hypothesis-driven**: 3-5 ranked theories with tagged instrumentation (`[DEBUG-H1]`)
+- **Human verification gates**: Phases 2 (describe), 5 (reproduce), 8 (verify fix)
+- **3-Fix Rule**: After 3 failed fixes, question the architecture
+- **Loopback flows**: Rejected hypotheses loop to Phase 3; failed fixes loop to Phase 6
 
 ## Shared
 
@@ -91,6 +91,7 @@ Long workflows degrade in quality as context fills. This plugin uses **automatic
 
 | Hook | Event | Type | Purpose |
 |------|-------|------|---------|
+| archive-completed-workflows.sh | Stop | command | Auto-archives completed workflows to `docs/archive/` |
 | run-scoped-tests.sh | Stop | command | Runs tests after code changes |
 | State verification | Stop | agent | Verifies state files are up to date; blocks stopping if outdated |
 | auto-resume | SessionStart | command | Restores context after `/compact` or `/clear` (checks both TDD and debug) |

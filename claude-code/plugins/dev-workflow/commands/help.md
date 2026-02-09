@@ -74,12 +74,12 @@ EXPLORE -> INTERVIEW -> ARCHITECTURE -> PLAN -> REVIEW -> IMPLEMENT -> E2E TEST 
 /dev-workflow:1-start-debug "Login fails with 500 error for users with special characters in email"
 
 # Or step through manually
-/dev-workflow:2-explore-debug authentication
+/dev-workflow:1-explore-debug authentication
 /dev-workflow:3-hypothesize login-bug
 /dev-workflow:4-instrument login-bug
-# [user reproduces and shares logs]
-/dev-workflow:5-analyze login-bug
-/dev-workflow:6-verify login-bug
+# [user reproduces bug, logs captured to logs/debug-output.log]
+/dev-workflow:6-analyze login-bug
+/dev-workflow:8-verify login-bug
 ```
 
 ### Debug Phases
@@ -93,11 +93,11 @@ EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX 
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:1-start-debug <bug description>` | **Start full debug workflow** |
-| `/dev-workflow:2-explore-debug <area>` | Phase 1: Explore codebase for context |
+| `/dev-workflow:1-explore-debug <area>` | Phase 1: Explore codebase for context |
 | `/dev-workflow:3-hypothesize <bug-name>` | Phase 3: Generate ranked hypotheses |
 | `/dev-workflow:4-instrument <bug-name>` | Phase 4: Add debug logging |
-| `/dev-workflow:5-analyze <bug-name>` | Phase 6: Analyze log output |
-| `/dev-workflow:6-verify <bug-name>` | Phases 8-9: Verify fix and cleanup |
+| `/dev-workflow:6-analyze <bug-name>` | Phase 6: Analyze log output |
+| `/dev-workflow:8-verify <bug-name>` | Phases 8-9: Verify fix and cleanup |
 
 ### Debug Agents
 
@@ -130,6 +130,7 @@ Context is managed **automatically via hooks** - no manual intervention needed.
 
 | Hook | Event | Type | Purpose |
 |------|-------|------|---------|
+| archive-completed-workflows.sh | Stop | command | Auto-archives completed workflows to `docs/archive/` |
 | run-scoped-tests.sh | Stop | command | Run tests after code changes |
 | State verification | Stop | agent | Verify state file is up to date; blocks stopping if outdated |
 | auto-resume | SessionStart | command | Reads state file, injects context to resume (checks both TDD and debug) |

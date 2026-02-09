@@ -1,6 +1,6 @@
 ---
 name: tdd-implementation-workflow-guide
-description: Guide for using the TDD implementation workflow plugin. Activates when starting or navigating the TDD implementation workflow phases.
+description: Source of truth for the TDD implementation workflow (Phases 2-9). Use when starting, navigating, or continuing TDD implementation, understanding phase transitions, checking state file format, managing context after /compact or /clear, or asking about workflow phases, commands, agents, or artifacts. Covers exploration, specification interview, architecture, implementation planning, plan review, orchestrated TDD, E2E testing, and final review.
 ---
 
 # TDD Implementation Workflow Guide Skill

@@ -65,6 +65,47 @@ The main Claude instance is responsible for keeping `docs/workflow-$1/$1-state.m
 
 Execute each phase in sequence. Each phase has its own command with detailed instructions.
 
+### Ensure Project CLAUDE.md
+
+Before creating workflow artifacts, ensure the project has a CLAUDE.md at the repository root for durable project knowledge.
+
+#### If CLAUDE.md does NOT exist
+
+Create a CLAUDE.md at the repository root with:
+
+```markdown
+# [Project Name]
+
+[Brief project description - infer from codebase or leave as TODO]
+
+## Development Workflows
+
+- TDD implementation: `/dev-workflow:1-start-tdd-implementation <feature> "<description>"`
+- Debug: `/dev-workflow:1-start-debug <bug description>`
+- Continue workflow: `/dev-workflow:continue-workflow <name>`
+- Workflow guides: `dev-workflow:tdd-implementation-workflow-guide` and `dev-workflow:debug-workflow-guide` skills
+- Workflow artifacts: `docs/workflow-*/` and `docs/debug/*/`
+
+## Testing
+
+- For TDD practices and test optimization, load the `dev-workflow:testing` skill
+- The `.tdd-test-scope` file (written to repo root) controls which tests the dev-workflow stop hook runs
+- Framework: [to be filled after Phase 2 exploration]
+
+## Gotchas
+
+[To be filled as workflows discover patterns]
+```
+
+#### If CLAUDE.md already exists
+
+Read it and check for these sections. Append any that are missing without overwriting existing content:
+- **Development Workflows** section with dev-workflow commands and guide skill references
+- **Testing** section with `dev-workflow:testing` skill reference, `.tdd-test-scope` mention, and framework
+- **Gotchas** section for workflow-discovered patterns
+
+---
+
 ### Initialize Workflow Directory and Files
 
 Create the workflow directory structure and initial files:
@@ -153,6 +194,7 @@ Execute by following the instructions in the `2-explore` command with feature: $
 
 After completion:
 - Update state file: mark Phase 2 complete
+- **Update CLAUDE.md Testing section** with the test framework discovered during exploration (if not already populated)
 - Ask user to continue to Phase 3
 
 ---
@@ -296,7 +338,14 @@ Summarize:
 - Files changed
 - Next steps
 
-### 4. Archive workflow directory
+### 4. Update CLAUDE.md with workflow learnings
+
+Distill any durable project knowledge discovered during this workflow into the project's CLAUDE.md:
+- Add new entries to the **Gotchas** section for patterns, pitfalls, or constraints discovered
+- Update the **Testing** section if test infrastructure changed (markers added, config updated, etc.)
+- Do NOT add workflow-specific or ephemeral information - only durable project knowledge
+
+### 5. Archive workflow directory
 
 Move the workflow directory to the archive:
 
