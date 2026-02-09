@@ -59,6 +59,9 @@ No dependencies, no build, no deployment.
 
 ## Dependencies
 
+- **yq + jq** (required for dev-workflow hooks — YAML/JSON parsing)
+  - Install: `brew install yq jq` (macOS)
+  - Hooks fail loudly with install instructions if missing
 - **ralph-loop plugin** (required for TDD implementation phase)
   - Install: `/plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum`
   - Safety: ALWAYS set `--max-iterations` (50 iterations = $50-100+ in API costs)

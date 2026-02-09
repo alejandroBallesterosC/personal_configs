@@ -145,6 +145,11 @@ For fresh sessions (not triggered by compaction/clear):
 
 ## Dependencies
 
+- **Required for hooks**: `yq` and `jq` (YAML/JSON parsing for state management hooks)
+  ```bash
+  brew install yq jq  # macOS
+  ```
+  Hooks fail loudly with install instructions if these are missing.
 - **Required for TDD**: `ralph-loop` plugin for implementation loops
   ```bash
   /plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum
