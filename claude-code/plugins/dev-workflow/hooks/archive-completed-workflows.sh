@@ -2,6 +2,14 @@
 # ABOUTME: Archives completed workflow directories to docs/archive/ on Stop events
 # ABOUTME: Ensures archival happens deterministically even if Claude skipped it during completion
 
+# Check for yq dependency (required for YAML frontmatter parsing)
+if ! command -v yq &>/dev/null; then
+  echo "ERROR: yq is required but not installed." >&2
+  echo "The archive-completed-workflows hook cannot parse YAML frontmatter without yq." >&2
+  echo "Install: brew install yq (macOS) or see https://github.com/mikefarah/yq#install" >&2
+  exit 1
+fi
+
 # Find git repo root
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 [ -z "$REPO_ROOT" ] && exit 0

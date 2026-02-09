@@ -2,6 +2,20 @@
 # ABOUTME: Auto-resume TDD implementation or debug workflow after context reset (compact or clear)
 # ABOUTME: Checks both docs/workflow-* and docs/debug/*/ for active sessions, parses YAML frontmatter, and injects context
 
+# Check for required dependencies (yq for YAML frontmatter, jq for JSON)
+if ! command -v yq &>/dev/null; then
+  echo "ERROR: yq is required but not installed." >&2
+  echo "The auto-resume hook cannot parse workflow state files without yq." >&2
+  echo "Install: brew install yq (macOS) or see https://github.com/mikefarah/yq#install" >&2
+  exit 1
+fi
+if ! command -v jq &>/dev/null; then
+  echo "ERROR: jq is required but not installed." >&2
+  echo "The auto-resume hook cannot produce JSON output without jq." >&2
+  echo "Install: brew install jq (macOS) or see https://github.com/jqlang/jq#installation" >&2
+  exit 1
+fi
+
 # Read hook input from stdin
 INPUT=$(cat)
 SOURCE=$(echo "$INPUT" | jq -r '.source // empty')
