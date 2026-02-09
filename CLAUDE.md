@@ -16,8 +16,8 @@ claude-code/
 ├── commands/          # 6 shared global commands (syncs to ~/.claude/commands/)
 ├── docs/              # Python, UV, Docker best practices (syncs to ~/.claude/docs/)
 └── CLAUDE.md          # Global coding standards template (syncs to ~/.claude/)
-sync-content-scripts/  # 9 bidirectional sync scripts
-cursor/                # Cursor IDE mirror (37 files, unidirectional sync)
+sync-content-scripts/  # 8 bidirectional + 1 unidirectional sync scripts
+cursor/                # Cursor IDE mirror (37 files, TDD-only, unidirectional sync)
 ```
 
 ## Key Patterns
@@ -36,7 +36,7 @@ This repo contains ONLY:
 - JSON configs (MCP servers, VS Code tasks, plugin manifests)
 - Shell scripts (sync, test runner)
 
-No dependencies, no build, no deployment.
+No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 
 ## Commands
 
@@ -46,7 +46,7 @@ No dependencies, no build, no deployment.
 | Sync docs to global | `./sync-content-scripts/claude-code/sync_docs_to_global.sh` |
 | Sync MCP config to global | `./sync-content-scripts/claude-code/sync_mcp_servers_to_global.sh` |
 | Sync CLAUDE.md to global | `./sync-content-scripts/claude-code/sync_claude_to_global.sh` |
-| Sync all to global | Run VS Code tasks (15 sync tasks) |
+| Sync all to global | Run VS Code tasks (11 active sync tasks; 4 dead tasks for skills/plugins sync remain in tasks.json) |
 | Install plugins | `/plugin marketplace add alejandroBallesterosC/personal_configs` then `/plugin install <name>` |
 | Test runner detection | `claude-code/plugins/dev-workflow/hooks/run-scoped-tests.sh` (auto via Stop hook) |
 
@@ -77,6 +77,9 @@ No dependencies, no build, no deployment.
 - Single MCP server with 20 tools = ~14,000 tokens; disable unused servers before heavy work
 - MCP servers require env vars: `CONTEXT7_API_KEY`, `EXA_API_KEY` (in `.env`, gitignored)
 - `dev-workflow` plugin contains both TDD implementation and debug workflows
+- Cursor mirror (`cursor/`) is TDD-only — missing entire debug workflow (5 commands, 4 agents, 2 skills)
+- VS Code `tasks.json` has 4 dead tasks (sync_skills/sync_plugins) and 2 leftover tasks from previous projects
+- Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 6 plugins
 
 ## Plugin Installation
 
