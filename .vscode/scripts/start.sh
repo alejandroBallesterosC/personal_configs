@@ -2,22 +2,44 @@
 
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# Navigate to the project root (assuming script is in /scripts)
-cd "$SCRIPT_DIR/.."
+# Navigate to the project root (assuming script is in .vscode/scripts)
+cd "$SCRIPT_DIR/../.."
+
+API_EXISTS=false
+UI_EXISTS=false
+
+# Default ports
+DEFAULT_BACKEND_PORT=8001
+DEFAULT_FRONTEND_PORT=5173
 
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Starting Deep Research Services...${NC}"
+# Kill any process occupying a given port
+free_port() {
+  local port=$1
+  if lsof -i:$port > /dev/null 2>&1; then
+    echo -e "${YELLOW} ⚠️ Port $port is already in use. Stopping the process...${NC}"
+    kill -9 $(lsof -t -i:$port) || echo -e "${RED} ❌ Failed to kill process on port $port${NC}"
+    sleep 2
+  fi
+}
+
+echo -e "${BLUE}🚀 Starting All Services...${NC}"
 echo ""
 
 # Sync dependencies
-echo -e "${BLUE}Syncing Python dependencies...${NC}"
-cd backend && uv sync
-cd ..
+echo -e "${BLUE}Syncing Backend Python dependencies...${NC}"
+if [ -d "backend" ]; then
+  cd backend && uv sync
+  cd ..
+else
+    echo -e "${YELLOW}Backend directory not found. Skipping backend dependencies.${NC}"
+fi
 
 # Install UI dependencies
 echo -e "${BLUE}Installing UI dependencies...${NC}"
@@ -29,70 +51,73 @@ else
     echo -e "${YELLOW}Frontend directory not found. Skipping frontend dependencies.${NC}"
 fi
 
-# Load environment variables from .env if it exists
+# Load backend environment variables from backend/.env
 if [ -f backend/.env ]; then
   export $(grep -v '^#' backend/.env | xargs)
-  echo -e "${GREEN}Loaded environment variables from backend/.env${NC}"
+  echo -e "${GREEN}Loaded backend environment variables from backend/.env${NC}"
 else
-  # Default configuration if .env doesn't exist
-  export BACKEND_PORT=8001
-  export FRONTEND_PORT=5173
-  echo -e "${GREEN}Using default port configuration: API=$BACKEND_PORT, UI=$FRONTEND_PORT${NC}"
+  export BACKEND_PORT=$DEFAULT_BACKEND_PORT
+  echo -e "${YELLOW}backend/.env not found. Using default BACKEND_PORT=$BACKEND_PORT${NC}"
 fi
 
-# Set variables for this script
-API_PORT=$BACKEND_PORT
-UI_PORT=$FRONTEND_PORT
-
-# Check if API port is already in use
-if lsof -i:$API_PORT > /dev/null 2>&1; then
-  echo -e "${YELLOW} ⚠️ Port $API_PORT is already in use. Stopping the process...${NC}"
-  kill -9 $(lsof -t -i:$API_PORT) || echo -e "${RED} ❌ Failed to kill process on port $API_PORT${NC}"
-  sleep 2
+# Load frontend environment variables from frontend/.env
+if [ -f frontend/.env ]; then
+  export $(grep -v '^#' frontend/.env | xargs)
+  echo -e "${GREEN}Loaded frontend environment variables from frontend/.env${NC}"
+else
+  export FRONTEND_PORT=$DEFAULT_FRONTEND_PORT
+  echo -e "${YELLOW}frontend/.env not found. Using default FRONTEND_PORT=$FRONTEND_PORT${NC}"
 fi
 
-# Check if UI port is already in use
-if lsof -i:$UI_PORT > /dev/null 2>&1; then
-  echo -e "${YELLOW} ⚠️ Port $UI_PORT is already in use. Stopping the process...${NC}"
-  kill -9 $(lsof -t -i:$UI_PORT) || echo -e "${RED} ❌ Failed to kill process on port $UI_PORT${NC}"
-  sleep 2
-fi
+# Free up ports if in use
+free_port $BACKEND_PORT
+free_port $FRONTEND_PORT
 
 # Start the FastAPI backend
-echo -e "${BLUE}▶️  Starting Backend API (PORT=$API_PORT)...${NC}"
-cd backend
-API_PORT=$API_PORT uv run python main.py &
-API_PID=$!
-echo -e "${GREEN}✅ Backend PROCESS_ID=$API_PID${NC}"
-cd ..
+if [ -d "backend" ]; then
+  echo -e "${BLUE}▶️  Starting Backend API (PORT=$BACKEND_PORT)...${NC}"
+  cd backend
+  uv run uvicorn app.main:app --reload --port $BACKEND_PORT &
+  API_PID=$!
+  cd ..
+  echo -e "${GREEN}✅ Backend PROCESS_ID=$API_PID${NC}"
+  API_EXISTS=true
+else
+  echo -e "${YELLOW}Backend not set up yet. Only running frontend.${NC}"
+  API_PID=""
+fi
 
 # Start the React frontend
 if [ -d "frontend" ]; then
-    echo -e "${BLUE}▶️  Starting Frontend (PORT=$UI_PORT)...${NC}"
+    echo -e "${BLUE}▶️  Starting Frontend (PORT=$FRONTEND_PORT)...${NC}"
     cd frontend && npm run dev &
     UI_PID=$!
     echo -e "${GREEN}✅ Frontend PROCESS_ID=$UI_PID${NC}"
     cd ..
+    UI_EXISTS=true
 else
     echo -e "${YELLOW}Frontend not set up yet. Only running backend.${NC}"
     UI_PID=""
 fi
 
 echo ""
-echo -e "${GREEN}Services are running!"
-echo "API is available at: http://localhost:$API_PORT"
-echo "UI is available at: http://localhost:$UI_PORT"
-echo "API health endpoint: http://localhost:$API_PORT/api/health"
+if [ "$API_EXISTS" = true ]; then
+  echo -e "${GREEN}Backend is running!${NC}"
+  echo "API is available at: http://localhost:$BACKEND_PORT"
+  echo "API health endpoint: http://localhost:$BACKEND_PORT/api/health"
+fi
+if [ "$UI_EXISTS" = true ]; then
+  echo -e "${GREEN}Frontend is running!${NC}"
+  echo "UI is available at: http://localhost:$FRONTEND_PORT"
+fi
 echo -e "Press Ctrl+C to stop both services ${NC}"
 
 # Handle clean shutdown
-function cleanup {
+cleanup() {
   echo ""
   echo -e "${RED}Stopping services...${NC}"
   kill $API_PID 2>/dev/null
-  if [ ! -z "$UI_PID" ]; then
-    kill $UI_PID 2>/dev/null
-  fi
+  [ -n "$UI_PID" ] && kill $UI_PID 2>/dev/null
   exit 0
 }
 
