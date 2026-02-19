@@ -90,7 +90,7 @@ Produce a structured report on the structural and architectural differences.
 
 ### Agent 2: Logic & Behavior Changes (code-explorer)
 
-`subagent_type: "dev-workflow:code-explorer"`
+`subagent_type: "code-explorer"`
 
 ```
 EXPLORATION FOCUS: Logic & Behavior Changes Between Branches
@@ -121,7 +121,7 @@ Produce a structured report explaining the functional and behavioral differences
 
 ### Agent 3: Testing & Quality Changes (code-explorer)
 
-`subagent_type: "dev-workflow:code-explorer"`
+`subagent_type: "code-explorer"`
 
 ```
 EXPLORATION FOCUS: Testing & Quality Impact of Branch Differences
@@ -151,7 +151,7 @@ Produce a structured report on how testing and quality assurance differ between 
 
 ### Agent 4: Code Quality Review (code-reviewer)
 
-`subagent_type: "dev-workflow:code-reviewer"`
+`subagent_type: "code-reviewer"`
 
 ```
 REVIEW FOCUS: Code Quality of Branch Differences
@@ -182,7 +182,7 @@ Produce a confidence-scored review (only findings ≥80% confidence) of the code
 
 ### Agent 5: Risk & Impact Assessment (code-reviewer)
 
-`subagent_type: "dev-workflow:code-reviewer"`
+`subagent_type: "code-reviewer"`
 
 ```
 REVIEW FOCUS: Risk & Impact Assessment of Branch Differences
