@@ -59,6 +59,7 @@ Remember: Quality tools are guardrails that help you, not barriers that block yo
 - NEVER disable functionality instead of fixing the root cause problem
 - NEVER create duplicate templates/files to work around issues - fix the original
 - NEVER claim something is "working" when functionality is disabled or broken
+- NEVER use emojis in pull request titles, descriptions or github comments, or documentation files, you can only use the red X or the green check mark emoji in code and even those should be used very rarely
 - ALWAYS identify and fix the root cause of template/compilation errors
 
 Problem-Solving Approach:
