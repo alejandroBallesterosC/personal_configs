@@ -275,11 +275,5 @@
             }
         }
     ],
-   "inputs": [
-        {
-            "id": "configPath",
-            "description": "Path to HoPF config file",
-            "type": "promptString"
-        }
-    ]
+   "inputs": []
 }

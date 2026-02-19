@@ -1,0 +1,19 @@
+{
+  "python.venvPath": "${workspaceFolder}",
+  "python.venvFolders": [
+    "backend/",
+    "notebooks/"
+  ],
+  "python.terminal.activateEnvironment": false,
+  "python.terminal.activateEnvInCurrentTerminal": false,
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/backend/.venv/lib/python3.11/site-packages",
+    "${workspaceFolder}/notebooks/.venv/lib/python3.11/site-packages",
+  ],
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true
+  }
+}

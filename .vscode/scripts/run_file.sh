@@ -6,12 +6,19 @@ FILE="$1"
 # Get the file extension
 EXT="${FILE##*.}"
 
-# Define build directory inside c++
-BUILD_DIR="${WORKSPACE_FOLDER}/c++/build"
+# Get the directory where the script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Convert absolute path to a workspace-relative path
-RELATIVE_PATH="${FILE#$WORKSPACE_FOLDER/}"
+# Get project root (assuming script is in .vscode/scripts)
+PROJECT_ROOT="$SCRIPT_DIR/../.."
 
+# # Define build directory inside c++
+BUILD_DIR="$PROJECT_ROOT/c++/build"
+# BUILD_DIR="${WORKSPACE_FOLDER}/c++/build"
+
+# # Convert absolute path to a workspace-relative path
+RELATIVE_PATH="${FILE#$PROJECT_ROOT/}"
+# RELATIVE_PATH="${FILE#$WORKSPACE_FOLDER/}"
 
 if [ "$EXT" == "cpp" ]; then
     # Ensure build directory exists
