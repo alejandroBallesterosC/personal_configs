@@ -7,7 +7,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 ```
 claude-code/
 ├── plugins/           # 6 encapsulated plugins (installed via marketplace)
-│   ├── dev-workflow/  # 11 agents, 17 commands, 6 skills, 4 hooks (TDD + Debug)
+│   ├── dev-workflow/  # 11 agents, 18 commands, 6 skills, 4 hooks (TDD + Debug)
 │   ├── playwright/    # Browser automation (JS + skill)
 │   ├── claude-session-feedback/ # 4 commands
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
@@ -17,7 +17,7 @@ claude-code/
 ├── docs/              # Python, UV, Docker best practices (syncs to ~/.claude/docs/)
 └── CLAUDE.md          # Global coding standards template (syncs to ~/.claude/)
 sync-content-scripts/  # 8 bidirectional + 1 unidirectional sync scripts
-cursor/                # Cursor IDE mirror (37 files, TDD-only, unidirectional sync)
+cursor/                # Cursor IDE mirror (42 files, TDD-only, unidirectional sync)
 ```
 
 ## Key Patterns
@@ -63,7 +63,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
   - Install: `brew install yq jq` (macOS)
   - Hooks fail loudly with install instructions if missing
 - **ralph-loop plugin** (required for TDD implementation phase)
-  - Install: `/plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum`
+  - Install: `/plugin marketplace add alejandroBallesterosC/personal_configs && /plugin install ralph-loop`
   - Safety: ALWAYS set `--max-iterations` (50 iterations = $50-100+ in API costs)
 - **Claude Code** (runtime environment)
 
@@ -77,9 +77,10 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - Single MCP server with 20 tools = ~14,000 tokens; disable unused servers before heavy work
 - MCP servers require env vars: `CONTEXT7_API_KEY`, `EXA_API_KEY` (in `.env`, gitignored)
 - `dev-workflow` plugin contains both TDD implementation and debug workflows
-- Cursor mirror (`cursor/`) is TDD-only — missing entire debug workflow (5 commands, 4 agents, 2 skills)
+- Cursor mirror (`cursor/`) is TDD-only — missing entire debug workflow (6 commands, 4 agents, 2 skills)
 - VS Code `tasks.json` has 4 dead tasks (sync_skills/sync_plugins) and 2 leftover tasks from previous projects
 - Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 6 plugins
+- Stop hook chain: if test failure exits nonzero, state verification agent and ralph-loop hook may not run (hooks execute sequentially per plugin registration order)
 
 ## Plugin Installation
 

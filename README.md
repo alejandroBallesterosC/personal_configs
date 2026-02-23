@@ -8,7 +8,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 personal_configs/
 ├── claude-code/
 │   ├── plugins/                    # 6 encapsulated workflow plugins
-│   │   ├── dev-workflow/           # 11 agents, 17 commands, 6 skills, 4 hooks (TDD + Debug)
+│   │   ├── dev-workflow/           # 11 agents, 18 commands, 6 skills, 4 hooks (TDD + Debug)
 │   │   ├── playwright/             # Browser automation (JS + skill)
 │   │   ├── claude-session-feedback/ # 4 commands
 │   │   ├── infrastructure-as-code/ # 1 command, 1 skill
@@ -30,7 +30,7 @@ personal_configs/
 
 ### `claude-code/plugins/dev-workflow/`
 
-A unified plugin combining an **8-phase TDD implementation workflow** and a **9-phase hypothesis-driven debugging workflow**. 11 specialized agents, 17 commands, 6 skills, and automatic context preservation via hooks.
+A unified plugin combining an **8-phase TDD implementation workflow** and a **9-phase hypothesis-driven debugging workflow**. 11 specialized agents, 18 commands, 6 skills, and automatic context preservation via hooks.
 
 ### TDD Implementation Workflow (Phases 2-9)
 
@@ -173,7 +173,7 @@ Then install plugins:
 
 ```bash
 # ralph-loop is required for TDD implementation phases 7-9
-/plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum
+/plugin marketplace add alejandroBallesterosC/personal_configs && /plugin install ralph-loop
 ```
 
 **Warning:** Always set `--max-iterations` with ralph-loop (50 iterations = $50-100+ in API costs).
