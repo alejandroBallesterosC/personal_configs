@@ -135,11 +135,13 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 **Purpose**: Create unambiguous specification through exhaustive questioning
 
 **What happens**:
-- Ask 40+ questions ONE AT A TIME via AskUserQuestionTool
+- 5 researcher agents gather domain knowledge in parallel (best practices, existing solutions, pitfalls, security, performance)
+- Research synthesized into domain research artifact
+- Ask 40+ questions ONE AT A TIME via AskUserQuestionTool, informed by research
 - Cover 9 domains: functionality, constraints, integration, edge cases, security, testing, etc.
 - Challenge assumptions, pushback on idealistic ideas
 
-**Output**: `docs/workflow-<feature>/specs/<feature>-specs.md`
+**Output**: `docs/workflow-<feature>/codebase-context/<feature>-domain-research.md`, `docs/workflow-<feature>/specs/<feature>-specs.md`
 
 **Command**: `/dev-workflow:3-user-specification-interview <feature> "<description>"`
 
@@ -149,12 +151,14 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 **Purpose**: Create technical architecture from specification and exploration. For simple features/changes do it yourself, for complex features/changes use the code-architect agent to do this.
 
 **What happens**:
-- Technical design based on spec + exploration findings
+- 5 researcher agents gather architecture insights in parallel (patterns, technology evaluation, data modeling, API design, infrastructure)
+- Research synthesized into architecture research artifact
+- Technical design based on spec + exploration + research findings
 - Define independent components for parallel implementation
 - Architecture decisions documented
 - Integration points identified
 
-**Output**: `docs/workflow-<feature>/plans/<feature>-architecture-plan.md`
+**Output**: `docs/workflow-<feature>/plans/<feature>-architecture-research.md`, `docs/workflow-<feature>/plans/<feature>-architecture-plan.md`
 
 **Command**: `/dev-workflow:4-plan-architecture <feature>`
 
@@ -164,12 +168,15 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 **Purpose**: Create detailed implementation plan from the architecture
 
 **What happens**:
+- 4 researcher agents gather implementation insights in parallel (library docs, implementation patterns, testing strategies, pitfalls)
+- Research synthesized into implementation research artifact
 - Read architecture from Phase 4
-- Map architecture components to implementation tasks
+- Map architecture components to implementation tasks, informed by research
 - Define task dependencies for parallel implementation
 - Create test strategy per component
 
 **Output**:
+- `docs/workflow-<feature>/plans/<feature>-implementation-research.md`
 - `docs/workflow-<feature>/plans/<feature>-implementation-plan.md`
 - `docs/workflow-<feature>/plans/<feature>-tests.md`
 
@@ -181,12 +188,14 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 **Purpose**: Challenge, validate, and approve the plan before implementation
 
 **What happens**:
-- Plan-reviewer agent critically analyzes the plan
+- 5 researcher agents validate decisions in parallel (architecture validation, technology risks, known issues, alternatives, security)
+- Research synthesized into validation research artifact
+- Plan-reviewer agent critically analyzes the plan with research context
 - Challenges assumptions, identifies gaps
 - Asks clarifying questions via AskUserQuestionTool
 - Gets explicit user approval to proceed
 
-**Output**: Updated plans based on feedback + User approval
+**Output**: `docs/workflow-<feature>/plans/<feature>-review-research.md`, updated plans based on feedback + User approval
 
 **Command**: `/dev-workflow:6-review-plan <feature>`
 
@@ -343,10 +352,10 @@ Context management is handled automatically by hooks - no special action require
 | Phase | Agent(s) Used | How to Invoke |
 |-------|---------------|---------------|
 | Phase 2: Exploration | `code-explorer` (5x parallel) | `Task tool with subagent_type: "dev-workflow:code-explorer"` |
-| Phase 3: Interview | None (main instance) | Main instance uses AskUserQuestionTool |
-| Phase 4: Architecture | `code-architect` (optional) | `Task tool with subagent_type: "dev-workflow:code-architect"` |
-| Phase 5: Plan | None (main instance) | Main instance creates plan from architecture |
-| Phase 6: Review | `plan-reviewer` | `Task tool with subagent_type: "dev-workflow:plan-reviewer"` |
+| Phase 3: Interview | `researcher` (5x parallel), then main instance | `Task tool with subagent_type: "dev-workflow:researcher"`, then AskUserQuestionTool |
+| Phase 4: Architecture | `researcher` (5x parallel), then `code-architect` (optional) | `Task tool with subagent_type: "dev-workflow:researcher"`, then `"dev-workflow:code-architect"` |
+| Phase 5: Plan | `researcher` (4x parallel), then main instance | `Task tool with subagent_type: "dev-workflow:researcher"`, then main instance creates plan |
+| Phase 6: Review | `researcher` (5x parallel), then `plan-reviewer` | `Task tool with subagent_type: "dev-workflow:researcher"`, then `"dev-workflow:plan-reviewer"` |
 | Phase 7: Implement | `test-designer`, `implementer`, `refactorer` | Via ralph-loop orchestration |
 | Phase 8: E2E Test | `test-designer`, `implementer` | Via ralph-loop orchestration |
 | Phase 9: Review | `code-reviewer` (5x parallel) | `Task tool with subagent_type: "dev-workflow:code-reviewer"` |
@@ -413,10 +422,14 @@ Read these files to restore context:
 2. docs/workflow-<feature>/<feature>-state.md (this file)
 3. docs/workflow-<feature>/<feature>-original-prompt.md
 4. docs/workflow-<feature>/codebase-context/<feature>-exploration.md
-5. docs/workflow-<feature>/specs/<feature>-specs.md
-6. docs/workflow-<feature>/plans/<feature>-architecture-plan.md
-7. docs/workflow-<feature>/plans/<feature>-implementation-plan.md
-8. CLAUDE.md
+5. docs/workflow-<feature>/codebase-context/<feature>-domain-research.md (if exists)
+6. docs/workflow-<feature>/specs/<feature>-specs.md
+7. docs/workflow-<feature>/plans/<feature>-architecture-research.md (if exists)
+8. docs/workflow-<feature>/plans/<feature>-architecture-plan.md
+9. docs/workflow-<feature>/plans/<feature>-implementation-research.md (if exists)
+10. docs/workflow-<feature>/plans/<feature>-implementation-plan.md
+11. docs/workflow-<feature>/plans/<feature>-review-research.md (if exists)
+12. CLAUDE.md
 ```
 
 ---
@@ -431,13 +444,17 @@ docs/workflow-<feature>/
 ├── <feature>-original-prompt.md          # Original user request
 ├── <feature>-review.md                   # Consolidated review findings
 ├── codebase-context/
-│   └── <feature>-exploration.md          # Codebase analysis
+│   ├── <feature>-exploration.md          # Codebase analysis
+│   └── <feature>-domain-research.md     # Domain research (Phase 3)
 ├── specs/
 │   └── <feature>-specs.md                # Full specification
 └── plans/
-    ├── <feature>-architecture-plan.md    # Architecture design
-    ├── <feature>-implementation-plan.md  # Implementation plan
-    └── <feature>-tests.md                # Test strategy
+    ├── <feature>-architecture-research.md    # Architecture research (Phase 4)
+    ├── <feature>-architecture-plan.md        # Architecture design
+    ├── <feature>-implementation-research.md  # Implementation research (Phase 5)
+    ├── <feature>-implementation-plan.md      # Implementation plan
+    ├── <feature>-review-research.md          # Validation research (Phase 6)
+    └── <feature>-tests.md                    # Test strategy
 ```
 
 ---
@@ -446,6 +463,7 @@ docs/workflow-<feature>/
 
 - **Required**: `ralph-loop` plugin for Phases 7, 8, 9 from Anthropic Official Plugins Marketplace
   **Warning:** Always set `--max-iterations` (50 iterations = $50-100+ in API costs)
+- **Required agents**: `code-explorer`, `researcher`, `code-architect`, `plan-reviewer`, `test-designer`, `implementer`, `refactorer`, `code-reviewer`
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test)
 
 ## Integration with Debug Workflow

@@ -48,7 +48,8 @@ EXPLORE -> INTERVIEW -> ARCHITECTURE -> PLAN -> REVIEW -> IMPLEMENT -> E2E TEST 
 ### Key Features
 
 - **Parallel Exploration** (Phase 2): 5 code-explorer agents run simultaneously with Sonnet (1M context)
-- **Exhaustive Planning** (Phases 3-6): 40+ interview questions, plan designed for parallel implementation, user approval before coding
+- **Internet Research** (Phases 3-6): 4-5 parallel researcher agents per phase gather domain knowledge, architecture patterns, implementation insights, and validation data from credible sources
+- **Exhaustive Planning** (Phases 3-6): 40+ interview questions informed by research, plan designed for parallel implementation, user approval before coding
 - **Orchestrated TDD** (Phase 7): Main instance runs ralph-loop, subagents do discrete tasks, main runs tests between
 - **Orchestrated E2E** (Phase 8): Main instance runs ralph-loop for E2E test iteration
 - **Parallel Review** (Phase 9): 5 code-reviewer agents simultaneously, only >=80% confidence findings reported
@@ -116,6 +117,7 @@ For fresh sessions (not triggered by compaction/clear):
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | code-explorer | Sonnet (1M) | Deep codebase exploration with focus areas |
+| researcher | Sonnet | Internet research for domain knowledge, best practices, and technical insights |
 | code-architect | Opus | Technical design from spec + exploration |
 | plan-reviewer | Opus | Challenge assumptions, find gaps |
 | test-designer | Opus | Write failing tests (RED phase) |
@@ -167,13 +169,17 @@ docs/workflow-<feature>/
 ├── <feature>-original-prompt.md          # Original user request
 ├── <feature>-review.md                   # Consolidated review findings
 ├── codebase-context/
-│   └── <feature>-exploration.md          # Codebase analysis
+│   ├── <feature>-exploration.md          # Codebase analysis
+│   └── <feature>-domain-research.md     # Domain research (Phase 3)
 ├── specs/
 │   └── <feature>-specs.md                # Full specification
 └── plans/
-    ├── <feature>-architecture-plan.md    # Architecture design
-    ├── <feature>-implementation-plan.md  # Implementation plan
-    └── <feature>-tests.md                # Test strategy
+    ├── <feature>-architecture-research.md    # Architecture research (Phase 4)
+    ├── <feature>-architecture-plan.md        # Architecture design
+    ├── <feature>-implementation-research.md  # Implementation research (Phase 5)
+    ├── <feature>-implementation-plan.md      # Implementation plan
+    ├── <feature>-review-research.md          # Validation research (Phase 6)
+    └── <feature>-tests.md                    # Test strategy
 ```
 
 ### Debug Artifacts

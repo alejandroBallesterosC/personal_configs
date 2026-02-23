@@ -176,10 +176,14 @@ Phase 2: Exploration
 1. docs/workflow-$1/$1-state.md (this file)
 2. docs/workflow-$1/$1-original-prompt.md
 3. docs/workflow-$1/codebase-context/$1-exploration.md
-4. docs/workflow-$1/specs/$1-specs.md
-5. docs/workflow-$1/plans/$1-architecture-plan.md
-6. docs/workflow-$1/plans/$1-implementation-plan.md
-7. CLAUDE.md
+4. docs/workflow-$1/codebase-context/$1-domain-research.md (if exists)
+5. docs/workflow-$1/specs/$1-specs.md
+6. docs/workflow-$1/plans/$1-architecture-research.md (if exists)
+7. docs/workflow-$1/plans/$1-architecture-plan.md
+8. docs/workflow-$1/plans/$1-implementation-research.md (if exists)
+9. docs/workflow-$1/plans/$1-implementation-plan.md
+10. docs/workflow-$1/plans/$1-review-research.md (if exists)
+11. CLAUDE.md
 ```
 
 ---
@@ -201,8 +205,9 @@ After completion:
 
 ## PHASE 3: SPECIFICATION INTERVIEW
 
-**What**: 40+ questions across 9 domains via AskUserQuestionTool
-**Output**: `docs/workflow-$1/specs/$1-specs.md`
+**What**: Domain research via 5 parallel researcher agents, then 40+ questions across 9 domains via AskUserQuestionTool
+**Output**: `docs/workflow-$1/codebase-context/$1-domain-research.md`, `docs/workflow-$1/specs/$1-specs.md`
+**Agents**: 5x `researcher` (Sonnet)
 **Prerequisite**: `docs/workflow-$1/codebase-context/$1-exploration.md` exists
 
 Execute by following the instructions in the `3-user-specification-interview` command with feature: $1 and description: $2
@@ -215,8 +220,9 @@ After completion:
 
 ## PHASE 4: ARCHITECTURE DESIGN
 
-**What**: Technical architecture with independent components for parallel implementation
-**Output**: `docs/workflow-$1/plans/$1-architecture-plan.md`
+**What**: Architecture research via 5 parallel researcher agents, then technical architecture with independent components for parallel implementation
+**Output**: `docs/workflow-$1/plans/$1-architecture-research.md`, `docs/workflow-$1/plans/$1-architecture-plan.md`
+**Agents**: 5x `researcher` (Sonnet), optionally `code-architect` (Opus)
 **Prerequisites**: Exploration and specification exist
 
 Execute by following the instructions in the `4-plan-architecture` command with feature: $1
@@ -229,8 +235,9 @@ After completion:
 
 ## PHASE 5: IMPLEMENTATION PLAN
 
-**What**: Detailed implementation tasks mapped from architecture
-**Output**: `docs/workflow-$1/plans/$1-implementation-plan.md`, `docs/workflow-$1/plans/$1-tests.md`
+**What**: Implementation research via 4 parallel researcher agents, then detailed implementation tasks mapped from architecture
+**Output**: `docs/workflow-$1/plans/$1-implementation-research.md`, `docs/workflow-$1/plans/$1-implementation-plan.md`, `docs/workflow-$1/plans/$1-tests.md`
+**Agents**: 4x `researcher` (Sonnet)
 **Prerequisite**: Architecture exists
 
 Execute by following the instructions in the `5-plan-implementation` command with feature: $1
@@ -243,9 +250,9 @@ After completion:
 
 ## PHASE 6: PLAN REVIEW & APPROVAL
 
-**What**: Critical review of plan, challenge assumptions, get user approval
-**Output**: Updated plans + explicit user approval
-**Agent**: `plan-reviewer`
+**What**: Validation research via 5 parallel researcher agents, then critical review of plan, challenge assumptions, get user approval
+**Output**: `docs/workflow-$1/plans/$1-review-research.md`, updated plans + explicit user approval
+**Agents**: 5x `researcher` (Sonnet), `plan-reviewer`
 
 Execute by following the instructions in the `6-review-plan` command with feature: $1
 

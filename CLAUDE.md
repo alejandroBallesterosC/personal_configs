@@ -7,7 +7,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 ```
 claude-code/
 ├── plugins/           # 6 encapsulated plugins (installed via marketplace)
-│   ├── dev-workflow/  # 11 agents, 18 commands, 6 skills, 4 hooks (TDD + Debug)
+│   ├── dev-workflow/  # 12 agents, 18 commands, 6 skills, 4 hooks (TDD + Debug)
 │   ├── playwright/    # Browser automation (JS + skill)
 │   ├── claude-session-feedback/ # 4 commands
 │   ├── infrastructure-as-code/ # 1 command, 1 skill

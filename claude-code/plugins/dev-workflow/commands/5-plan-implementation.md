@@ -35,9 +35,66 @@ This is **Phase 5** of the TDD implementation workflow. It creates a detailed im
    - Existing interfaces to use
    - Test framework and conventions
 
+## Implementation Research
+
+Before creating the implementation plan, spawn **4 parallel `researcher` subagents** to gather implementation-specific knowledge.
+
+```
+Use Task tool with subagent_type: "dev-workflow:researcher" (4 parallel instances)
+
+Each instance receives:
+Feature: $1
+Architecture: docs/workflow-$1/plans/$1-architecture-plan.md
+Specification: docs/workflow-$1/specs/$1-specs.md
+
+Instance 1 - Library Documentation:
+Research focus: Library and framework documentation for technologies chosen in the architecture of "$1". Look for official docs, getting started guides, and API references for the specific libraries and tools.
+
+Instance 2 - Implementation Patterns:
+Research focus: Implementation patterns and code examples for "$1". Look for real-world examples, code samples, and implementation guides that match the chosen architecture and technology stack.
+
+Instance 3 - Testing Strategies:
+Research focus: Testing strategies and frameworks for "$1". Look for testing patterns, framework comparisons, mocking approaches, and CI/CD integration for the chosen technology stack.
+
+Instance 4 - Implementation Pitfalls:
+Research focus: Common implementation pitfalls when building "$1" with the chosen technology stack. Look for migration issues, breaking changes, deprecated APIs, and gotchas documented by other developers.
+```
+
+### Synthesize Research
+
+After all 4 researcher agents return, synthesize their findings into:
+
+Write to `docs/workflow-$1/plans/$1-implementation-research.md`:
+
+```markdown
+# Implementation Research: $1
+
+## Sources Summary
+[Total sources consulted, date of research]
+
+## Library Documentation
+[Synthesized findings from Instance 1]
+
+## Implementation Patterns
+[Synthesized findings from Instance 2]
+
+## Testing Strategies
+[Synthesized findings from Instance 3]
+
+## Implementation Pitfalls
+[Synthesized findings from Instance 4]
+
+## Key Takeaways for Implementation Plan
+[3-5 bullet points highlighting what to incorporate into the plan]
+```
+
+Reference the implementation research when creating tasks below.
+
+---
+
 ## Execution
 
-The **main instance creates the implementation plan** directly. This phase does not spawn subagents because:
+The **main instance creates the implementation plan** directly. This phase does not spawn subagents for planning because:
 - The main instance has full context from the architecture and specification phases
 - Planning benefits from the conversation history with the user
 - The plan needs to be coherent and consistent
@@ -176,11 +233,13 @@ End with this message:
 Implementation plan complete for: $1
 
 Artifacts created:
+- docs/workflow-$1/plans/$1-implementation-research.md (implementation research)
 - docs/workflow-$1/plans/$1-implementation-plan.md (implementation plan with parallel tasks)
 - docs/workflow-$1/plans/$1-tests.md (test cases)
 
 References:
 - docs/workflow-$1/plans/$1-architecture-plan.md (architecture design from Phase 4)
+- docs/workflow-$1/plans/$1-architecture-research.md (architecture research from Phase 4)
 
 Next step:
 /dev-workflow:6-review-plan $1 (challenge the plan before implementation)

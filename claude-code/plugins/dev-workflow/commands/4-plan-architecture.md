@@ -21,6 +21,68 @@ If any are missing, recommend running the previous workflow steps first:
 - `/dev-workflow:2-explore $ARGUMENTS "<description>"` for exploration
 - `/dev-workflow:3-user-specification-interview $ARGUMENTS "<description>"` for specification
 
+## Architecture Research
+
+Before designing the architecture, spawn **5 parallel `researcher` subagents** to gather technical insights that inform architectural decisions.
+
+```
+Use Task tool with subagent_type: "dev-workflow:researcher" (5 parallel instances)
+
+Each instance receives:
+Feature: $ARGUMENTS
+Specification: docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md
+
+Instance 1 - Architecture Patterns:
+Research focus: Architecture patterns for systems similar to "$ARGUMENTS". Look for design patterns, component decomposition strategies, and proven architectural approaches.
+
+Instance 2 - Technology Evaluation:
+Research focus: Technology and library evaluation for "$ARGUMENTS". Compare candidate libraries and frameworks, check maintenance status, community health, and known issues.
+
+Instance 3 - Data Modeling:
+Research focus: Data modeling and storage patterns for "$ARGUMENTS". Look for schema design approaches, data flow patterns, state management strategies, and storage trade-offs.
+
+Instance 4 - API Design:
+Research focus: API design patterns and interface contracts for "$ARGUMENTS". Look for REST/GraphQL/RPC conventions, versioning strategies, error handling patterns, and contract-first approaches.
+
+Instance 5 - Infrastructure and Deployment:
+Research focus: Infrastructure and deployment patterns for "$ARGUMENTS". Look for containerization approaches, scaling strategies, monitoring patterns, and deployment pipelines.
+```
+
+### Synthesize Research
+
+After all 5 researcher agents return, synthesize their findings into:
+
+Write to `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-research.md`:
+
+```markdown
+# Architecture Research: $ARGUMENTS
+
+## Sources Summary
+[Total sources consulted, date of research]
+
+## Architecture Patterns
+[Synthesized findings from Instance 1]
+
+## Technology Evaluation
+[Synthesized findings from Instance 2]
+
+## Data Modeling
+[Synthesized findings from Instance 3]
+
+## API Design
+[Synthesized findings from Instance 4]
+
+## Infrastructure and Deployment
+[Synthesized findings from Instance 5]
+
+## Key Takeaways for Architecture Design
+[3-5 bullet points highlighting what to incorporate into the architecture]
+```
+
+Reference the architecture research when making design decisions below.
+
+---
+
 ## Process
 
 You have two options for creating the architecture:
@@ -196,8 +258,9 @@ End with:
 ```
 Architecture design complete for: $ARGUMENTS
 
-Artifact created:
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md
+Artifacts created:
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-research.md (architecture research)
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (architecture design)
 
 Architecture supports:
 - [N] independent components for parallel implementation

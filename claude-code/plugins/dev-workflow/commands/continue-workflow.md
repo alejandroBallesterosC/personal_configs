@@ -78,12 +78,16 @@ To start a fresh workflow:
 1. **State file**: `docs/workflow-$1/$1-state.md`
 2. **Original prompt**: `docs/workflow-$1/$1-original-prompt.md` (if exists)
 3. **Exploration context**: `docs/workflow-$1/codebase-context/$1-exploration.md` (if exists)
-4. **Specification**: `docs/workflow-$1/specs/$1-specs.md` (if exists)
-5. **Architecture**: `docs/workflow-$1/plans/$1-architecture-plan.md` (if exists)
-6. **Implementation plan**: `docs/workflow-$1/plans/$1-implementation-plan.md` (if exists)
-7. **Test strategy**: `docs/workflow-$1/plans/$1-tests.md` (if exists)
-8. **Review findings**: `docs/workflow-$1/$1-review.md` (if exists)
-9. **Project conventions**: `CLAUDE.md`
+4. **Domain research**: `docs/workflow-$1/codebase-context/$1-domain-research.md` (if exists)
+5. **Specification**: `docs/workflow-$1/specs/$1-specs.md` (if exists)
+6. **Architecture research**: `docs/workflow-$1/plans/$1-architecture-research.md` (if exists)
+7. **Architecture**: `docs/workflow-$1/plans/$1-architecture-plan.md` (if exists)
+8. **Implementation research**: `docs/workflow-$1/plans/$1-implementation-research.md` (if exists)
+9. **Implementation plan**: `docs/workflow-$1/plans/$1-implementation-plan.md` (if exists)
+10. **Test strategy**: `docs/workflow-$1/plans/$1-tests.md` (if exists)
+11. **Validation research**: `docs/workflow-$1/plans/$1-review-research.md` (if exists)
+12. **Review findings**: `docs/workflow-$1/$1-review.md` (if exists)
+13. **Project conventions**: `CLAUDE.md`
 
 ### Summarize and continue
 

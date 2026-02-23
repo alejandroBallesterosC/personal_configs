@@ -36,7 +36,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 personal_configs/
 ├── claude-code/                    # Primary source of truth
 │   ├── plugins/ (6 plugins)       # Encapsulated workflow packages
-│   │   ├── dev-workflow/          # 11 agents, 18 commands, 6 skills, 4 hooks
+│   │   ├── dev-workflow/          # 12 agents, 18 commands, 6 skills, 4 hooks
 │   │   ├── ralph-loop/           # 3 commands, 1 hook (iterative loops)
 │   │   ├── playwright/           # 1 skill (browser automation, JS)
 │   │   ├── claude-session-feedback/ # 4 commands
@@ -154,9 +154,9 @@ By design — repo contains only Markdown, JSON, and Bash (no application code t
 | ~~CLAUDE.md says "17 commands" for dev-workflow~~ | ~~Commands now 18~~ | **FIXED** in CLAUDE.md and README.md |
 | ~~CLAUDE.md says Cursor "37 files, TDD-only"~~ | ~~Cursor now has 42 files~~ | **FIXED** in CLAUDE.md |
 | ~~CLAUDE.md Dependencies says ralph-loop installs via `anthropics/claude-code`~~ | ~~Actual install is via `alejandroBallesterosC/personal_configs`~~ | **FIXED** in CLAUDE.md and README.md |
+| ~~README.md says "17 commands" in dev-workflow~~ | ~~Should be 18~~ |  **FIXED** in README.md |
 | VS Code tasks.json lists "Sync Skills" and "Sync Plugins" tasks | No corresponding sync scripts exist (removed in favor of plugin system) | `.vscode/tasks.json` |
 | CLAUDE.md says "8 bidirectional + 1 unidirectional sync scripts" | Correct count; description is accurate | `sync-content-scripts/` |
-| README.md says "17 commands" in dev-workflow | Should be 18 | `README.md:11` vs `claude-code/plugins/dev-workflow/commands/` |
 | README.md says ".vscode/ (15 sync tasks)" | Actual: 16 tasks (13 sync + 3 other) | `README.md:23` vs `.vscode/tasks.json` |
 
 ## 8. Cursor Mirror Drift Analysis (Iteration 2)

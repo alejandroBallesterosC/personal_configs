@@ -21,6 +21,69 @@ Read ALL planning artifacts:
 
 If any are missing, recommend running the previous workflow steps first.
 
+## Validation Research
+
+Before the plan review, spawn **5 parallel `researcher` subagents** to validate planning decisions against external knowledge.
+
+```
+Use Task tool with subagent_type: "dev-workflow:researcher" (5 parallel instances)
+
+Each instance receives:
+Feature: $ARGUMENTS
+Architecture: docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md
+Implementation Plan: docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md
+
+Instance 1 - Architecture Validation:
+Research focus: Validate the architecture decisions for "$ARGUMENTS" against current best practices. Look for whether the chosen patterns are still recommended, if better alternatives have emerged, and whether the component decomposition follows established guidelines.
+
+Instance 2 - Technology Risk Assessment:
+Research focus: Technology risk assessment for the libraries and frameworks chosen in "$ARGUMENTS". Check for deprecation notices, CVEs, upcoming breaking changes, maintenance status, and community health of each dependency.
+
+Instance 3 - Known Issues:
+Research focus: Known bugs and issues in the libraries chosen for "$ARGUMENTS". Search GitHub issues, Stack Overflow, and community forums for unresolved problems, workarounds, and version-specific gotchas.
+
+Instance 4 - Alternative Approaches:
+Research focus: Alternative approaches to implementing "$ARGUMENTS" that might be simpler, more maintainable, or more performant. Look for different architectural patterns, alternative libraries, and approaches the current plan might have missed.
+
+Instance 5 - Security Validation:
+Research focus: Security validation for "$ARGUMENTS" against current threat models. Check for OWASP top 10 risks, authentication/authorization best practices for the chosen stack, and known security anti-patterns.
+```
+
+### Synthesize Research
+
+After all 5 researcher agents return, synthesize their findings into:
+
+Write to `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-review-research.md`:
+
+```markdown
+# Validation Research: $ARGUMENTS
+
+## Sources Summary
+[Total sources consulted, date of research]
+
+## Architecture Validation
+[Synthesized findings from Instance 1]
+
+## Technology Risk Assessment
+[Synthesized findings from Instance 2]
+
+## Known Issues
+[Synthesized findings from Instance 3]
+
+## Alternative Approaches
+[Synthesized findings from Instance 4]
+
+## Security Validation
+[Synthesized findings from Instance 5]
+
+## Key Concerns for Plan Review
+[3-5 bullet points highlighting areas that need scrutiny during the review]
+```
+
+Include the review research in the plan-reviewer's context below.
+
+---
+
 ## Process
 
 ### Spawn Plan-Reviewer Subagent
@@ -37,10 +100,14 @@ Critically review the implementation plan for this feature.
 
 Context files to read:
 - docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md (codebase context)
+- docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-domain-research.md (domain research, if exists)
 - docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (specification)
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-research.md (architecture research, if exists)
 - docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (architecture)
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-research.md (implementation research, if exists)
 - docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md (implementation plan)
 - docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-tests.md (test cases)
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-review-research.md (validation research)
 
 Review Focus:
 1. Evaluate each planning artifact against the checklist below
@@ -141,6 +208,7 @@ All blockers resolved. Plan is ready for implementation.
 [Summary of suggestions and user's decisions]
 
 ## Updated Artifacts
+- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-review-research.md (validation research)
 - docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (if modified)
 - docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md (if modified)
 - docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (if modified)

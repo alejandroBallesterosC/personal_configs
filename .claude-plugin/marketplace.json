@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "dev-workflow",
-      "description": "Unified TDD implementation and hypothesis-driven debugging workflows with 11 agents, 17 commands, and automatic context preservation",
+      "description": "Unified TDD implementation and hypothesis-driven debugging workflows with 12 agents, 18 commands, and automatic context preservation",
       "author": {
         "name": "jandro"
       },

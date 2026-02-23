@@ -492,7 +492,7 @@ Each iteration, the command reads the state file to understand where it is, does
 
 | Decision | Chosen | Alternative | Rationale |
 |----------|--------|-------------|-----------|
-| Standalone plugin | New plugin | Extend dev-workflow | Dev-workflow is already large (18 commands, 11 agents). Autonomous workflows have fundamentally different interaction model (no human gates). Separation of concerns. |
+| Standalone plugin | New plugin | Extend dev-workflow | Dev-workflow is already large (18 commands, 12 agents). Autonomous workflows have fundamentally different interaction model (no human gates). Separation of concerns. |
 | LaTeX output | LaTeX files | Markdown | User requirement for human-readable typeset reports. LaTeX compiles to PDF. Markdown can't produce the same quality. |
 | JSON feature list | JSON | Markdown checklist | Anthropic's research: models are less likely to inappropriately modify JSON. Critical for implementation tracking integrity across 50+ iterations. |
 | Subagents for all research | Sonnet subagents | Main instance searches | Context management. 30 iterations of web searching in the main context would cause severe context rot. Subagents return compressed summaries. |
