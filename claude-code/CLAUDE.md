@@ -53,6 +53,12 @@ When encountering tool failures (biome, ruff, pytest, etc.):
 
 Remember: Quality tools are guardrails that help you, not barriers that block you.
 
+# Searching the Internet
+- When searching the internet always spawn 4-5 parallel Claude Sonnet subagents to thoroughly research credible sources that are not stale to prevent bloating your context.
+
+# Exploring Codebases
+- When exploring a codebase/repo always spawn 4-5 parallel Claude Sonnet subagents to thoroughly explore various parts/components in parallel and prevent bloating your context. If the instructions youre following suggest to use a different specialized subagent for codebase exploreation you may also do so.
+
 # Other things
 
 - When searching or modifying code, use ast-grep often. ast-grep matches against the abstract syntax tree (AST) and allows safe, language-aware queries and rewrites.
