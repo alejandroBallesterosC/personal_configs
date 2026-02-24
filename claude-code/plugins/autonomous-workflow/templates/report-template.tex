@@ -1,0 +1,60 @@
+% ABOUTME: Base LaTeX template for autonomous workflow research reports.
+% ABOUTME: Provides standard document structure, packages, and section placeholders.
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{parskip}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+
+\title{PLACEHOLDER_TITLE}
+\author{Research Report --- Generated via Autonomous Workflow}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Executive Summary}
+% 1-2 page summary of all findings.
+% This section is written last, after all research is complete.
+
+\section{Background \& Context}
+% Problem domain, why this matters, what motivated the research.
+
+\section{Key Findings}
+% Each subsection represents a thematic finding.
+% Findings are organized thematically, not chronologically.
+% Each finding has: claim, evidence, sources, confidence level.
+
+\section{Analysis \& Synthesis}
+% Cross-cutting analysis, patterns across findings.
+% Logical conflicts identified and resolved.
+% Novel insights from combining sources.
+
+\section{Open Questions}
+% What couldn't be determined from available sources.
+% What would require primary research.
+% Contradictions that remain unresolved.
+
+\section{Methodology}
+% How many iterations, how many sources consulted.
+% Source credibility criteria used.
+% Search strategies employed.
+
+\bibliographystyle{plainnat}
+\bibliography{sources}
+
+\end{document}

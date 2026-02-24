@@ -59,6 +59,15 @@
       },
       "source": "./claude-code/plugins/claude-md-best-practices",
       "category": "documentation"
+    },
+    {
+      "name": "autonomous-workflow",
+      "description": "Long-running autonomous research, planning, and implementation workflows with LaTeX output, parallel subagents, and multi-day execution without human interaction",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/autonomous-workflow",
+      "category": "development"
     }
   ]
 }
