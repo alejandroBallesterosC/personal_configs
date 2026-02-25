@@ -55,6 +55,12 @@ fi
 if [ -f backend/.env ]; then
   export $(grep -v '^#' backend/.env | xargs)
   echo -e "${GREEN}Loaded backend environment variables from backend/.env${NC}"
+  if grep -q '^BACKEND_PORT=' backend/.env; then
+    echo -e "${GREEN}Using BACKEND_PORT=$BACKEND_PORT from backend/.env${NC}"
+  else
+    export BACKEND_PORT=$DEFAULT_BACKEND_PORT
+    echo -e "${YELLOW}backend/.env exists but BACKEND_PORT is not specified. Using default BACKEND_PORT=$BACKEND_PORT${NC}"
+  fi
 else
   export BACKEND_PORT=$DEFAULT_BACKEND_PORT
   echo -e "${YELLOW}backend/.env not found. Using default BACKEND_PORT=$BACKEND_PORT${NC}"
@@ -64,6 +70,15 @@ fi
 if [ -f frontend/.env ]; then
   export $(grep -v '^#' frontend/.env | xargs)
   echo -e "${GREEN}Loaded frontend environment variables from frontend/.env${NC}"
+  if grep -q '^FRONTEND_PORT=' frontend/.env; then
+    echo -e "${GREEN}Using FRONTEND_PORT=$FRONTEND_PORT from frontend/.env${NC}"
+  elif grep -q '^VITE_PORT=' frontend/.env; then
+    export FRONTEND_PORT=$VITE_PORT
+    echo -e "${GREEN}Using VITE_PORT=$VITE_PORT from frontend/.env as FRONTEND_PORT${NC}"
+  else
+    export FRONTEND_PORT=$DEFAULT_FRONTEND_PORT
+    echo -e "${YELLOW}frontend/.env exists but neither FRONTEND_PORT nor VITE_PORT is specified. Using default FRONTEND_PORT=$FRONTEND_PORT${NC}"
+  fi
 else
   export FRONTEND_PORT=$DEFAULT_FRONTEND_PORT
   echo -e "${YELLOW}frontend/.env not found. Using default FRONTEND_PORT=$FRONTEND_PORT${NC}"
