@@ -102,6 +102,9 @@ else
   API_PID=""
 fi
 
+# Wait for backend to start
+sleep 1
+
 # Start the React frontend
 if [ -d "frontend" ]; then
     echo -e "${BLUE}▶️  Starting Frontend (PORT=$FRONTEND_PORT)...${NC}"
@@ -131,12 +134,38 @@ echo -e "Press Ctrl+C to stop both services ${NC}"
 cleanup() {
   echo ""
   echo -e "${RED}Stopping services...${NC}"
+
+  # Ignore further Ctrl+C during cleanup
+  trap '' SIGINT
+
+  # Graceful SIGTERM first
   kill $API_PID 2>/dev/null
   [ -n "$UI_PID" ] && kill $UI_PID 2>/dev/null
+
+  # Wait up to 5s for processes to exit
+  local waited=0
+  while [ $waited -lt 5 ]; do
+    local alive=false
+    kill -0 $API_PID 2>/dev/null && alive=true
+    [ -n "$UI_PID" ] && kill -0 $UI_PID 2>/dev/null && alive=true
+    $alive || break
+    sleep 1
+    waited=$((waited + 1))
+  done
+
+  # SIGKILL any survivors
+  kill -9 $API_PID 2>/dev/null
+  [ -n "$UI_PID" ] && kill -9 $UI_PID 2>/dev/null
+
+  # Free ports in case grandchildren (e.g. uvicorn worker) survived
+  free_port $BACKEND_PORT
+  free_port $FRONTEND_PORT
+
+  echo -e "${GREEN}All services stopped.${NC}"
   exit 0
 }
 
-trap cleanup SIGINT
+trap cleanup SIGINT SIGTERM
 
 # Wait for processes
 wait
