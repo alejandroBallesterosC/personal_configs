@@ -1,7 +1,7 @@
 {
   "name": "autonomous-workflow",
   "description": "Long-running autonomous research, planning, and implementation workflows with LaTeX output, parallel subagents, and multi-day execution without human interaction",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "author": {
     "name": "jandro"
   },

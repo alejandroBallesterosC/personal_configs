@@ -2,14 +2,39 @@
 # ABOUTME: Auto-resume autonomous workflow after context reset (compact or clear).
 # ABOUTME: Searches for active autonomous state files, parses YAML frontmatter, and injects context for Claude to continue.
 
+# Debug log file for diagnosing hook behavior
+DEBUG_FILE=".claude/autonomous-auto-resume-debug.md"
+
+debug_log() {
+  local msg="$1"
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  mkdir -p .claude
+  {
+    echo "## $timestamp"
+    echo ""
+    echo "$msg"
+    echo ""
+    echo "**Working directory:** $(pwd)"
+    echo ""
+    echo "---"
+    echo ""
+  } >> "$DEBUG_FILE"
+}
+
+# Log hook invocation
+debug_log "**Hook invoked.**"
+
 # Check for required dependencies (yq for YAML frontmatter, jq for JSON)
 if ! command -v yq &>/dev/null; then
+  debug_log "**DEPENDENCY MISSING:** yq not found in PATH ($PATH)"
   echo "ERROR: yq is required but not installed." >&2
   echo "The auto-resume hook cannot parse workflow state files without yq." >&2
   echo "Install: brew install yq (macOS) or see https://github.com/mikefarah/yq#install" >&2
   exit 2
 fi
 if ! command -v jq &>/dev/null; then
+  debug_log "**DEPENDENCY MISSING:** jq not found in PATH ($PATH)"
   echo "ERROR: jq is required but not installed." >&2
   echo "The auto-resume hook cannot produce JSON output without jq." >&2
   echo "Install: brew install jq (macOS) or see https://github.com/jqlang/jq#installation" >&2
@@ -22,6 +47,7 @@ SOURCE=$(echo "$INPUT" | jq -r '.source // empty')
 
 # Only run after compact or clear
 if [ "$SOURCE" != "compact" ] && [ "$SOURCE" != "clear" ]; then
+  debug_log "**Exiting:** Source is '$SOURCE' (not compact or clear)"
   exit 0
 fi
 
@@ -58,8 +84,11 @@ fi
 
 # No active workflow — nothing to resume
 if [ -z "$ACTIVE_STATE" ]; then
+  debug_log "**Exiting:** No active autonomous workflow found"
   exit 0
 fi
+
+debug_log "**Active workflow found:** $ACTIVE_STATE"
 
 # Extract fields from YAML frontmatter
 WORKFLOW_TYPE=$(yq --front-matter=extract '.workflow_type' "$ACTIVE_STATE" 2>/dev/null)
@@ -130,6 +159,8 @@ Context was ${TRIGGER_DESC} during an active autonomous workflow. To continue:
 ${RESTORE_FILES}
 
 **Continue the workflow now.** Read any additional files needed and proceed with the next action indicated in the state."
+
+debug_log "**Injecting context.** Workflow: $NAME, type: $WORKFLOW_TYPE, phase: $CURRENT_PHASE, trigger: $TRIGGER_DESC"
 
 # Escape context for JSON and output
 ESCAPED_CONTEXT=$(echo "$CONTEXT" | jq -Rs .)

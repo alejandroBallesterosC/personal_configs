@@ -6,6 +6,45 @@
 
 set -euo pipefail
 
+# Debug log file for diagnosing ralph-loop state file removal
+DEBUG_FILE=".claude/ralph-debug.md"
+
+debug_log() {
+  local reason="$1"
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  mkdir -p .claude
+  {
+    echo "## $timestamp"
+    echo ""
+    echo "**Reason for removing state file:** $reason"
+    echo ""
+    echo "**Working directory:** $(pwd)"
+    echo ""
+    if [[ -f ".claude/ralph-loop.local.md" ]]; then
+      echo "**State file contents at time of removal:**"
+      echo '```'
+      cat ".claude/ralph-loop.local.md"
+      echo '```'
+    else
+      echo "**State file:** did not exist"
+    fi
+    echo ""
+    echo "---"
+    echo ""
+  } >> "$DEBUG_FILE"
+}
+
+# Log that the hook fired at all
+{
+  echo "## $(date '+%Y-%m-%d %H:%M:%S')"
+  echo ""
+  echo "**Hook invoked.** Working directory: $(pwd)"
+  echo ""
+  echo "---"
+  echo ""
+} >> "${DEBUG_FILE}"
+
 # Read hook input from stdin (advanced stop hook API)
 HOOK_INPUT=$(cat)
 
@@ -14,6 +53,7 @@ RALPH_STATE_FILE=".claude/ralph-loop.local.md"
 
 if [[ ! -f "$RALPH_STATE_FILE" ]]; then
   # No active loop - allow exit
+  debug_log "State file not found (no active loop)"
   exit 0
 fi
 
@@ -32,6 +72,7 @@ if [[ ! "$ITERATION" =~ ^[0-9]+$ ]]; then
   echo "" >&2
   echo "   This usually means the state file was manually edited or corrupted." >&2
   echo "   Ralph loop is stopping. Run /ralph-loop again to start fresh." >&2
+  debug_log "iteration field not a valid number (got: '$ITERATION')"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -43,6 +84,7 @@ if [[ ! "$MAX_ITERATIONS" =~ ^[0-9]+$ ]]; then
   echo "" >&2
   echo "   This usually means the state file was manually edited or corrupted." >&2
   echo "   Ralph loop is stopping. Run /ralph-loop again to start fresh." >&2
+  debug_log "max_iterations field not a valid number (got: '$MAX_ITERATIONS')"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -50,6 +92,7 @@ fi
 # Check if max iterations reached
 if [[ $MAX_ITERATIONS -gt 0 ]] && [[ $ITERATION -ge $MAX_ITERATIONS ]]; then
   echo "🛑 Ralph loop: Max iterations ($MAX_ITERATIONS) reached."
+  debug_log "Max iterations reached ($ITERATION >= $MAX_ITERATIONS)"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -62,6 +105,7 @@ if [[ ! -f "$TRANSCRIPT_PATH" ]]; then
   echo "   Expected: $TRANSCRIPT_PATH" >&2
   echo "   This is unusual and may indicate a Claude Code internal issue." >&2
   echo "   Ralph loop is stopping." >&2
+  debug_log "Transcript file not found (expected: $TRANSCRIPT_PATH)"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -73,6 +117,7 @@ if ! grep -q '"role":"assistant"' "$TRANSCRIPT_PATH"; then
   echo "   Transcript: $TRANSCRIPT_PATH" >&2
   echo "   This is unusual and may indicate a transcript format issue" >&2
   echo "   Ralph loop is stopping." >&2
+  debug_log "No assistant messages found in transcript ($TRANSCRIPT_PATH)"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -82,6 +127,7 @@ LAST_LINE=$(grep '"role":"assistant"' "$TRANSCRIPT_PATH" | tail -1)
 if [[ -z "$LAST_LINE" ]]; then
   echo "⚠️  Ralph loop: Failed to extract last assistant message" >&2
   echo "   Ralph loop is stopping." >&2
+  debug_log "Failed to extract last assistant message from transcript"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -100,6 +146,7 @@ if [[ $? -ne 0 ]]; then
   echo "   Error: $LAST_OUTPUT" >&2
   echo "   This may indicate a transcript format issue" >&2
   echo "   Ralph loop is stopping." >&2
+  debug_log "Failed to parse assistant message JSON (error: $LAST_OUTPUT)"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -107,6 +154,7 @@ fi
 if [[ -z "$LAST_OUTPUT" ]]; then
   echo "⚠️  Ralph loop: Assistant message contained no text content" >&2
   echo "   Ralph loop is stopping." >&2
+  debug_log "Assistant message contained no text content"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -122,6 +170,7 @@ if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
   # == in [[ ]] does glob pattern matching which breaks with *, ?, [ characters
   if [[ -n "$PROMISE_TEXT" ]] && [[ "$PROMISE_TEXT" = "$COMPLETION_PROMISE" ]]; then
     echo "✅ Ralph loop: Detected <promise>$COMPLETION_PROMISE</promise>"
+    debug_log "Completion promise matched ('$PROMISE_TEXT' = '$COMPLETION_PROMISE')"
     rm "$RALPH_STATE_FILE"
     exit 0
   fi
@@ -145,6 +194,7 @@ if [[ -z "$PROMPT_TEXT" ]]; then
   echo "     • File was corrupted during writing" >&2
   echo "" >&2
   echo "   Ralph loop is stopping. Run /ralph-loop again to start fresh." >&2
+  debug_log "No prompt text found in state file (corrupted or incomplete)"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -161,6 +211,16 @@ if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
 else
   SYSTEM_MSG="🔄 Ralph iteration $NEXT_ITERATION | No completion promise set - loop runs infinitely"
 fi
+
+# Log successful continuation
+{
+  echo "## $(date '+%Y-%m-%d %H:%M:%S')"
+  echo ""
+  echo "**Continuing loop.** Iteration $ITERATION -> $NEXT_ITERATION"
+  echo ""
+  echo "---"
+  echo ""
+} >> "$DEBUG_FILE"
 
 # Output JSON to block the stop and feed prompt back
 # The "reason" field contains the prompt that will be sent back to Claude

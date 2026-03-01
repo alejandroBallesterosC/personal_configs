@@ -2,14 +2,39 @@
 # ABOUTME: Auto-resume TDD implementation or debug workflow after context reset (compact or clear)
 # ABOUTME: Checks both docs/workflow-* and docs/debug/*/ for active sessions, parses YAML frontmatter, and injects context
 
+# Debug log file for diagnosing hook behavior
+DEBUG_FILE=".claude/dev-auto-resume-debug.md"
+
+debug_log() {
+  local msg="$1"
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  mkdir -p .claude
+  {
+    echo "## $timestamp"
+    echo ""
+    echo "$msg"
+    echo ""
+    echo "**Working directory:** $(pwd)"
+    echo ""
+    echo "---"
+    echo ""
+  } >> "$DEBUG_FILE"
+}
+
+# Log hook invocation
+debug_log "**Hook invoked.**"
+
 # Check for required dependencies (yq for YAML frontmatter, jq for JSON)
 if ! command -v yq &>/dev/null; then
+  debug_log "**DEPENDENCY MISSING:** yq not found in PATH ($PATH)"
   echo "ERROR: yq is required but not installed." >&2
   echo "The auto-resume hook cannot parse workflow state files without yq." >&2
   echo "Install: brew install yq (macOS) or see https://github.com/mikefarah/yq#install" >&2
   exit 2
 fi
 if ! command -v jq &>/dev/null; then
+  debug_log "**DEPENDENCY MISSING:** jq not found in PATH ($PATH)"
   echo "ERROR: jq is required but not installed." >&2
   echo "The auto-resume hook cannot produce JSON output without jq." >&2
   echo "Install: brew install jq (macOS) or see https://github.com/jqlang/jq#installation" >&2
@@ -22,6 +47,7 @@ SOURCE=$(echo "$INPUT" | jq -r '.source // empty')
 
 # Only run after compact or clear
 if [ "$SOURCE" != "compact" ] && [ "$SOURCE" != "clear" ]; then
+  debug_log "**Exiting:** Source is '$SOURCE' (not compact or clear)"
   exit 0
 fi
 
@@ -74,8 +100,11 @@ done
 
 # No active workflow found
 if [ "$TDD_ACTIVE" = false ] && [ "$DEBUG_ACTIVE" = false ]; then
+  debug_log "**Exiting:** No active TDD or debug workflow found"
   exit 0
 fi
+
+debug_log "**Active workflows found:** TDD=$TDD_ACTIVE (${TDD_STATE_FILE:-none}), Debug=$DEBUG_ACTIVE (${DEBUG_STATE_FILE:-none})"
 
 # Build context message
 CONTEXT=""
@@ -172,6 +201,8 @@ fi
 
 # Escape the context for JSON
 ESCAPED_CONTEXT=$(echo "$CONTEXT" | jq -Rs .)
+
+debug_log "**Injecting context.** TDD=$TDD_ACTIVE, Debug=$DEBUG_ACTIVE, trigger=$TRIGGER_DESC"
 
 # Output JSON with additionalContext
 cat << EOF

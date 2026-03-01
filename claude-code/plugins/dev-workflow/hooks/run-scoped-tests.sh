@@ -2,8 +2,32 @@
 # ABOUTME: Stop hook that runs scoped tests and blocks Claude from stopping if they fail.
 # ABOUTME: Uses exit 0 + JSON decision:block pattern per Claude Code hooks spec.
 
+# Debug log file for diagnosing hook behavior
+DEBUG_FILE=".claude/run-scoped-tests-debug.md"
+
+debug_log() {
+  local msg="$1"
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  mkdir -p .claude
+  {
+    echo "## $timestamp"
+    echo ""
+    echo "$msg"
+    echo ""
+    echo "**Working directory:** $(pwd)"
+    echo ""
+    echo "---"
+    echo ""
+  } >> "$DEBUG_FILE"
+}
+
+# Log hook invocation
+debug_log "**Hook invoked.**"
+
 # Check for jq dependency (required for producing JSON block output on test failure)
 if ! command -v jq &>/dev/null; then
+    debug_log "**DEPENDENCY MISSING:** jq not found in PATH ($PATH)"
     echo "ERROR: jq is required but not installed." >&2
     echo "The run-scoped-tests hook cannot produce JSON output without jq." >&2
     echo "Install: brew install jq (macOS) or see https://github.com/jqlang/jq#installation" >&2
@@ -29,6 +53,7 @@ fi
 SCOPE_FILE="$REPO_ROOT/.tdd-test-scope"
 if [ ! -f "$SCOPE_FILE" ]; then
     # No scope file = no tests to run (Claude hasn't requested verification)
+    debug_log "**Exiting:** No .tdd-test-scope file found at $SCOPE_FILE"
     exit 0
 fi
 
@@ -36,6 +61,7 @@ SCOPE=$(cat "$SCOPE_FILE")
 
 # Handle special cases
 if [ "$SCOPE" = "none" ] || [ -z "$SCOPE" ]; then
+    debug_log "**Exiting:** Scope is 'none' or empty, removing scope file"
     rm -f "$SCOPE_FILE"
     exit 0
 fi
@@ -263,19 +289,25 @@ case "$DETECTED" in
     minitest)    TEST_OUTPUT=$(run_minitest); TEST_EXIT=$? ;;
     mix)         TEST_OUTPUT=$(run_mix);     TEST_EXIT=$? ;;
     *)
+        debug_log "**Exiting:** No supported test runner detected (got: '$DETECTED')"
         echo "No supported test runner detected"
         rm -f "$SCOPE_FILE"
         exit 0
         ;;
 esac
 
+debug_log "**Ran tests:** runner=$DETECTED, exit_code=$TEST_EXIT, scope=$(cat "$REPO_ROOT/.tdd-test-scope" 2>/dev/null || echo 'already removed')"
+
 # Clean up scope file after running (one-shot verification)
 rm -f "$SCOPE_FILE"
 
 # If tests passed, allow Claude to stop
 if [ "$TEST_EXIT" -eq 0 ]; then
+    debug_log "**Tests passed.** Allowing stop."
     exit 0
 fi
+
+debug_log "**Tests FAILED.** Blocking stop. Exit code: $TEST_EXIT"
 
 # Tests failed: block Claude from stopping using exit 0 + JSON decision pattern.
 # Strip ANSI escape codes and truncate to last 200 lines for clean JSON output.
