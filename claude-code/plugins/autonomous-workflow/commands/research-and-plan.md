@@ -291,8 +291,7 @@ Write the updated `docs/autonomous/$1/implementation/$1-implementation-plan.md`.
 
 Planning runs until `ralph-loop --max-iterations` stops the workflow.
 
-**NEVER emit `<promise>WORKFLOW_COMPLETE</promise>` from Mode 2.**
-Only `ralph-loop --max-iterations` stops this workflow.
+**`ralph-loop --max-iterations` is the only stopping mechanism for Mode 2.** Do not attempt to signal or force workflow completion.
 
 ---
 

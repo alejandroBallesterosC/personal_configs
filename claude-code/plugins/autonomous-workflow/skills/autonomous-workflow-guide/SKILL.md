@@ -41,15 +41,15 @@ Mode 3: Full Auto              Mode 4: Implement Only
 │   Research       │          │        │         │
 │   (budget: $3)   │          │   Phase C:       │
 │        │         │          │   Implementation │
-│   Phase B:       │          │   Completes when │
-│   Planning       │          │   all features   │
-│   (budget: $4)   │          │   resolved       │
+│   Phase B:       │          │   Runs until     │
+│   Planning       │          │   ralph-loop     │
+│   (budget: $4)   │          │   stops it       │
 │        │         │          │                  │
 │   Phase C:       │          │   Working Code   │
 │   Implementation │          └──────────────────┘
-│   Completes when │
-│   all features   │
-│   resolved       │
+│   Runs until     │
+│   ralph-loop     │
+│   stops it       │
 │                  │
 │   LaTeX Report   │
 │   + MD Plan      │
@@ -69,7 +69,7 @@ Mode 3: Full Auto              Mode 4: Implement Only
 
 5. **One iteration per command invocation.** Ralph-loop handles continuation. Each command invocation does one cycle of work, updates state, and exits.
 
-6. **No auto-termination from research or planning.** Research rotates through strategies instead of stopping. Planning runs until its budget is hit. Only `ralph-loop --max-iterations` stops Modes 1 and 2. Mode 3/4 implementation is the sole exception — it completes naturally when all features are resolved.
+6. **No auto-termination.** Every phase runs for its iteration budget. Research rotates through strategies. Planning refines the plan. Implementation works through features. `ralph-loop --max-iterations` is the only stopping mechanism for all modes. When all features are resolved in Phase C, remaining iterations detect `status: complete` and skip work.
 
 ## Research Strategies
 
@@ -113,13 +113,12 @@ Budget-based. The user specifies a `planning_budget` (default: 15) via the `--pl
 
 On transition: generate `feature-list.json` from plan, create `progress.txt`, compile report PDF, send notification.
 
-### Implementation Complete (Modes 3+4)
-All features in `feature-list.json` have been resolved:
+### Implementation (Modes 3+4)
+Each iteration picks the next unblocked feature and spawns an autonomous-coder. Features are tracked in `feature-list.json`:
 - `passes: true` — feature implemented and tests pass
 - `failed: true` — feature failed after 3 attempts inside autonomous-coder
-- When no features remain with `passes: false` AND `failed: false`: implementation is complete
-- On completion: compile final documents, send notification, set `status: complete`, output `<promise>WORKFLOW_COMPLETE</promise>`
-- Only Phase C completion (Mode 3 and Mode 4) emits `WORKFLOW_COMPLETE` — research and planning have no concrete finish line
+- When no features remain with `passes: false` AND `failed: false`: set `status: complete`, compile final documents, send notification
+- `--max-iterations` is the only stopping mechanism for all modes — workflows never signal ralph-loop to stop early. Remaining iterations after all features are resolved detect `status: complete` and skip work.
 
 ## State File Format
 
@@ -199,11 +198,10 @@ features_failed: 0
 
 ## Hooks
 
-| Event | Script | Purpose |
-|-------|--------|---------|
-| PreCompact | auto-checkpoint.sh | Save transcript + state snapshot before compaction |
-| SessionStart | auto-resume.sh | Restore context after compact/clear |
-| Stop | verify-state.sh | Verify state file accuracy before allowing exit |
+| Event | Type | Hook | Purpose |
+|-------|------|------|---------|
+| Stop | agent | (inline prompt) | Verify state file accuracy before allowing exit |
+| SessionStart | command | auto-resume-after-compact-or-clear.sh | Restore context after compact/clear |
 
 ## Artifacts Directory
 
@@ -214,13 +212,13 @@ docs/autonomous/<topic>/
 │   ├── <topic>-report.tex         # Research report (LaTeX)
 │   ├── <topic>-report.pdf         # Compiled report
 │   ├── sources.bib                # BibTeX bibliography
-│   └── transcripts/               # Research phase transcripts
+│   └── transcripts/               # Research phase transcript backups
 └── implementation/
     ├── <topic>-state.md           # Implementation phase state
     ├── <topic>-implementation-plan.md  # Implementation plan (Markdown)
     ├── feature-list.json          # Feature tracker (Modes 3+4)
     ├── progress.txt               # Progress log (Modes 3+4)
-    └── transcripts/               # Implementation phase transcripts
+    └── transcripts/               # Implementation phase transcript backups
 ```
 
 ## Cost Estimates
@@ -236,6 +234,6 @@ Costs scale linearly with `--max-iterations`. ~$0.50-$3.00 per iteration.
 ## Dependencies
 
 - **ralph-loop plugin**: Drives iteration loop (hard dependency)
-- **jq**: JSON parsing in hooks (hard dependency)
+- **yq + jq**: YAML/JSON parsing in hooks (hard dependency)
 - **MacTeX**: PDF output via pdflatex (optional — `.tex` files work without it)
 - **exa MCP server**: Deep research via `deep_researcher_start` (optional — falls back to `WebSearch`)

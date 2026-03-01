@@ -280,8 +280,7 @@ If `consecutive_low_contributions >= strategy_rotation_threshold`:
      Run via Bash: osascript -e 'display notification "Rotating research strategy to <new_strategy> for $1" with title "Autonomous Workflow" subtitle "Research"'
      ```
 
-**NEVER emit `<promise>WORKFLOW_COMPLETE</promise>` from research.**
-Only `ralph-loop --max-iterations` stops Mode 1.
+**`ralph-loop --max-iterations` is the only stopping mechanism for Mode 1.** Do not attempt to signal or force workflow completion.
 
 ---
 

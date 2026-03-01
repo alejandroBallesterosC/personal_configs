@@ -23,13 +23,13 @@ model: haiku
 All modes are designed to run inside ralph-loop for multi-iteration autonomous execution:
 
 ```
-/ralph-loop:ralph-loop "/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...'" --max-iterations 50 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...'" --max-iterations 50
 
-/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40" --max-iterations 60 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40" --max-iterations 60
 
-/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20" --max-iterations 150
 
-/ralph-loop:ralph-loop "/autonomous-workflow:implement 'project-name'" --max-iterations 80 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:implement 'project-name'" --max-iterations 80
 ```
 
 ### Budget Arguments
@@ -70,11 +70,10 @@ Research cycles through 8 strategies to stay productive. When a strategy produce
 
 ## Hooks
 
-| Event | Hook | Purpose |
-|-------|------|---------|
-| PreCompact | auto-checkpoint.sh | Saves transcript + state snapshot before compaction |
-| SessionStart | auto-resume.sh | Restores context after compact/clear |
-| Stop | verify-state.sh | Verifies state file accuracy before allowing exit |
+| Event | Type | Hook | Purpose |
+|-------|------|------|---------|
+| Stop | agent | (inline prompt) | Verifies state file accuracy before allowing exit |
+| SessionStart | command | auto-resume-after-compact-or-clear.sh | Restores context after compact/clear |
 
 ## Phase Transitions
 
@@ -82,7 +81,7 @@ Research cycles through 8 strategies to stay productive. When a strategy produce
 - **Research -> Planning** (Modes 2+3): Budget-based. Transitions when `total_iterations_research >= research_budget`.
 - **Planning (Mode 2)**: Runs until `ralph-loop --max-iterations` stops it.
 - **Planning -> Implementation** (Mode 3): Budget-based. Transitions when `total_iterations_planning >= planning_budget`.
-- **Implementation complete** (Modes 3+4): When all features have `passes: true` or `failed: true`.
+- **Implementation** (Modes 3+4): Each iteration implements one feature. When all features have `passes: true` or `failed: true`, remaining iterations skip work.
 
 ## Artifacts
 
@@ -96,7 +95,7 @@ Artifacts live in `docs/autonomous/<topic>/` with separate research and implemen
 | `<topic>-report.tex` | All | Research report (LaTeX) |
 | `<topic>-report.pdf` | All | Compiled report (at phase boundaries) |
 | `sources.bib` | All | BibTeX bibliography |
-| `transcripts/` | All | PreCompact transcript backups (research phase) |
+| `transcripts/` | All | Transcript backups (research phase) |
 
 **Implementation directory** (`docs/autonomous/<topic>/implementation/`):
 
@@ -106,14 +105,14 @@ Artifacts live in `docs/autonomous/<topic>/` with separate research and implemen
 | `<topic>-implementation-plan.md` | 2, 3, 4 | Implementation plan (Markdown) |
 | `feature-list.json` | 3, 4 | Implementation tracker (JSON) |
 | `progress.txt` | 3, 4 | Human-readable progress log |
-| `transcripts/` | 2, 3, 4 | PreCompact transcript backups (implementation phase) |
+| `transcripts/` | 2, 3, 4 | Transcript backups (implementation phase) |
 
 ## Dependencies
 
 | Dependency | Required | Install |
 |------------|----------|---------|
 | ralph-loop plugin | Yes | `/plugin install ralph-loop` |
-| jq | Yes (hooks) | `brew install jq` |
+| yq + jq | Yes (hooks) | `brew install yq jq` |
 | MacTeX | For PDF output | `brew install --cask mactex-no-gui` |
 | exa MCP server | For deep research | Configure with `EXA_API_KEY` |
 

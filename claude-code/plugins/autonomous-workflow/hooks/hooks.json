@@ -1,12 +1,13 @@
 {
-  "description": "Autonomous workflow hooks - transcript checkpointing, context restoration, and state verification for long-running autonomous workflows",
+  "description": "Autonomous workflow hooks - state verification (agent) and context restoration (shell) for long-running autonomous workflows",
   "hooks": {
-    "PreCompact": [
+    "Stop": [
       {
         "hooks": [
           {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-checkpoint.sh"
+            "type": "agent",
+            "prompt": "Verify whether the autonomous workflow state file is up to date before allowing Claude to stop.\n\n## Step 1: Detection\n\nSearch for active autonomous workflow state files:\n\n1. Search for files matching `docs/autonomous/*/implementation/*-state.md`\n2. Search for files matching `docs/autonomous/*/research/*-state.md`\n\nIf no state file exists: return {\"ok\": true} (no active workflow)\nIf state file(s) exist: read the YAML frontmatter and check the `status` field\nIf `status: complete`: return {\"ok\": true}\nIf `status: in_progress`: proceed to Step 2\n\n## Step 2: Gather Evidence\n\nFor the active state file, thoroughly investigate:\n\n1. **Read the state file** - Note what phase, iteration count, and progress it claims\n2. **Check recent git changes** - Run `git diff` and `git status` to see what files changed\n3. **Read relevant artifacts**:\n   - Research phase: the `.tex` report file in the research directory\n   - Planning phase: the `-implementation-plan.md` file in the implementation directory\n   - Implementation phase: `feature-list.json` and `progress.txt` in the implementation directory\n4. **Review conversation context** - What work was discussed or completed?\n\n## Step 3: Verify Against Criteria\n\n### For Research phase (Phase A):\n1. **Phase accuracy**: `current_phase` matches the actual phase evident from the work done\n2. **Iteration accuracy**: `iteration` and `total_iterations_research` reflect the actual iteration count\n3. **Sources consistency**: `sources_cited` and `findings_count` are consistent with the report content\n4. **Strategy accuracy**: `current_research_strategy` matches the strategy that was actually used\n5. **Open questions**: The open questions section in the state file is current\n\n### For Planning phase (Phase B):\n1. **Phase accuracy**: `current_phase` matches the actual phase evident from the work done\n2. **Iteration accuracy**: `total_iterations_planning` reflects the actual iteration count\n3. **Plan freshness**: The plan file was updated (not stale from a previous iteration)\n4. **No stale progress**: Progress descriptions reflect actual current work\n\n### For Implementation phase (Phase C):\n1. **Phase accuracy**: `current_phase` matches the actual phase evident from the work done\n2. **Features complete accuracy**: `features_complete` matches the count of features with `passes: true` in feature-list.json\n3. **Features failed accuracy**: `features_failed` matches the count of features with `failed: true` in feature-list.json\n4. **Iteration accuracy**: `total_iterations_coding` reflects the actual iteration count\n5. **Progress freshness**: progress.txt reflects the latest feature result\n\n## Step 4: Decision\n\n- If NO state file found: return {\"ok\": true}\n- If state file status is `complete`: return {\"ok\": true}\n- If ALL criteria pass for the active phase: return {\"ok\": true}\n- If ANY criterion fails: return {\"ok\": false, \"reason\": \"State file is outdated: [specific criterion that failed and what needs to be corrected]\"}\n\nBe strict. If in doubt, fail the check - it is better to force an update than allow stale state.",
+            "timeout": 120
           }
         ]
       }
@@ -17,17 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-resume.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/verify-state.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-resume-after-compact-or-clear.sh"
           }
         ]
       }

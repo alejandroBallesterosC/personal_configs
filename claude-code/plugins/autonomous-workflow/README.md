@@ -31,7 +31,7 @@ Long-running autonomous research, planning, and TDD implementation workflows wit
 | Dependency | Required | Install |
 |------------|----------|---------|
 | ralph-loop plugin | Yes | `/plugin install ralph-loop` |
-| jq | Yes (hooks) | `brew install jq` |
+| yq + jq | Yes (hooks) | `brew install yq jq` |
 | MacTeX | For PDF output | `brew install --cask mactex-no-gui` |
 | exa MCP server | For deep research | Configure with `EXA_API_KEY` |
 
@@ -40,17 +40,17 @@ Long-running autonomous research, planning, and TDD implementation workflows wit
 All modes run inside ralph-loop for multi-iteration autonomous execution:
 
 ```bash
-# Mode 1: Research only (runs until --max-iterations)
-/ralph-loop:ralph-loop "/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...'" --max-iterations 50 --completion-promise "WORKFLOW_COMPLETE"
+# Mode 1: Research only
+/ralph-loop:ralph-loop "/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...'" --max-iterations 50
 
 # Mode 2: Research + Planning (research budget: 40 iterations)
-/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40" --max-iterations 60 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40" --max-iterations 60
 
 # Mode 3: Full autonomous (research budget: 50, planning budget: 20)
-/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20" --max-iterations 150
 
 # Mode 4: Implement from existing plan
-/ralph-loop:ralph-loop "/autonomous-workflow:implement 'project-name'" --max-iterations 80 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:implement 'project-name'" --max-iterations 80
 ```
 
 Commands can also be run once without ralph-loop for testing (single iteration).
@@ -61,7 +61,7 @@ Commands can also be run once without ralph-loop for testing (single iteration).
 commands/          6 commands (research, research-and-plan, full-auto, implement, continue-auto, help)
 agents/            6 agents (researcher, repo-analyst, latex-compiler, plan-architect, plan-critic, autonomous-coder)
 skills/            1 skill (autonomous-workflow-guide — source of truth loaded by all commands)
-hooks/             3 hooks (PreCompact checkpoint, SessionStart resume, Stop state verification)
+hooks/             2 hooks (Stop agent for state verification, SessionStart shell for context resume)
 templates/         1 LaTeX template (report)
 ```
 
@@ -78,11 +78,10 @@ templates/         1 LaTeX template (report)
 
 ### Hooks
 
-| Event | Hook | Purpose |
-|-------|------|---------|
-| PreCompact | auto-checkpoint.sh | Saves transcript + state snapshot before compaction |
-| SessionStart | auto-resume.sh | Restores context after compact/clear |
-| Stop | verify-state.sh | Verifies state file accuracy before allowing exit |
+| Event | Type | Hook | Purpose |
+|-------|------|------|---------|
+| Stop | agent | (inline prompt) | Verifies state file accuracy before allowing exit |
+| SessionStart | command | auto-resume-after-compact-or-clear.sh | Restores context after compact/clear |
 
 ## Research Strategies
 
@@ -108,7 +107,7 @@ Artifacts live in `docs/autonomous/<topic>/` with separate research and implemen
 | `<topic>-state.md` | 1, 2, 3 | Research phase state |
 | `<topic>-report.tex` | All | Research report (LaTeX) |
 | `sources.bib` | All | BibTeX bibliography |
-| `transcripts/` | All | PreCompact transcript backups |
+| `transcripts/` | All | Transcript backups |
 
 **Implementation** (`docs/autonomous/<topic>/implementation/`):
 
@@ -118,7 +117,7 @@ Artifacts live in `docs/autonomous/<topic>/` with separate research and implemen
 | `<topic>-implementation-plan.md` | 2, 3, 4 | Implementation plan (Markdown) |
 | `feature-list.json` | 3, 4 | Implementation feature tracker (JSON) |
 | `progress.txt` | 3, 4 | Human-readable progress log |
-| `transcripts/` | 2, 3, 4 | PreCompact transcript backups |
+| `transcripts/` | 2, 3, 4 | Transcript backups |
 
 ## Phase Transitions
 
@@ -126,7 +125,7 @@ Artifacts live in `docs/autonomous/<topic>/` with separate research and implemen
 - **Research -> Planning** (Modes 2, 3): Budget-based. Transitions when `total_iterations_research >= research_budget`.
 - **Planning (Mode 2)**: Runs until `ralph-loop --max-iterations` stops it.
 - **Planning -> Implementation** (Mode 3): Budget-based. Transitions when `total_iterations_planning >= planning_budget`.
-- **Implementation complete** (Modes 3, 4): When all features have `passes: true` or `failed: true`.
+- **Implementation** (Modes 3, 4): Each iteration implements one feature. When all features have `passes: true` or `failed: true`, remaining iterations skip work.
 
 ## Cost Estimates
 

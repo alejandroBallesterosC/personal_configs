@@ -184,7 +184,7 @@ Read `docs/autonomous/$1/implementation/feature-list.json`.
 - `failed` is `false`
 - ALL features in `dependencies` have `passes: true`
 
-If no such feature (all passed or failed): go to Completion.
+If no such feature (all passed or failed): go to All Features Resolved.
 
 ### Spawn Autonomous Coder
 
@@ -217,12 +217,13 @@ Implement using strict RED-GREEN-REFACTOR. Commit at each phase. Run the full te
 
 Increment `iteration`, `total_iterations_coding`, update `features_complete`, `features_failed`.
 
-### Completion
+### All Features Resolved
 
 When all features resolved (all `passes: true` or `failed: true`):
-1. Send notification: `osascript -e 'display notification "Implementation complete: N/M features passing" with title "Autonomous Workflow" subtitle "$1"'`
-2. Update state: `status: complete`, mark Phase C complete
-3. Output `<promise>WORKFLOW_COMPLETE</promise>` so ralph-loop stops iterating
+1. Send notification: `osascript -e 'display notification "All features resolved: N/M passing" with title "Autonomous Workflow" subtitle "$1"'`
+2. Update state: `status: complete`, mark Phase C in checklist
+
+Note: The workflow does NOT signal ralph-loop to stop. `--max-iterations` is the only stopping mechanism. Remaining iterations after all features are resolved will detect `status: complete` and skip work.
 
 ---
 
@@ -241,5 +242,5 @@ When all features resolved (all `passes: true` or `failed: true`):
 - Iterations: N
 
 ### Next:
-- [Next feature to implement, or "Complete"]
+- [Next feature to implement, or "All features resolved"]
 ```

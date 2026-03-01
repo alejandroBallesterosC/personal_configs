@@ -5,7 +5,7 @@ argument-hint: <project-name> "Your detailed prompt..." [--research-iterations N
 ---
 
 # ABOUTME: Mode 3 command that runs research, planning, and TDD implementation autonomously.
-# ABOUTME: Budget-based phase transitions for A->B and B->C; implementation completes naturally.
+# ABOUTME: Budget-based phase transitions for A->B and B->C; all phases run for their iteration budgets.
 
 # Full Autonomous Workflow
 
@@ -116,7 +116,7 @@ When planning budget is exhausted:
    ```
 
 6. **Update state**:
-   - Mark Phase B as complete
+   - Mark Phase B in checklist
    - Set `current_phase: "Phase C: Implementation"`
    - Set `features_total` to the count of features in JSON
    - Reset counters
@@ -137,8 +137,8 @@ Read `docs/autonomous/$1/implementation/feature-list.json`.
 - ALL features listed in `dependencies` have `passes: true`
 
 If no such feature exists:
-- If all features have `passes: true` or `failed: true`: implementation is COMPLETE
-- In this case: go to Step C5 (Completion)
+- If all features have `passes: true` or `failed: true`: all features are resolved
+- In this case: go to Step C5 (All Features Resolved)
 
 ### Step C2: Spawn Autonomous Coder
 
@@ -187,27 +187,25 @@ Read the autonomous-coder agent's output:
 2. Update `features_complete` (count of `passes: true` in JSON)
 3. Update `features_failed` (count of `failed: true` in feature-list.json)
 
-### Step C5: Completion Check
+### Step C5: All Features Resolved
 
 If all features are resolved (passed or failed):
 
 1. **Compile final research report**:
    Spawn `autonomous-workflow:latex-compiler` for the report at `docs/autonomous/$1/research/$1-report.tex`
 
-2. **Send completion notification**:
+2. **Send notification**:
    ```
-   Run via Bash: osascript -e 'display notification "Implementation complete: N/M features passing" with title "Autonomous Workflow" subtitle "$1"'
+   Run via Bash: osascript -e 'display notification "All features resolved: N/M passing" with title "Autonomous Workflow" subtitle "$1"'
    ```
 
 3. **Update state**:
-   - Mark Phase C as complete
+   - Mark Phase C in checklist
    - Set `status: complete`
 
-4. **Signal completion to ralph-loop**:
-   Output `<promise>WORKFLOW_COMPLETE</promise>` so ralph-loop stops iterating.
-   (Both Mode 3 and Mode 4 emit WORKFLOW_COMPLETE on Phase C completion. Research and planning never emit it.)
+4. **Output summary** (see OUTPUT section)
 
-5. **Output final summary** (see OUTPUT section)
+Note: The workflow does NOT signal ralph-loop to stop. `--max-iterations` is the only stopping mechanism. Remaining iterations after all features are resolved will detect `status: complete` and skip work.
 
 ---
 
