@@ -1,14 +1,15 @@
 # Personal Development Configurations
 
-Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 6 plugins, configuration sync scripts, and IDE integrations.
+Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 7 plugins, configuration sync scripts, and IDE integrations.
 
 ## Repository Structure
 
 ```
 personal_configs/
 ├── claude-code/
-│   ├── plugins/                    # 6 encapsulated workflow plugins
+│   ├── plugins/                    # 7 encapsulated workflow plugins
 │   │   ├── dev-workflow/           # 12 agents, 18 commands, 6 skills, 4 hooks (TDD + Debug)
+│   │   ├── autonomous-workflow/    # 6 agents, 6 commands, 1 skill, 3 hooks (Research/Plan/Implement)
 │   │   ├── playwright/             # Browser automation (JS + skill)
 │   │   ├── claude-session-feedback/ # 4 commands
 │   │   ├── infrastructure-as-code/ # 1 command, 1 skill
@@ -20,7 +21,7 @@ personal_configs/
 │   └── global_mcp_settings.json    # MCP server configuration
 ├── cursor/                         # Cursor IDE parallel configs
 ├── sync-content-scripts/           # 9 sync scripts (bidirectional + cursor)
-├── .vscode/                        # VS Code tasks (15 sync tasks)
+├── .vscode/                        # VS Code tasks (16 total: 9 working sync + 4 dead sync + 3 other)
 ├── docs/
 │   └── CODEBASE.md                 # Comprehensive codebase analysis
 └── CLAUDE.md                       # Project-specific instructions
@@ -95,6 +96,35 @@ EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE �
 /dev-workflow:8-verify emoji-bug
 ```
 
+### Autonomous Workflow Plugin
+
+### `claude-code/plugins/autonomous-workflow/`
+
+Long-running autonomous research, planning, and TDD implementation with 4 modes, 8 research strategies, budget-based phase transitions, and LaTeX report output.
+
+**Modes:**
+| Mode | Command | Phases | Outputs |
+|------|---------|--------|---------|
+| 1 | `/autonomous-workflow:research` | Research only | LaTeX report |
+| 2 | `/autonomous-workflow:research-and-plan` | Research + Plan | Report + plan |
+| 3 | `/autonomous-workflow:full-auto` | Research + Plan + Implement | Report + plan + code |
+| 4 | `/autonomous-workflow:implement` | Implement from plan | Working code |
+
+**Commands:**
+```bash
+# Research only (infinite until ralph-loop stops)
+/ralph-loop:ralph-loop "/autonomous-workflow:research 'topic' 'prompt'" --max-iterations 50
+
+# Full autonomous (research + planning + TDD implementation)
+/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project' 'prompt' 30 15" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
+
+# Resume interrupted workflow
+/autonomous-workflow:continue-auto project-name
+
+# Help
+/autonomous-workflow:help
+```
+
 ### Other Plugins
 
 | Plugin | Purpose | Components |
@@ -162,6 +192,7 @@ Register this repo as a Claude Code plugin marketplace, then install plugins:
 Then install plugins:
 ```bash
 /plugin install dev-workflow
+/plugin install autonomous-workflow
 /plugin install playwright
 /plugin install claude-session-feedback
 /plugin install infrastructure-as-code
@@ -181,21 +212,25 @@ Then install plugins:
 ### Context Preservation
 
 Context is preserved automatically via hooks:
-- **Stop hook**: Runs scoped tests + verifies state file accuracy before allowing Claude to stop
-- **SessionStart hook**: Auto-restores workflow context after `/compact` or `/clear`
-- **Manual resume**: `/dev-workflow:continue-workflow <name>` for fresh sessions
+- **Stop hook**: Runs scoped tests + verifies state file accuracy before allowing Claude to stop (dev-workflow + autonomous-workflow)
+- **SessionStart hook**: Auto-restores workflow context after `/compact` or `/clear` (dev-workflow + autonomous-workflow)
+- **PreCompact hook**: Saves transcript + state snapshot before context compaction (autonomous-workflow only)
+- **Manual resume**: `/dev-workflow:continue-workflow <name>` or `/autonomous-workflow:continue-auto <name>` for fresh sessions
 
 ## External Dependencies
 
-- **ralph-loop plugin** (required for TDD implementation phases 7-9)
+- **ralph-loop plugin** (required for TDD implementation phases 7-9 and autonomous workflows)
 - **Claude Code** (runtime environment)
+- **yq + jq** (required for hooks — `brew install yq jq` on macOS)
 - **uv** (Python package management, referenced in docs)
 - **Node.js 18+** (for Playwright plugin)
+- **MacTeX** (optional, for autonomous-workflow LaTeX PDF compilation)
 
 ## Documentation
 
 - `docs/CODEBASE.md` - Comprehensive codebase analysis (architecture, workflows, open questions)
 - `claude-code/plugins/dev-workflow/README.md` - Dev workflow plugin reference
+- `claude-code/plugins/autonomous-workflow/README.md` - Autonomous workflow plugin reference
 - `claude-code/docs/` - Python, UV, Docker best practices
 
 ---
