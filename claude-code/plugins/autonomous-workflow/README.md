@@ -44,10 +44,10 @@ All modes run inside ralph-loop for multi-iteration autonomous execution:
 /ralph-loop:ralph-loop "/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...'" --max-iterations 50 --completion-promise "WORKFLOW_COMPLETE"
 
 # Mode 2: Research + Planning (research budget: 40 iterations)
-/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' 40" --max-iterations 60 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40" --max-iterations 60 --completion-promise "WORKFLOW_COMPLETE"
 
 # Mode 3: Full autonomous (research budget: 50, planning budget: 20)
-/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' 50 20" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
 
 # Mode 4: Implement from existing plan
 /ralph-loop:ralph-loop "/autonomous-workflow:implement 'project-name'" --max-iterations 80 --completion-promise "WORKFLOW_COMPLETE"

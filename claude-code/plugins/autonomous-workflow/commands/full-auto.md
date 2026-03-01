@@ -1,7 +1,7 @@
 ---
 description: "Mode 3: Autonomous research, planning, and TDD implementation without human interaction"
 model: opus
-argument-hint: <project-name> "Your detailed prompt..." [research-budget] [planning-budget]
+argument-hint: <project-name> "Your detailed prompt..." [--research-iterations N] [--plan-iterations N]
 ---
 
 # ABOUTME: Mode 3 command that runs research, planning, and TDD implementation autonomously.
@@ -11,8 +11,11 @@ argument-hint: <project-name> "Your detailed prompt..." [research-budget] [plann
 
 **Project**: $1
 **Prompt**: $2
-**Research Budget**: $3 (optional — number of research iterations before transitioning to planning. Default: 30)
-**Planning Budget**: $4 (optional — number of planning iterations before transitioning to implementation. Default: 15)
+**All Arguments**: $ARGUMENTS
+
+Parse optional flags from **All Arguments**:
+- `--research-iterations N`: number of research iterations before transitioning to planning (default: 30)
+- `--plan-iterations N`: number of planning iterations before transitioning to implementation (default: 15)
 
 ## Objective
 
@@ -30,9 +33,8 @@ Check if `docs/autonomous/$1/research/$1-state.md` exists.
 
 Same as `/autonomous-workflow:research-and-plan` initialization, but with:
 - `workflow_type: autonomous-full-auto`
-- Parse research budget: if $3 is provided and is a number, use it; otherwise default to 30
-- Parse planning budget: if $4 is provided and is a number, use it; otherwise default to 15
-- Add `research_budget` and `planning_budget` to YAML frontmatter
+- Set `research_budget` in YAML frontmatter to the value from `--research-iterations` (or 30 if not provided)
+- Set `planning_budget` in YAML frontmatter to the value from `--plan-iterations` (or 15 if not provided)
 - Add `## Implementation Progress` section to state file
 - Add `features_total: 0`, `features_complete: 0`, `features_failed: 0`, `total_iterations_coding: 0` to YAML frontmatter
 - Add Phase C to the Completed Phases checklist

@@ -1,7 +1,7 @@
 ---
 description: "Mode 2: Autonomous deep research followed by iterative implementation plan design"
 model: opus
-argument-hint: <project-name> "Your detailed research and planning prompt..." [research-budget]
+argument-hint: <project-name> "Your detailed research and planning prompt..." [--research-iterations N]
 ---
 
 # ABOUTME: Mode 2 command that runs research (Phase A) then iterative plan design (Phase B).
@@ -11,7 +11,10 @@ argument-hint: <project-name> "Your detailed research and planning prompt..." [r
 
 **Project**: $1
 **Prompt**: $2
-**Research Budget**: $3 (optional — number of research iterations before transitioning to planning. Default: 30)
+**All Arguments**: $ARGUMENTS
+
+Parse optional flags from **All Arguments**:
+- `--research-iterations N`: number of research iterations before transitioning to planning (default: 30)
 
 ## Objective
 
@@ -41,7 +44,7 @@ Check if `docs/autonomous/$1/research/$1-state.md` exists.
 
 3. Create empty bibliography file `docs/autonomous/$1/research/sources.bib`
 
-4. Parse research budget: if $3 is provided and is a number, use it; otherwise default to 30.
+4. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 30.
 
 5. Create state file `docs/autonomous/$1/research/$1-state.md`:
    ```yaml
@@ -55,7 +58,7 @@ Check if `docs/autonomous/$1/research/$1-state.md` exists.
    total_iterations_planning: 0
    sources_cited: 0
    findings_count: 0
-   research_budget: 30
+   research_budget: <parsed from --research-iterations flag, or 30 if not provided>
    current_research_strategy: wide-exploration
    research_strategies_completed: []
    strategy_rotation_threshold: 3

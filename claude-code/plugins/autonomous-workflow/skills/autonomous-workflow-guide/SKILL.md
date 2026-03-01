@@ -101,7 +101,7 @@ Each iteration counts 5 types of productive contributions:
 No phase transitions. Strategy rotation keeps research productive. Only `ralph-loop --max-iterations` stops Mode 1.
 
 ### Research to Planning (Modes 2+3)
-Budget-based. The user specifies a `research_budget` (default: 30) as the third argument. When `total_iterations_research >= research_budget`, Phase A transitions to Phase B.
+Budget-based. The user specifies a `research_budget` (default: 30) via the `--research-iterations` flag. When `total_iterations_research >= research_budget`, Phase A transitions to Phase B.
 
 On transition: compile report PDF, set research state to `complete`, create implementation directory with Markdown plan and implementation state file, send macOS notification.
 
@@ -109,7 +109,7 @@ On transition: compile report PDF, set research state to `complete`, create impl
 No auto-termination. Planning runs until `ralph-loop --max-iterations` stops the workflow.
 
 ### Planning to Implementation (Mode 3)
-Budget-based. The user specifies a `planning_budget` (default: 15) as the fourth argument. When `total_iterations_planning >= planning_budget`, Phase B transitions to Phase C.
+Budget-based. The user specifies a `planning_budget` (default: 15) via the `--plan-iterations` flag. When `total_iterations_planning >= planning_budget`, Phase B transitions to Phase C.
 
 On transition: generate `feature-list.json` from plan, create `progress.txt`, compile report PDF, send notification.
 
@@ -149,7 +149,7 @@ research_strategies_completed: []
 strategy_rotation_threshold: 3
 contributions_last_iteration: 2
 consecutive_low_contributions: 0
-research_budget: 30
+research_budget: <from --research-iterations flag, or 30>
 ---
 ```
 
@@ -167,8 +167,8 @@ total_iterations_planning: 0
 total_iterations_coding: 0
 sources_cited: <from research state>
 findings_count: <from research state>
-research_budget: 30
-planning_budget: 15
+research_budget: <from research state>
+planning_budget: <from --plan-iterations flag, or 15>
 features_total: 0
 features_complete: 0
 features_failed: 0

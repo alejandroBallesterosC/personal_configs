@@ -116,7 +116,7 @@ Long-running autonomous research, planning, and TDD implementation with 4 modes,
 /ralph-loop:ralph-loop "/autonomous-workflow:research 'topic' 'prompt'" --max-iterations 50
 
 # Full autonomous (research + planning + TDD implementation)
-/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project' 'prompt' 30 15" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project' 'prompt' --research-iterations 30 --plan-iterations 15" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
 
 # Resume interrupted workflow
 /autonomous-workflow:continue-auto project-name

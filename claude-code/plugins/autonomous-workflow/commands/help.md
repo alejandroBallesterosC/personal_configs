@@ -25,19 +25,20 @@ All modes are designed to run inside ralph-loop for multi-iteration autonomous e
 ```
 /ralph-loop:ralph-loop "/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...'" --max-iterations 50 --completion-promise "WORKFLOW_COMPLETE"
 
-/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' 40" --max-iterations 60 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40" --max-iterations 60 --completion-promise "WORKFLOW_COMPLETE"
 
-/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' 50 20" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
+/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
 
 /ralph-loop:ralph-loop "/autonomous-workflow:implement 'project-name'" --max-iterations 80 --completion-promise "WORKFLOW_COMPLETE"
 ```
 
 ### Budget Arguments
 
-| Mode | Arg $3 | Arg $4 | Description |
-|------|--------|--------|-------------|
-| 2 | Research budget (default: 30) | — | Iterations of research before transitioning to planning |
-| 3 | Research budget (default: 30) | Planning budget (default: 15) | Iterations before each phase transition |
+| Mode | Flag | Default | Description |
+|------|------|---------|-------------|
+| 2 | `--research-iterations N` | 30 | Iterations of research before transitioning to planning |
+| 3 | `--research-iterations N` | 30 | Iterations of research before transitioning to planning |
+| 3 | `--plan-iterations N` | 15 | Iterations of planning before transitioning to implementation |
 
 Commands can also be run once without ralph-loop for testing (single iteration).
 
