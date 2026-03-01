@@ -42,7 +42,7 @@ The working directory MUST be the directory containing the `.tex` file. This is 
 
 Run via Bash (all in one command):
 ```
-cd /path/to/docs/research-<topic> && pdflatex -interaction=nonstopmode <topic>-report.tex && bibtex <topic>-report && pdflatex -interaction=nonstopmode <topic>-report.tex && pdflatex -interaction=nonstopmode <topic>-report.tex
+cd /path/to/docs/autonomous/<topic>/research && pdflatex -interaction=nonstopmode <topic>-report.tex && bibtex <topic>-report && pdflatex -interaction=nonstopmode <topic>-report.tex && pdflatex -interaction=nonstopmode <topic>-report.tex
 ```
 
 The triple `pdflatex` run is standard LaTeX: first pass builds structure, `bibtex` resolves references, second pass incorporates references, third pass fixes cross-references.

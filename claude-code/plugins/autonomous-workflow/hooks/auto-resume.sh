@@ -29,7 +29,7 @@ fi
 
 # Find active autonomous workflow state file
 ACTIVE_STATE=""
-for state_file in docs/research-*/*-state.md; do
+for state_file in docs/autonomous/*/research/*-state.md docs/autonomous/*/implementation/*-state.md; do
   [ -f "$state_file" ] || continue
   # Parse YAML frontmatter using sed/grep (no yq dependency)
   FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$state_file")
@@ -52,29 +52,31 @@ CURRENT_PHASE=$(echo "$FRONTMATTER" | grep '^current_phase:' | sed 's/current_ph
 NAME=$(echo "$FRONTMATTER" | grep '^name:' | sed 's/name: *//' | sed "s/^['\"]//;s/['\"]$//")
 
 STATE_DIR=$(dirname "$ACTIVE_STATE")
+TOPIC_DIR=$(dirname "$STATE_DIR")
 STATE_CONTENT=$(cat "$ACTIVE_STATE" 2>/dev/null)
 
-# Build context restoration files list based on workflow type
+# Build context restoration files list based on directory context
 RESTORE_FILES="- \`${ACTIVE_STATE}\` (state file — already included below)"
+
+# Research report is always in the research directory
+RESEARCH_DIR="${TOPIC_DIR}/research"
+IMPL_DIR="${TOPIC_DIR}/implementation"
+
 RESTORE_FILES="${RESTORE_FILES}
-- \`${STATE_DIR}/${NAME}-report.tex\` (research report)"
+- \`${RESEARCH_DIR}/${NAME}-report.tex\` (research report)"
 
 case "$WORKFLOW_TYPE" in
-  autonomous-research-plan|autonomous-full-auto)
+  autonomous-research-plan|autonomous-full-auto|autonomous-implement)
     RESTORE_FILES="${RESTORE_FILES}
-- \`${STATE_DIR}/${NAME}-plan.tex\` (implementation plan)"
-    ;;
-  autonomous-implement)
-    RESTORE_FILES="${RESTORE_FILES}
-- \`${STATE_DIR}/${NAME}-plan.tex\` or \`${STATE_DIR}/${NAME}-plan.md\` (implementation plan)"
+- \`${IMPL_DIR}/${NAME}-implementation-plan.md\` (implementation plan)"
     ;;
 esac
 
 case "$WORKFLOW_TYPE" in
   autonomous-full-auto|autonomous-implement)
     RESTORE_FILES="${RESTORE_FILES}
-- \`${STATE_DIR}/feature-list.json\` (implementation tracker)
-- \`${STATE_DIR}/progress.txt\` (progress log)"
+- \`${IMPL_DIR}/feature-list.json\` (implementation tracker)
+- \`${IMPL_DIR}/progress.txt\` (progress log)"
     ;;
 esac
 

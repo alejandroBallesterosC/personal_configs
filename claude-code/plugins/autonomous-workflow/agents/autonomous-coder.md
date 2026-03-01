@@ -63,6 +63,13 @@ $ARGUMENTS
 4. If refactoring breaks tests, revert and try a smaller refactor
 5. Commit: `git commit -m "refactor: [FeatureID] <what was improved>"`
 
+## Step 5: Verify Against Spec
+
+1. Re-read the feature description and acceptance criteria from your task
+2. Walk through each acceptance criterion and verify the implementation satisfies it — not just that tests pass, but that the feature behaves correctly end-to-end
+3. If any criterion is not met, write an additional failing test for it and repeat Steps 3-4 (GREEN-REFACTOR)
+4. If the feature involves user-facing behavior, verify it manually where possible (run the app, check the output)
+
 ## Output Format
 
 Return EXACTLY this structure:

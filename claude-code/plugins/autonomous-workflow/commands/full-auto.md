@@ -1,20 +1,22 @@
 ---
 description: "Mode 3: Autonomous research, planning, and TDD implementation without human interaction"
 model: opus
-argument-hint: <project-name> "Your detailed prompt..."
+argument-hint: <project-name> "Your detailed prompt..." [research-budget] [planning-budget]
 ---
 
 # ABOUTME: Mode 3 command that runs research, planning, and TDD implementation autonomously.
-# ABOUTME: One iteration per invocation across three phases; ralph-loop drives continuation.
+# ABOUTME: Budget-based phase transitions for A->B and B->C; implementation completes naturally.
 
 # Full Autonomous Workflow
 
 **Project**: $1
 **Prompt**: $2
+**Research Budget**: $3 (optional — number of research iterations before transitioning to planning. Default: 30)
+**Planning Budget**: $4 (optional — number of planning iterations before transitioning to implementation. Default: 15)
 
 ## Objective
 
-Run ONE ITERATION of research (Phase A), planning (Phase B), or implementation (Phase C). The workflow transitions automatically between phases. Ralph-loop calls this command repeatedly for multi-day execution.
+Run ONE ITERATION of research (Phase A), planning (Phase B), or implementation (Phase C). The workflow transitions between phases based on iteration budgets. Ralph-loop calls this command repeatedly for multi-day execution.
 
 **REQUIRED**: Use the Skill tool to invoke `autonomous-workflow:autonomous-workflow-guide` to load the workflow source of truth.
 
@@ -22,14 +24,17 @@ Run ONE ITERATION of research (Phase A), planning (Phase B), or implementation (
 
 ## STEP 1: Initialize or Resume
 
-Check if `docs/research-$1/$1-state.md` exists.
+Check if `docs/autonomous/$1/research/$1-state.md` exists.
 
 ### If state file does NOT exist (first iteration):
 
 Same as `/autonomous-workflow:research-and-plan` initialization, but with:
 - `workflow_type: autonomous-full-auto`
+- Parse research budget: if $3 is provided and is a number, use it; otherwise default to 30
+- Parse planning budget: if $4 is provided and is a number, use it; otherwise default to 15
+- Add `research_budget` and `planning_budget` to YAML frontmatter
 - Add `## Implementation Progress` section to state file
-- Add `features_total: 0`, `features_complete: 0`, `features_failed: 0` to YAML frontmatter
+- Add `features_total: 0`, `features_complete: 0`, `features_failed: 0`, `total_iterations_coding: 0` to YAML frontmatter
 - Add Phase C to the Completed Phases checklist
 
 ### If state file EXISTS:
@@ -44,9 +49,11 @@ Same as `/autonomous-workflow:research-and-plan` initialization, but with:
 
 **You MUST read `/autonomous-workflow:research` (Steps 2-8) AND `/autonomous-workflow:research-and-plan` (Phase A) before executing this phase.** The full iteration logic lives in those commands. This phase follows the same logic with research focused on: technical feasibility, competitive landscape, architecture patterns, defensibility, technology stack.
 
-Phase transition trigger: `consecutive_low_findings >= phase_transition_threshold`.
+Uses strategy rotation from `/autonomous-workflow:research` Step 7 (never auto-terminates within Phase A).
 
-On transition: compile report, create plan `.tex` from template (replace `PLACEHOLDER_TITLE` with project name), send notification, update state to Phase B, continue to Phase B in this same iteration.
+Phase transition trigger: `total_iterations_research >= research_budget`.
+
+On transition: compile report, create implementation directory and Markdown plan at `docs/autonomous/$1/implementation/$1-implementation-plan.md`, set research state to `complete`, create implementation state file at `docs/autonomous/$1/implementation/$1-state.md` with `current_phase: "Phase B: Planning"`, send notification, continue to Phase B in this same iteration. Follow the same Phase A->B transition logic from `/autonomous-workflow:research-and-plan`.
 
 ---
 
@@ -54,14 +61,14 @@ On transition: compile report, create plan `.tex` from template (replace `PLACEH
 
 **You MUST read `/autonomous-workflow:research-and-plan` (Phase B) before executing this phase.** The full planning iteration logic lives in that command.
 
-Planning stability trigger: `consecutive_no_blockers >= 2`.
+Phase transition trigger: `total_iterations_planning >= planning_budget`.
 
-### Phase B → C Transition (differs from Mode 2)
+### Phase B -> C Transition (differs from Mode 2)
 
-When planning is stable, instead of marking complete:
+When planning budget is exhausted:
 
 1. **Generate feature-list.json**:
-   Read the plan `.tex` and decompose it into implementable features:
+   Read the plan `.md` and decompose it into implementable features:
    ```json
    {
      "features": [
@@ -77,7 +84,7 @@ When planning is stable, instead of marking complete:
      ]
    }
    ```
-   Write to `docs/research-$1/feature-list.json`.
+   Write to `docs/autonomous/$1/implementation/feature-list.json`.
 
    **Feature decomposition rules**:
    - Each feature should be independently testable
@@ -89,20 +96,21 @@ When planning is stable, instead of marking complete:
 2. **Create progress.txt**:
    ```
    # Implementation Progress: $1
-   # Generated from plan at docs/research-$1/$1-plan.tex
+   # Generated from plan at docs/autonomous/$1/implementation/$1-implementation-plan.md
 
    [<timestamp>] Phase C started. Total features: N
    ```
+   Write to `docs/autonomous/$1/implementation/progress.txt`.
 
 3. **Create init.sh** (if the plan mentions databases, servers, or infrastructure):
    A shell script that sets up the development environment. If the plan is purely library code, skip this.
 
-4. **Compile both LaTeX documents** (phase boundary):
-   Spawn `autonomous-workflow:latex-compiler`
+4. **Compile research report** (phase boundary):
+   Spawn `autonomous-workflow:latex-compiler` to compile `docs/autonomous/$1/research/$1-report.tex`
 
 5. **Send notification**:
    ```
-   Run via Bash: osascript -e 'display notification "Planning complete — starting implementation" with title "Autonomous Workflow" subtitle "$1"'
+   Run via Bash: osascript -e 'display notification "Planning budget reached — starting implementation" with title "Autonomous Workflow" subtitle "$1"'
    ```
 
 6. **Update state**:
@@ -117,7 +125,11 @@ When planning is stable, instead of marking complete:
 
 ### Step C1: Find Next Feature
 
-Read `docs/research-$1/feature-list.json` and find the first feature where:
+Read `docs/autonomous/$1/implementation/feature-list.json`.
+
+**First**, cascade dependency failures: for each feature where `passes` is `false` and `failed` is `false`, check if ANY feature in its `dependencies` has `failed: true`. If so, immediately mark that feature as `failed: true` in `feature-list.json` and log to `progress.txt`: `[<timestamp>] DEPENDENCY_FAILED: <feature.id> - <feature.name> — dependency <dep.id> failed`. Do NOT stop the workflow — continue scanning remaining features.
+
+**Then**, find the first feature where:
 - `passes` is `false`
 - `failed` is `false`
 - ALL features listed in `dependencies` have `passes: true`
@@ -140,7 +152,7 @@ prompt: "Implement the following feature using TDD:
 - Dependencies: <feature.dependencies> (already implemented and passing)
 
 ## Context
-- Plan: docs/research-$1/$1-plan.tex (read the relevant component section)
+- Plan: docs/autonomous/$1/implementation/$1-implementation-plan.md (read the relevant component section)
 - Codebase: Explore existing code for patterns and conventions
 - CLAUDE.md: Read for coding standards
 
@@ -177,8 +189,8 @@ Read the autonomous-coder agent's output:
 
 If all features are resolved (passed or failed):
 
-1. **Compile final LaTeX documents**:
-   Spawn `autonomous-workflow:latex-compiler` for both report and plan
+1. **Compile final research report**:
+   Spawn `autonomous-workflow:latex-compiler` for the report at `docs/autonomous/$1/research/$1-report.tex`
 
 2. **Send completion notification**:
    ```
@@ -191,6 +203,7 @@ If all features are resolved (passed or failed):
 
 4. **Signal completion to ralph-loop**:
    Output `<promise>WORKFLOW_COMPLETE</promise>` so ralph-loop stops iterating.
+   (Both Mode 3 and Mode 4 emit WORKFLOW_COMPLETE on Phase C completion. Research and planning never emit it.)
 
 5. **Output final summary** (see OUTPUT section)
 
@@ -202,13 +215,13 @@ If all features are resolved (passed or failed):
 ## Iteration N Complete — [Phase A | Phase B | Phase C]
 
 ### [Phase-specific summary]
-- [Phase A: New findings count and summaries]
-- [Phase B: Plan updates and blocker count]
+- [Phase A: Strategy, contributions, strategy progress]
+- [Phase B: Plan updates, blocker count]
 - [Phase C: Feature implemented/failed, test results]
 
 ### Overall Progress
-- Research iterations: N
-- Planning iterations: N
+- Research iterations: N/budget
+- Planning iterations: N/budget
 - Coding iterations: N
 - Features: N/M passing, F failed
 

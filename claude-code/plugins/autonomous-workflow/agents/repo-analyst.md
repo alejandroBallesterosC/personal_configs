@@ -60,6 +60,6 @@ Return EXACTLY this structure (200-500 words total):
 ## Rules
 
 - NEVER modify any files. You are read-only.
-- NEVER report on files inside `docs/research-*` — those are research artifacts, not codebase content.
+- NEVER report on files inside `docs/autonomous/*` — those are research artifacts, not codebase content.
 - Stay within 200-500 words. Be precise and relevant.
 - If the analysis question is not relevant to the codebase, say so explicitly rather than forcing connections.

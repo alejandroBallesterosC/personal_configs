@@ -21,36 +21,38 @@ Run ONE ITERATION of TDD implementation from an existing plan. Skips research (P
 
 ## STEP 1: Initialize or Resume
 
-Check if `docs/research-$1/$1-state.md` exists.
+Check if `docs/autonomous/$1/implementation/$1-state.md` exists.
 
 ### If state file does NOT exist (first run):
 
 #### Plan Detection
 
-Search for an existing plan in this order:
-1. `docs/research-$1/$1-plan.tex`
-2. `docs/research-$1/$1-plan.md`
-3. `docs/$1-plan.tex`
-4. `docs/$1-plan.md`
+Check for an existing plan at the canonical path:
+- `docs/autonomous/$1/implementation/$1-implementation-plan.md`
 
-If NONE found, output this error and stop:
+If NOT found, output this error and stop:
 ```
 ERROR: No plan found for project '$1'.
 
 Searched:
-- docs/research-$1/$1-plan.tex
-- docs/research-$1/$1-plan.md
-- docs/$1-plan.tex
-- docs/$1-plan.md
+- docs/autonomous/$1/implementation/$1-implementation-plan.md
 
-Create a plan first using /autonomous-workflow:research-and-plan, or place a plan at one of the above paths.
+Create a plan first using /autonomous-workflow:research-and-plan, or place a plan at the path above.
 ```
 
 #### Initialize State
 
-1. Create directory `docs/research-$1/` and `docs/research-$1/transcripts/` (if they don't exist)
+1. Create directory `docs/autonomous/$1/implementation/` and `docs/autonomous/$1/implementation/transcripts/` (if they don't exist)
 
-2. Create state file `docs/research-$1/$1-state.md`:
+2. Create `docs/autonomous/$1/implementation/progress.txt`:
+   ```
+   # Implementation Progress: $1
+   # Plan: docs/autonomous/$1/implementation/$1-implementation-plan.md
+
+   [<timestamp>] Workflow initialized.
+   ```
+
+3. Create state file `docs/autonomous/$1/implementation/$1-state.md`:
    ```yaml
    ---
    workflow_type: autonomous-implement
@@ -62,7 +64,6 @@ Create a plan first using /autonomous-workflow:research-and-plan, or place a pla
    features_total: 0
    features_complete: 0
    features_failed: 0
-   plan_source: "<path to plan found above>"
    ---
 
    # Autonomous Workflow State: $1
@@ -81,17 +82,17 @@ Create a plan first using /autonomous-workflow:research-and-plan, or place a pla
    - Features failed: 0
 
    ## Context Restoration Files
-   1. docs/research-$1/$1-state.md (this file)
-   2. <plan_source path>
-   3. docs/research-$1/feature-list.json (after first iteration)
-   4. docs/research-$1/progress.txt (after first iteration)
+   1. docs/autonomous/$1/implementation/$1-state.md (this file)
+   2. docs/autonomous/$1/implementation/$1-implementation-plan.md
+   3. docs/autonomous/$1/implementation/feature-list.json (after first iteration)
+   4. docs/autonomous/$1/implementation/progress.txt
    5. CLAUDE.md
    ```
 
 ### If state file EXISTS:
 
 1. Read state file
-2. Check if `docs/research-$1/feature-list.json` exists
+2. Check if `docs/autonomous/$1/implementation/feature-list.json` exists
 3. If feature-list.json exists: skip to STEP 3 (resume implementation)
 4. If feature-list.json does NOT exist: proceed to STEP 2 (validate plan and generate features)
 
@@ -103,14 +104,14 @@ This step runs on the first iteration when no `feature-list.json` exists yet.
 
 ### Step 2a: Validate Plan
 
-Read the plan source identified in state file's `plan_source` field.
+Read the plan at `docs/autonomous/$1/implementation/$1-implementation-plan.md`.
 
 Spawn 2 parallel plan-critic agents:
 ```
 Task tool with subagent_type='autonomous-workflow:plan-critic'
 prompt: "Validate whether this plan is implementable.
 
-Plan: <plan_source path>
+Plan: docs/autonomous/$1/implementation/$1-implementation-plan.md
 
 Check for:
 1. Are components clearly defined with interfaces?
@@ -151,7 +152,7 @@ Read the plan and decompose into features:
 }
 ```
 
-Write to `docs/research-$1/feature-list.json`.
+Write to `docs/autonomous/$1/implementation/feature-list.json`.
 
 **Feature decomposition rules**:
 - Each feature should be independently testable
@@ -159,11 +160,8 @@ Write to `docs/research-$1/feature-list.json`.
 - Include infrastructure/project setup as F001 if needed
 - Each feature description must have clear acceptance criteria
 
-Create `docs/research-$1/progress.txt`:
+Append to `docs/autonomous/$1/implementation/progress.txt`:
 ```
-# Implementation Progress: $1
-# Plan source: <plan_source>
-
 [<timestamp>] Phase C started. Total features: N
 ```
 
@@ -177,7 +175,11 @@ Same as Phase C in `/autonomous-workflow:full-auto`:
 
 ### Find Next Feature
 
-Read `docs/research-$1/feature-list.json` and find the first feature where:
+Read `docs/autonomous/$1/implementation/feature-list.json`.
+
+**First**, cascade dependency failures: for each feature where `passes` is `false` and `failed` is `false`, check if ANY feature in its `dependencies` has `failed: true`. If so, immediately mark that feature as `failed: true` in `feature-list.json` and log to `progress.txt`: `[<timestamp>] DEPENDENCY_FAILED: <feature.id> - <feature.name> — dependency <dep.id> failed`. Do NOT stop the workflow — continue scanning remaining features.
+
+**Then**, find the first feature where:
 - `passes` is `false`
 - `failed` is `false`
 - ALL features in `dependencies` have `passes: true`
@@ -198,7 +200,7 @@ prompt: "Implement the following feature using TDD:
 - Dependencies: <feature.dependencies> (already implemented and passing)
 
 ## Context
-- Plan: <plan_source> (read the relevant component section)
+- Plan: docs/autonomous/$1/implementation/$1-implementation-plan.md (read the relevant component section)
 - Codebase: Explore existing code for patterns and conventions
 - CLAUDE.md: Read for coding standards
 

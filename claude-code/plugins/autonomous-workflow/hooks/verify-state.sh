@@ -23,7 +23,7 @@ fi
 
 # Find active autonomous workflow state file
 ACTIVE_STATE=""
-for state_file in docs/research-*/*-state.md; do
+for state_file in docs/autonomous/*/research/*-state.md docs/autonomous/*/implementation/*-state.md; do
   [ -f "$state_file" ] || continue
   FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$state_file")
   STATUS=$(echo "$FRONTMATTER" | grep '^status:' | sed 's/status: *//' | sed "s/^['\"]//;s/['\"]$//")
@@ -45,7 +45,7 @@ ITERATION=$(echo "$FRONTMATTER" | grep '^iteration:' | sed 's/iteration: *//')
 FEATURES_COMPLETE=$(echo "$FRONTMATTER" | grep '^features_complete:' | sed 's/features_complete: *//' || echo "0")
 
 STATE_DIR=$(dirname "$ACTIVE_STATE")
-NAME=$(basename "$STATE_DIR" | sed 's/^research-//')
+NAME=$(basename "$(dirname "$STATE_DIR")")
 
 # --- Phase C verification: feature-list.json consistency ---
 if echo "$CURRENT_PHASE" | grep -qi "implementation"; then
@@ -73,32 +73,42 @@ if echo "$CURRENT_PHASE" | grep -qi "implementation"; then
   fi
 fi
 
-# --- Phase A/B verification: .tex file was updated this iteration ---
+# --- Phase A/B verification: artifacts were updated this iteration ---
 if echo "$CURRENT_PHASE" | grep -qi "research\|planning"; then
   # Skip check on first iteration (files were just created)
   if [ -n "$ITERATION" ] && [ "$ITERATION" -gt 1 ] 2>/dev/null; then
-    # Check if any .tex file in the research dir is newer than the state file
-    TEX_UPDATED=false
-    for tex_file in "$STATE_DIR"/*.tex; do
-      [ -f "$tex_file" ] || continue
-      if [ "$tex_file" -nt "$ACTIVE_STATE" ]; then
-        TEX_UPDATED=true
-        break
-      fi
-    done
+    TOPIC_DIR=$(dirname "$STATE_DIR")
+    ARTIFACT_UPDATED=false
 
-    if [ "$TEX_UPDATED" = false ]; then
+    if echo "$CURRENT_PHASE" | grep -qi "research"; then
+      # Phase A: check if any .tex file in the research dir is newer than the state file
+      for tex_file in "$STATE_DIR"/*.tex; do
+        [ -f "$tex_file" ] || continue
+        if [ "$tex_file" -nt "$ACTIVE_STATE" ]; then
+          ARTIFACT_UPDATED=true
+          break
+        fi
+      done
+    elif echo "$CURRENT_PHASE" | grep -qi "planning"; then
+      # Phase B: check if the .md plan file in implementation dir is newer than the state file
+      PLAN_FILE="$STATE_DIR/${NAME}-implementation-plan.md"
+      if [ -f "$PLAN_FILE" ] && [ "$PLAN_FILE" -nt "$ACTIVE_STATE" ]; then
+        ARTIFACT_UPDATED=true
+      fi
+    fi
+
+    if [ "$ARTIFACT_UPDATED" = false ]; then
       # Check if state file itself was updated recently (within last 5 min)
-      # If the state file is fresh, the .tex might just be about to be written
+      # If the state file is fresh, the artifact might just be about to be written
       STATE_AGE=$(( $(date +%s) - $(stat -f %m "$ACTIVE_STATE" 2>/dev/null || stat -c %Y "$ACTIVE_STATE" 2>/dev/null || echo "0") ))
       if [ "$STATE_AGE" -gt 300 ]; then
-        REASON="No .tex file in $STATE_DIR was updated this iteration (Phase: $CURRENT_PHASE, Iteration: $ITERATION). The LaTeX report/plan should be updated every iteration during research and planning phases."
+        REASON="No artifact in $STATE_DIR was updated this iteration (Phase: $CURRENT_PHASE, Iteration: $ITERATION). The report/plan should be updated every iteration during research and planning phases."
         jq -n \
           --arg reason "$REASON" \
           '{
             "decision": "block",
             "reason": $reason,
-            "systemMessage": "Autonomous workflow: LaTeX document was not updated this iteration. Update it before stopping."
+            "systemMessage": "Autonomous workflow: artifact was not updated this iteration. Update it before stopping."
           }'
         exit 0
       fi

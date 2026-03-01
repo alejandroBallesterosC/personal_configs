@@ -58,4 +58,4 @@ Return EXACTLY this structure (300-500 words):
 - ALWAYS classify severity accurately. Do not inflate CONCERN to BLOCKER or deflate BLOCKER to CONCERN.
 - Be specific about what research finding contradicts the plan. Vague criticism is not useful.
 - If you find no issues, output "NO_BLOCKER_ISSUES" explicitly. Do not invent problems to justify your existence.
-- The main instance uses the BLOCKER count to determine when planning is stable enough to proceed.
+- The main instance uses the BLOCKER count during Mode 4 plan validation to decide whether to generate the feature list. Phase transitions in Mode 2/3 are budget-based, not blocker-based.
