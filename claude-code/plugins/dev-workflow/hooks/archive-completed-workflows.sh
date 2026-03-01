@@ -7,7 +7,7 @@ if ! command -v yq &>/dev/null; then
   echo "ERROR: yq is required but not installed." >&2
   echo "The archive-completed-workflows hook cannot parse YAML frontmatter without yq." >&2
   echo "Install: brew install yq (macOS) or see https://github.com/mikefarah/yq#install" >&2
-  exit 1
+  exit 2
 fi
 
 # Find git repo root

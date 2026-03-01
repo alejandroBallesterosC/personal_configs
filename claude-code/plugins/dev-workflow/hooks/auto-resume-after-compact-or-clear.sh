@@ -7,13 +7,13 @@ if ! command -v yq &>/dev/null; then
   echo "ERROR: yq is required but not installed." >&2
   echo "The auto-resume hook cannot parse workflow state files without yq." >&2
   echo "Install: brew install yq (macOS) or see https://github.com/mikefarah/yq#install" >&2
-  exit 1
+  exit 2
 fi
 if ! command -v jq &>/dev/null; then
   echo "ERROR: jq is required but not installed." >&2
   echo "The auto-resume hook cannot produce JSON output without jq." >&2
   echo "Install: brew install jq (macOS) or see https://github.com/jqlang/jq#installation" >&2
-  exit 1
+  exit 2
 fi
 
 # Read hook input from stdin

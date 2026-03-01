@@ -1,6 +1,19 @@
 #!/bin/bash
-# ABOUTME: Runs tests based on scope defined in .tdd-test-scope file
-# ABOUTME: Supports file paths, keywords, and runner-specific options with prefixes
+# ABOUTME: Stop hook that runs scoped tests and blocks Claude from stopping if they fail.
+# ABOUTME: Uses exit 0 + JSON decision:block pattern per Claude Code hooks spec.
+
+# Check for jq dependency (required for producing JSON block output on test failure)
+if ! command -v jq &>/dev/null; then
+    echo "ERROR: jq is required but not installed." >&2
+    echo "The run-scoped-tests hook cannot produce JSON output without jq." >&2
+    echo "Install: brew install jq (macOS) or see https://github.com/jqlang/jq#installation" >&2
+    exit 2
+fi
+
+# Read and discard hook input from stdin (required so stdin doesn't hang).
+# No need to check stop_hook_active: Claude can remove tests from .tdd-test-scope
+# to unblock itself if tests keep failing, which is the intended escape hatch.
+cat > /dev/null
 
 # Get the directory where this script lives
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -238,35 +251,17 @@ run_minitest() {
     fi
 }
 
-# Run appropriate test command
+# Run appropriate test command, capturing output and exit code
 case "$DETECTED" in
-    pytest)
-        run_pytest
-        ;;
-    vitest)
-        run_vitest
-        ;;
-    jest)
-        run_jest
-        ;;
-    playwright)
-        run_playwright
-        ;;
-    go)
-        run_go
-        ;;
-    cargo)
-        run_cargo
-        ;;
-    rspec)
-        run_rspec
-        ;;
-    minitest)
-        run_minitest
-        ;;
-    mix)
-        run_mix
-        ;;
+    pytest)      TEST_OUTPUT=$(run_pytest);  TEST_EXIT=$? ;;
+    vitest)      TEST_OUTPUT=$(run_vitest);  TEST_EXIT=$? ;;
+    jest)        TEST_OUTPUT=$(run_jest);    TEST_EXIT=$? ;;
+    playwright)  TEST_OUTPUT=$(run_playwright); TEST_EXIT=$? ;;
+    go)          TEST_OUTPUT=$(run_go);      TEST_EXIT=$? ;;
+    cargo)       TEST_OUTPUT=$(run_cargo);   TEST_EXIT=$? ;;
+    rspec)       TEST_OUTPUT=$(run_rspec);   TEST_EXIT=$? ;;
+    minitest)    TEST_OUTPUT=$(run_minitest); TEST_EXIT=$? ;;
+    mix)         TEST_OUTPUT=$(run_mix);     TEST_EXIT=$? ;;
     *)
         echo "No supported test runner detected"
         rm -f "$SCOPE_FILE"
@@ -275,5 +270,17 @@ case "$DETECTED" in
 esac
 
 # Clean up scope file after running (one-shot verification)
-# Note: SCOPE_FILE is the full path including REPO_ROOT
 rm -f "$SCOPE_FILE"
+
+# If tests passed, allow Claude to stop
+if [ "$TEST_EXIT" -eq 0 ]; then
+    exit 0
+fi
+
+# Tests failed: block Claude from stopping using exit 0 + JSON decision pattern.
+# Strip ANSI escape codes and truncate to last 200 lines for clean JSON output.
+TRUNCATED_OUTPUT=$(echo "$TEST_OUTPUT" | sed 's/\x1b\[[0-9;]*m//g' | tail -200)
+HEADER="Scoped tests failed ($DETECTED, exit code $TEST_EXIT). Fix the failing tests before stopping."
+printf '%s\n\n%s' "$HEADER" "$TRUNCATED_OUTPUT" | jq -Rs '{ "decision": "block", "reason": . }'
+
+exit 0
