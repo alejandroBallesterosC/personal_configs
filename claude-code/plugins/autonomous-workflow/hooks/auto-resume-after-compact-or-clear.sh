@@ -2,6 +2,11 @@
 # ABOUTME: Auto-resume autonomous workflow after context reset (compact or clear).
 # ABOUTME: Searches for active autonomous state files, parses YAML frontmatter, and injects context for Claude to continue.
 
+# Anchor to git repo root for consistent state file discovery
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+REPO_ROOT="${REPO_ROOT:-.}"
+cd "$REPO_ROOT"
+
 # Debug log file for diagnosing hook behavior
 DEBUG_FILE=".claude/autonomous-auto-resume-debug.md"
 

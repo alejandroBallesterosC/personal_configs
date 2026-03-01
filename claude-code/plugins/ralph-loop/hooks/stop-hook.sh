@@ -6,6 +6,11 @@
 
 set -euo pipefail
 
+# Anchor to git repo root for consistent state file discovery
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+REPO_ROOT="${REPO_ROOT:-.}"
+cd "$REPO_ROOT"
+
 # Debug log file for diagnosing ralph-loop state file removal
 DEBUG_FILE=".claude/ralph-debug.md"
 
@@ -151,16 +156,10 @@ if [[ $? -ne 0 ]]; then
   exit 0
 fi
 
-if [[ -z "$LAST_OUTPUT" ]]; then
-  echo "⚠️  Ralph loop: Assistant message contained no text content" >&2
-  echo "   Ralph loop is stopping." >&2
-  debug_log "Assistant message contained no text content"
-  rm "$RALPH_STATE_FILE"
-  exit 0
-fi
-
-# Check for completion promise (only if set)
-if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
+# Check for completion promise (only if set and last message had text content)
+# When Claude's last message is purely tool_use blocks (e.g. parallel subagent spawns),
+# LAST_OUTPUT will be empty. This is normal — skip promise check and continue the loop.
+if [[ -n "$LAST_OUTPUT" ]] && [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
   # Extract text from <promise> tags using Perl for multiline support
   # -0777 slurps entire input, s flag makes . match newlines
   # .*? is non-greedy (takes FIRST tag), whitespace normalized

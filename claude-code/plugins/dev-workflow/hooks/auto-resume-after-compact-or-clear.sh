@@ -2,6 +2,11 @@
 # ABOUTME: Auto-resume TDD implementation or debug workflow after context reset (compact or clear)
 # ABOUTME: Checks both docs/workflow-* and docs/debug/*/ for active sessions, parses YAML frontmatter, and injects context
 
+# Anchor to git repo root for consistent state file discovery
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+REPO_ROOT="${REPO_ROOT:-.}"
+cd "$REPO_ROOT"
+
 # Debug log file for diagnosing hook behavior
 DEBUG_FILE=".claude/dev-auto-resume-debug.md"
 
