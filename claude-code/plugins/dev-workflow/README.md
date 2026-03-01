@@ -82,6 +82,7 @@ EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX 
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:continue-workflow <name>` | **Continue any in-progress workflow** (detects TDD vs debug) |
+| `/dev-workflow:compare-branches <target-branch>` | Parallel branch comparison using 5 subagents (structural, behavioral, testing, quality, risk) |
 | `/dev-workflow:help` | Show help |
 
 ## Context Management
@@ -154,7 +155,7 @@ For fresh sessions (not triggered by compaction/clear):
   Hooks fail loudly with install instructions if these are missing.
 - **Required for TDD**: `ralph-loop` plugin for implementation loops
   ```bash
-  /plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum
+  /plugin marketplace add alejandroBallesterosC/personal_configs && /plugin install ralph-loop
   ```
   **Warning:** Always set `--max-iterations` (50 iterations = $50-100+)
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test, etc.)
