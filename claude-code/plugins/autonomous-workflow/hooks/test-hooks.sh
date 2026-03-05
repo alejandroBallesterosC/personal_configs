@@ -128,9 +128,8 @@ create_research_state() {
   local workflow_type="$2"
   local status="$3"
   local phase="$4"
-  local dir="$TEST_DIR/docs/autonomous/$topic/research"
-  mkdir -p "$dir"
-  cat > "$dir/$topic-state.md" << STATEEOF
+  mkdir -p "$TEST_DIR/.claude"
+  cat > "$TEST_DIR/.claude/autonomous-$topic-research-state.md" << STATEEOF
 ---
 workflow_type: $workflow_type
 name: $topic
@@ -171,9 +170,8 @@ create_implementation_state() {
   local workflow_type="$2"
   local status="$3"
   local phase="$4"
-  local dir="$TEST_DIR/docs/autonomous/$topic/implementation"
-  mkdir -p "$dir"
-  cat > "$dir/$topic-state.md" << STATEEOF
+  mkdir -p "$TEST_DIR/.claude"
+  cat > "$TEST_DIR/.claude/autonomous-$topic-implementation-state.md" << STATEEOF
 ---
 workflow_type: $workflow_type
 name: $topic
@@ -206,7 +204,8 @@ STATEEOF
 
 # Reset test directory between tests
 reset_test_dir() {
-  rm -rf "$TEST_DIR/docs"
+  rm -rf "$TEST_DIR/.claude" "$TEST_DIR/docs"
+  mkdir -p "$TEST_DIR/.claude"
 }
 
 echo "========================================"
@@ -315,7 +314,6 @@ echo ""
 # ---- Test 6: Active research-plan workflow in planning phase (Mode 2, Phase B) ----
 echo "--- Test 6: Active research-plan workflow, Phase B (Mode 2) ---"
 reset_test_dir
-# Research state is complete, implementation state is in_progress
 create_research_state "my-saas" "autonomous-research-plan" "complete" "Phase A: Research"
 create_implementation_state "my-saas" "autonomous-research-plan" "in_progress" "Phase B: Planning"
 EXIT_CODE=0
@@ -359,6 +357,7 @@ assert_output_contains "$CONTEXT" "Phase C: Implementation" "contains phase"
 assert_output_contains "$CONTEXT" "implementation-plan.md" "lists plan"
 assert_output_contains "$CONTEXT" "feature-list.json" "lists feature-list"
 assert_output_contains "$CONTEXT" "progress.txt" "lists progress log"
+assert_output_not_contains "$CONTEXT" "report.tex" "does NOT list research report (Mode 4 has no research)"
 echo ""
 
 # ---- Test 9: Implementation state takes priority over research state ----
@@ -413,9 +412,8 @@ echo ""
 # ---- Test 13: Frontmatter parsing with quoted values ----
 echo "--- Test 13: Frontmatter parsing with quoted string values ---"
 reset_test_dir
-local_dir="$TEST_DIR/docs/autonomous/quoted-test/research"
-mkdir -p "$local_dir"
-cat > "$local_dir/quoted-test-state.md" << 'QEOF'
+mkdir -p "$TEST_DIR/.claude"
+cat > "$TEST_DIR/.claude/autonomous-quoted-test-research-state.md" << 'QEOF'
 ---
 workflow_type: "autonomous-research"
 name: "quoted-test"
@@ -447,9 +445,8 @@ echo ""
 # ---- Test 14: Frontmatter with extra fields (forward compatibility) ----
 echo "--- Test 14: Frontmatter with extra/future fields ---"
 reset_test_dir
-local_dir="$TEST_DIR/docs/autonomous/extra-fields/research"
-mkdir -p "$local_dir"
-cat > "$local_dir/extra-fields-state.md" << 'XEOF'
+mkdir -p "$TEST_DIR/.claude"
+cat > "$TEST_DIR/.claude/autonomous-extra-fields-research-state.md" << 'XEOF'
 ---
 workflow_type: autonomous-research
 name: extra-fields

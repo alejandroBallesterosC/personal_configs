@@ -1,7 +1,7 @@
 ---
 description: "Mode 1: Autonomous deep research producing a LaTeX report"
 model: opus
-argument-hint: <topic-name> "Your detailed research prompt..."
+argument-hint: <topic-name> "Your detailed research prompt..." --research-iterations N
 ---
 
 # ABOUTME: Mode 1 command that runs one iteration of deep research per invocation.
@@ -11,10 +11,14 @@ argument-hint: <topic-name> "Your detailed research prompt..."
 
 **Topic**: $1
 **Prompt**: $2
+**All Arguments**: $ARGUMENTS
+
+Parse optional flags from **All Arguments**:
+- `--research-iterations N`: total research iteration budget (default: 50)
 
 ## Objective
 
-Run ONE ITERATION of deep research on the given topic. Each iteration: read state, spawn parallel researcher agents (dispatched by current strategy), synthesize findings, update the LaTeX report, update state. Ralph-loop calls this command repeatedly for multi-iteration execution.
+Run ONE ITERATION of deep research on the given topic. Each iteration: read state, spawn parallel researcher agents (dispatched by current strategy), synthesize findings, update the LaTeX report, update state. The Stop hook re-feeds this command for multi-iteration execution.
 
 **REQUIRED**: Use the Skill tool to invoke `autonomous-workflow:autonomous-workflow-guide` to load the workflow source of truth.
 
@@ -22,7 +26,7 @@ Run ONE ITERATION of deep research on the given topic. Each iteration: read stat
 
 ## STEP 1: Initialize or Resume
 
-Check if `docs/autonomous/$1/research/$1-state.md` exists.
+Check if `.claude/autonomous-$1-research-state.md` exists.
 
 ### If state file does NOT exist (first iteration):
 
@@ -44,7 +48,9 @@ Check if `docs/autonomous/$1/research/$1-state.md` exists.
    % Entries are added as sources are discovered during research.
    ```
 
-4. Create state file `docs/autonomous/$1/research/$1-state.md` with YAML frontmatter:
+4. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 50.
+
+5. Create state file `.claude/autonomous-$1-research-state.md` with YAML frontmatter:
    ```yaml
    ---
    workflow_type: autonomous-research
@@ -55,11 +61,14 @@ Check if `docs/autonomous/$1/research/$1-state.md` exists.
    total_iterations_research: 0
    sources_cited: 0
    findings_count: 0
+   research_budget: <parsed from --research-iterations flag, or 50 if not provided>
    current_research_strategy: wide-exploration
    research_strategies_completed: []
    strategy_rotation_threshold: 3
    contributions_last_iteration: 0
    consecutive_low_contributions: 0
+   command: |
+     <the full invocation command, e.g. /autonomous-workflow:research '$1' '$2' --research-iterations N>
    ---
 
    # Autonomous Workflow State: $1
@@ -88,14 +97,14 @@ Check if `docs/autonomous/$1/research/$1-state.md` exists.
    2. ...
 
    ## Context Restoration Files
-   1. docs/autonomous/$1/research/$1-state.md (this file)
+   1. .claude/autonomous-$1-research-state.md (this file)
    2. docs/autonomous/$1/research/$1-report.tex
    3. CLAUDE.md
    ```
 
 ### If state file EXISTS (resuming):
 
-1. Read `docs/autonomous/$1/research/$1-state.md` to get current state
+1. Read `.claude/autonomous-$1-research-state.md` to get current state
 2. Read `docs/autonomous/$1/research/$1-report.tex` to understand what research has been done
 3. Extract open questions and gaps from the state file
 4. Read `current_research_strategy` from state YAML to determine dispatch behavior
@@ -228,7 +237,7 @@ After all agents return:
 
 ## STEP 6: Update State File
 
-Update `docs/autonomous/$1/research/$1-state.md`:
+Update `.claude/autonomous-$1-research-state.md`:
 
 1. Increment `iteration` by 1
 2. Update `total_iterations_research`
@@ -280,7 +289,18 @@ If `consecutive_low_contributions >= strategy_rotation_threshold`:
      Run via Bash: osascript -e 'display notification "Rotating research strategy to <new_strategy> for $1" with title "Autonomous Workflow" subtitle "Research"'
      ```
 
-**`ralph-loop --max-iterations` is the only stopping mechanism for Mode 1.** Do not attempt to signal or force workflow completion.
+### Completion Check
+
+After updating the state file and checking strategy rotation, check:
+
+If `total_iterations_research >= research_budget`:
+1. Set `status: complete` in the state file
+2. Send macOS notification:
+   ```
+   Run via Bash: osascript -e 'display notification "Research budget reached for $1" with title "Autonomous Workflow" subtitle "Research"'
+   ```
+
+The Stop hook verifies `status: complete` AND `total_iterations_research >= research_budget` before allowing the workflow to end.
 
 ---
 

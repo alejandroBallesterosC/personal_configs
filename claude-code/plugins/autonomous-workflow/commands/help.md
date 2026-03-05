@@ -16,31 +16,32 @@ model: haiku
 | 2 | `/autonomous-workflow:research-and-plan` | Research + iteratively refined implementation plan |
 | 3 | `/autonomous-workflow:full-auto` | Research + plan + autonomous TDD implementation |
 | 4 | `/autonomous-workflow:implement` | TDD implementation from an existing plan |
-| - | `/autonomous-workflow:continue-auto` | Resume any interrupted workflow |
 
-## Invocation (via ralph-loop)
+## Invocation
 
-All modes are designed to run inside ralph-loop for multi-iteration autonomous execution:
+The Stop hook drives iteration automatically — run the command once and it loops until completion:
 
 ```
-/ralph-loop:ralph-loop "/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...'" --max-iterations 50
+/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...' --research-iterations 50
 
-/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40" --max-iterations 60
+/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40 --plan-iterations 20
 
-/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20" --max-iterations 150
+/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20
 
-/ralph-loop:ralph-loop "/autonomous-workflow:implement 'project-name'" --max-iterations 80
+/autonomous-workflow:implement 'project-name'
 ```
 
 ### Budget Arguments
 
 | Mode | Flag | Default | Description |
 |------|------|---------|-------------|
+| 1 | `--research-iterations N` | 50 | Total research iteration budget |
 | 2 | `--research-iterations N` | 30 | Iterations of research before transitioning to planning |
+| 2 | `--plan-iterations N` | 15 | Iterations of planning |
 | 3 | `--research-iterations N` | 30 | Iterations of research before transitioning to planning |
 | 3 | `--plan-iterations N` | 15 | Iterations of planning before transitioning to implementation |
 
-Commands can also be run once without ralph-loop for testing (single iteration).
+Commands can also be run once for testing (single iteration, set `status: complete` to stop).
 
 ## Research Strategies
 
@@ -72,53 +73,51 @@ Research cycles through 8 strategies to stay productive. When a strategy produce
 
 | Event | Type | Hook | Purpose |
 |-------|------|------|---------|
-| Stop | agent | (inline prompt) | Verifies state file accuracy before allowing exit |
+| Stop | command | stop-hook.sh | Iteration engine + completion verifier |
 | SessionStart | command | auto-resume-after-compact-or-clear.sh | Restores context after compact/clear |
 
 ## Phase Transitions
 
-- **Research (Mode 1)**: Strategy rotation keeps research productive. Only `ralph-loop --max-iterations` stops it.
+- **Research (Mode 1)**: Strategy rotation keeps research productive. Stops when `total_iterations_research >= research_budget`.
 - **Research -> Planning** (Modes 2+3): Budget-based. Transitions when `total_iterations_research >= research_budget`.
-- **Planning (Mode 2)**: Runs until `ralph-loop --max-iterations` stops it.
+- **Planning (Mode 2)**: Stops when `total_iterations_planning >= planning_budget`.
 - **Planning -> Implementation** (Mode 3): Budget-based. Transitions when `total_iterations_planning >= planning_budget`.
-- **Implementation** (Modes 3+4): Each iteration implements one feature. When all features have `passes: true` or `failed: true`, remaining iterations skip work.
+- **Implementation** (Modes 3+4): Each iteration implements one feature. Stops when all features have `passes: true` or `failed: true`.
 
 ## Artifacts
 
-Artifacts live in `docs/autonomous/<topic>/` with separate research and implementation directories:
-
-**Research directory** (`docs/autonomous/<topic>/research/`):
+**State files** (`.claude/`):
 
 | File | Modes | Purpose |
 |------|-------|---------|
-| `<topic>-state.md` | 1, 2, 3 | Research phase state (YAML frontmatter + markdown) |
-| `<topic>-report.tex` | All | Research report (LaTeX) |
-| `<topic>-report.pdf` | All | Compiled report (at phase boundaries) |
-| `sources.bib` | All | BibTeX bibliography |
-| `transcripts/` | All | Transcript backups (research phase) |
+| `autonomous-<topic>-research-state.md` | 1, 2, 3 | Research phase state (YAML frontmatter + markdown) |
+| `autonomous-<topic>-implementation-state.md` | 2, 3, 4 | Implementation phase state (YAML frontmatter + markdown) |
+| `autonomous-<topic>-feature-list.json` | 3, 4 | Implementation tracker (JSON) |
+| `autonomous-stop-hook-debug.md` | All | Stop hook debug log (append-only) |
 
-**Implementation directory** (`docs/autonomous/<topic>/implementation/`):
+**Work artifacts** (`docs/autonomous/<topic>/`):
 
 | File | Modes | Purpose |
 |------|-------|---------|
-| `<topic>-state.md` | 2, 3, 4 | Implementation phase state (YAML frontmatter + markdown) |
-| `<topic>-implementation-plan.md` | 2, 3, 4 | Implementation plan (Markdown) |
-| `feature-list.json` | 3, 4 | Implementation tracker (JSON) |
-| `progress.txt` | 3, 4 | Human-readable progress log |
-| `transcripts/` | 2, 3, 4 | Transcript backups (implementation phase) |
+| `research/<topic>-report.tex` | All | Research report (LaTeX) |
+| `research/<topic>-report.pdf` | All | Compiled report (at phase boundaries) |
+| `research/sources.bib` | All | BibTeX bibliography |
+| `research/transcripts/` | All | Transcript backups (research phase) |
+| `implementation/<topic>-implementation-plan.md` | 2, 3, 4 | Implementation plan (Markdown) |
+| `implementation/progress.txt` | 3, 4 | Human-readable progress log |
+| `implementation/transcripts/` | 2, 3, 4 | Transcript backups (implementation phase) |
 
 ## Dependencies
 
 | Dependency | Required | Install |
 |------------|----------|---------|
-| ralph-loop plugin | Yes | `/plugin install ralph-loop` |
 | yq + jq | Yes (hooks) | `brew install yq jq` |
 | MacTeX | For PDF output | `brew install --cask mactex-no-gui` |
 | exa MCP server | For deep research | Configure with `EXA_API_KEY` |
 
 ## Cost Estimates
 
-Costs scale linearly with `--max-iterations`. ~$0.50-$3.00 per iteration.
+Costs scale linearly with `--research-iterations`/`--plan-iterations`. ~$0.50-$3.00 per iteration.
 
 | Iterations | Approx. Cost |
 |-----------|--------------|

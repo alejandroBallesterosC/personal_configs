@@ -8,7 +8,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 claude-code/
 ├── plugins/           # 7 encapsulated plugins (installed via marketplace)
 │   ├── dev-workflow/  # 12 agents, 18 commands, 6 skills, 4 hooks (TDD + Debug)
-│   ├── autonomous-workflow/ # 6 agents, 6 commands, 1 skill, 3 hooks (Research/Plan/Implement)
+│   ├── autonomous-workflow/ # 6 agents, 5 commands, 1 skill, 2 hooks (Research/Plan/Implement)
 │   ├── playwright/    # Browser automation (JS + skill)
 │   ├── claude-session-feedback/ # 4 commands
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
@@ -27,9 +27,9 @@ cursor/                # Cursor IDE mirror (42 files, TDD-only, unidirectional s
 - **Agent YAML frontmatter**: Defines `name`, `tools`, `model` (sonnet|opus)
 - **Skill activation**: Skills auto-activate when context matches their description
 - **Hooks**: Event-driven automation (Stop, SessionStart, PreCompact across dev-workflow + autonomous-workflow)
-  - `Stop`: Archive completed workflows + run scoped tests + verify state file is up to date (agent)
+  - `Stop`: Archive completed workflows + run scoped tests (dev-workflow) + iteration engine + completion verifier (autonomous-workflow)
   - `SessionStart`: Auto-restore context after reset (checks both TDD implementation and debug state)
-  - autonomous-workflow also registers: `PreCompact` (checkpoint), `SessionStart` (resume), `Stop` (verify state)
+  - autonomous-workflow also registers: `SessionStart` (resume), `Stop` (iteration engine + completion verifier)
 
 ## No Application Code
 
@@ -65,7 +65,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - **yq + jq** (required for dev-workflow and autonomous-workflow hooks — YAML/JSON parsing)
   - Install: `brew install yq jq` (macOS)
   - Hooks fail loudly with install instructions if missing
-- **ralph-loop plugin** (required for TDD implementation phase and autonomous workflows)
+- **ralph-loop plugin** (required for TDD implementation phase in dev-workflow)
   - Install: `/plugin marketplace add alejandroBallesterosC/personal_configs && /plugin install ralph-loop`
   - Safety: ALWAYS set `--max-iterations` (50 iterations = $50-100+ in API costs)
 - **MacTeX** (optional, for autonomous-workflow LaTeX PDF compilation)
@@ -73,7 +73,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 
 ## Gotchas
 
-- `ralph-loop` is external dependency - install via plugin marketplace (see Dependencies)
+- `ralph-loop` is external dependency for dev-workflow - install via plugin marketplace (see Dependencies)
 - `claude-code/CLAUDE.md` is a TEMPLATE (syncs to ~/.claude/), not this repo's CLAUDE.md
 - Test auto-detection exits 0 when no framework found (non-fatal for repos without tests)
 - **Context is preserved automatically** via Stop/SessionStart hooks - no manual action needed
@@ -85,7 +85,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - VS Code `tasks.json` has 4 dead tasks (sync_skills/sync_plugins) and 1 leftover task from a previous project (Compile Frontend Typescript)
 - Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 7 plugins
 - Stop hook chain order (per marketplace.json): dev-workflow → ralph-loop → autonomous-workflow. If test failure exits nonzero, ralph-loop and autonomous-workflow hooks may not run
-- `autonomous-workflow` uses ralph-loop for iteration control; verify-state runs AFTER ralph-loop in Stop chain (not between iterations)
+- `autonomous-workflow` uses its own Stop hook (stop-hook.sh) for iteration control and completion verification
 - Running TDD and autonomous workflows simultaneously may cause SessionStart hook context loss (both output independently, no merging)
 
 ## Plugin Installation

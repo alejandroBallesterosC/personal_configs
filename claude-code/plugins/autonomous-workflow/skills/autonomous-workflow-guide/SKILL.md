@@ -10,7 +10,7 @@ Announce at start: "I'm using the autonomous-workflow-guide skill for reference 
 ## When to Activate
 
 - Starting any autonomous workflow command (research, research-and-plan, full-auto, implement)
-- Resuming an autonomous workflow after interruption (continue-auto)
+- Resuming an autonomous workflow after interruption
 - After context compaction or clear (SessionStart hook injects this)
 - When asked about autonomous workflow modes, phases, or artifacts
 - When checking state file format or phase transition logic
@@ -23,14 +23,12 @@ Mode 1: Research Only          Mode 2: Research + Plan
 ┌──────────────────┐          ┌──────────────────┐
 │   Phase A:       │          │   Phase A:       │
 │   Research       │          │   Research       │
-│   (budget: N/A)  │          │   (budget: $3)   │
-│   Runs until     │          │        │         │
-│   ralph-loop     │          │   Phase B:       │
-│   stops it       │          │   Planning       │
-│                  │          │   Runs until     │
-│   LaTeX Report   │          │   ralph-loop     │
-└──────────────────┘          │   stops it       │
-                              │                  │
+│   (budget: $3)   │          │   (budget: $3)   │
+│   Stops when     │          │        │         │
+│   budget reached │          │   Phase B:       │
+│                  │          │   Planning       │
+│   LaTeX Report   │          │   (budget: $4)   │
+└──────────────────┘          │                  │
                               │   LaTeX Report   │
                               │   + MD Plan      │
                               └──────────────────┘
@@ -41,15 +39,14 @@ Mode 3: Full Auto              Mode 4: Implement Only
 │   Research       │          │        │         │
 │   (budget: $3)   │          │   Phase C:       │
 │        │         │          │   Implementation │
-│   Phase B:       │          │   Runs until     │
-│   Planning       │          │   ralph-loop     │
-│   (budget: $4)   │          │   stops it       │
-│        │         │          │                  │
-│   Phase C:       │          │   Working Code   │
-│   Implementation │          └──────────────────┘
-│   Runs until     │
-│   ralph-loop     │
-│   stops it       │
+│   Phase B:       │          │   Stops when all │
+│   Planning       │          │   features done  │
+│   (budget: $4)   │          │                  │
+│        │         │          │   Working Code   │
+│   Phase C:       │          └──────────────────┘
+│   Implementation │
+│   Stops when all │
+│   features done  │
 │                  │
 │   LaTeX Report   │
 │   + MD Plan      │
@@ -67,9 +64,9 @@ Mode 3: Full Auto              Mode 4: Implement Only
 
 4. **Compile LaTeX at phase boundaries only.** Mid-phase, `.tex` files are updated every iteration but not compiled to PDF. Compilation happens at phase transitions and on `continue-auto` invocations.
 
-5. **One iteration per command invocation.** Ralph-loop handles continuation. Each command invocation does one cycle of work, updates state, and exits.
+5. **One iteration per command invocation.** The Stop hook re-feeds the command for continuation. Each command invocation does one cycle of work, updates state, and exits.
 
-6. **No auto-termination.** Every phase runs for its iteration budget. Research rotates through strategies. Planning refines the plan. Implementation works through features. `ralph-loop --max-iterations` is the only stopping mechanism for all modes. When all features are resolved in Phase C, remaining iterations detect `status: complete` and skip work.
+6. **Budget-based termination.** Every phase runs for its iteration budget. Research rotates through strategies. Planning refines the plan. Implementation works through features. The Stop hook blocks exit while `status: in_progress`, verifies completion criteria when `status: complete`, and allows stop only when all criteria are met.
 
 ## Research Strategies
 
@@ -98,7 +95,7 @@ Each iteration counts 5 types of productive contributions:
 ## Phase Transitions
 
 ### Research (Mode 1)
-No phase transitions. Strategy rotation keeps research productive. Only `ralph-loop --max-iterations` stops Mode 1.
+No phase transitions. Strategy rotation keeps research productive. When `total_iterations_research >= research_budget`, the command sets `status: complete`. The Stop hook verifies the budget is fulfilled before allowing stop.
 
 ### Research to Planning (Modes 2+3)
 Budget-based. The user specifies a `research_budget` (default: 30) via the `--research-iterations` flag. When `total_iterations_research >= research_budget`, Phase A transitions to Phase B.
@@ -106,7 +103,7 @@ Budget-based. The user specifies a `research_budget` (default: 30) via the `--re
 On transition: compile report PDF, set research state to `complete`, create implementation directory with Markdown plan and implementation state file, send macOS notification.
 
 ### Planning (Mode 2)
-No auto-termination. Planning runs until `ralph-loop --max-iterations` stops the workflow.
+When `total_iterations_planning >= planning_budget`, the command sets `status: complete`. The Stop hook verifies both research and planning budgets are fulfilled before allowing stop.
 
 ### Planning to Implementation (Mode 3)
 Budget-based. The user specifies a `planning_budget` (default: 15) via the `--plan-iterations` flag. When `total_iterations_planning >= planning_budget`, Phase B transitions to Phase C.
@@ -118,11 +115,11 @@ Each iteration picks the next unblocked feature and spawns an autonomous-coder. 
 - `passes: true` — feature implemented and tests pass
 - `failed: true` — feature failed after 3 attempts inside autonomous-coder
 - When no features remain with `passes: false` AND `failed: false`: set `status: complete`, compile final documents, send notification
-- `--max-iterations` is the only stopping mechanism for all modes — workflows never signal ralph-loop to stop early. Remaining iterations after all features are resolved detect `status: complete` and skip work.
+- The Stop hook verifies `status: complete` AND all features resolved (and budgets fulfilled for Mode 3) before allowing stop.
 
 ## State File Format
 
-There are two state files — one per phase directory. Research state lives at `docs/autonomous/<topic>/research/<topic>-state.md`, implementation state lives at `docs/autonomous/<topic>/implementation/<topic>-state.md`.
+There are two state files in `.claude/`. Research state lives at `.claude/autonomous-<topic>-research-state.md`, implementation state lives at `.claude/autonomous-<topic>-implementation-state.md`. Work artifacts (reports, plans, progress logs) live in `docs/autonomous/<topic>/`.
 
 | Mode | Research state | Implementation state |
 |------|---------------|---------------------|
@@ -148,7 +145,9 @@ research_strategies_completed: []
 strategy_rotation_threshold: 3
 contributions_last_iteration: 2
 consecutive_low_contributions: 0
-research_budget: <from --research-iterations flag, or 30>
+research_budget: <from --research-iterations flag>
+command: |
+  /autonomous-workflow:research '<topic>' '<prompt>' --research-iterations N
 ---
 ```
 
@@ -171,6 +170,8 @@ planning_budget: <from --plan-iterations flag, or 15>
 features_total: 0
 features_complete: 0
 features_failed: 0
+command: |
+  /autonomous-workflow:full-auto '<topic>' '<prompt>' --research-iterations N --plan-iterations N
 ---
 ```
 
@@ -182,7 +183,6 @@ features_failed: 0
 | `/autonomous-workflow:research-and-plan` | 2 | Research -> plan -> both as LaTeX |
 | `/autonomous-workflow:full-auto` | 3 | Research -> plan -> TDD implementation |
 | `/autonomous-workflow:implement` | 4 | TDD implementation from existing plan |
-| `/autonomous-workflow:continue-auto` | Any | Resume interrupted workflow |
 | `/autonomous-workflow:help` | - | Show plugin help |
 
 ## Agents Reference
@@ -200,30 +200,37 @@ features_failed: 0
 
 | Event | Type | Hook | Purpose |
 |-------|------|------|---------|
-| Stop | agent | (inline prompt) | Verify state file accuracy before allowing exit |
+| Stop | command | stop-hook.sh | Iteration engine + completion verifier |
 | SessionStart | command | auto-resume-after-compact-or-clear.sh | Restore context after compact/clear |
 
-## Artifacts Directory
+## Artifacts
 
+**State files** (`.claude/`):
+```
+.claude/
+├── autonomous-<topic>-research-state.md         # Research phase state
+├── autonomous-<topic>-implementation-state.md   # Implementation phase state
+├── autonomous-<topic>-feature-list.json         # Feature tracker (Modes 3+4)
+└── autonomous-stop-hook-debug.md                # Stop hook debug log (append-only)
+```
+
+**Work artifacts** (`docs/autonomous/<topic>/`):
 ```
 docs/autonomous/<topic>/
 ├── research/
-│   ├── <topic>-state.md           # Research phase state
 │   ├── <topic>-report.tex         # Research report (LaTeX)
 │   ├── <topic>-report.pdf         # Compiled report
 │   ├── sources.bib                # BibTeX bibliography
 │   └── transcripts/               # Research phase transcript backups
 └── implementation/
-    ├── <topic>-state.md           # Implementation phase state
     ├── <topic>-implementation-plan.md  # Implementation plan (Markdown)
-    ├── feature-list.json          # Feature tracker (Modes 3+4)
     ├── progress.txt               # Progress log (Modes 3+4)
     └── transcripts/               # Implementation phase transcript backups
 ```
 
 ## Cost Estimates
 
-Costs scale linearly with `--max-iterations`. ~$0.50-$3.00 per iteration.
+Costs scale linearly with `--research-iterations`/`--plan-iterations`. ~$0.50-$3.00 per iteration.
 
 | Iterations | Approx. Cost |
 |-----------|--------------|
@@ -233,7 +240,6 @@ Costs scale linearly with `--max-iterations`. ~$0.50-$3.00 per iteration.
 
 ## Dependencies
 
-- **ralph-loop plugin**: Drives iteration loop (hard dependency)
 - **yq + jq**: YAML/JSON parsing in hooks (hard dependency)
 - **MacTeX**: PDF output via pdflatex (optional — `.tex` files work without it)
 - **exa MCP server**: Deep research via `deep_researcher_start` (optional — falls back to `WebSearch`)

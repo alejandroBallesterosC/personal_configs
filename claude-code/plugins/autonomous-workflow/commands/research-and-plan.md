@@ -1,11 +1,11 @@
 ---
 description: "Mode 2: Autonomous deep research followed by iterative implementation plan design"
 model: opus
-argument-hint: <project-name> "Your detailed research and planning prompt..." [--research-iterations N]
+argument-hint: <project-name> "Your detailed research and planning prompt..." --research-iterations N --plan-iterations N
 ---
 
 # ABOUTME: Mode 2 command that runs research (Phase A) then iterative plan design (Phase B).
-# ABOUTME: Phase A->B transition is budget-based; planning runs until ralph-loop stops it.
+# ABOUTME: Phase A->B transition is budget-based; planning runs until its budget is exhausted.
 
 # Autonomous Research + Plan
 
@@ -15,10 +15,11 @@ argument-hint: <project-name> "Your detailed research and planning prompt..." [-
 
 Parse optional flags from **All Arguments**:
 - `--research-iterations N`: number of research iterations before transitioning to planning (default: 30)
+- `--plan-iterations N`: number of planning iterations (default: 15)
 
 ## Objective
 
-Run ONE ITERATION of research (Phase A) or planning (Phase B) for the given project. The workflow transitions from research to planning when the research iteration budget is exhausted. Ralph-loop calls this command repeatedly.
+Run ONE ITERATION of research (Phase A) or planning (Phase B) for the given project. The workflow transitions from research to planning when the research iteration budget is exhausted. The Stop hook re-feeds this command for multi-iteration execution.
 
 **REQUIRED**: Use the Skill tool to invoke `autonomous-workflow:autonomous-workflow-guide` to load the workflow source of truth.
 
@@ -26,7 +27,7 @@ Run ONE ITERATION of research (Phase A) or planning (Phase B) for the given proj
 
 ## STEP 1: Initialize or Resume
 
-Check if `docs/autonomous/$1/research/$1-state.md` exists.
+Check if `.claude/autonomous-$1-research-state.md` exists.
 
 ### If state file does NOT exist (first iteration):
 
@@ -45,8 +46,9 @@ Check if `docs/autonomous/$1/research/$1-state.md` exists.
 3. Create empty bibliography file `docs/autonomous/$1/research/sources.bib`
 
 4. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 30.
+   Parse planning budget from `--plan-iterations` flag in All Arguments. If not provided, default to 15.
 
-5. Create state file `docs/autonomous/$1/research/$1-state.md`:
+5. Create state file `.claude/autonomous-$1-research-state.md`:
    ```yaml
    ---
    workflow_type: autonomous-research-plan
@@ -59,11 +61,14 @@ Check if `docs/autonomous/$1/research/$1-state.md` exists.
    sources_cited: 0
    findings_count: 0
    research_budget: <parsed from --research-iterations flag, or 30 if not provided>
+   planning_budget: <parsed from --plan-iterations flag, or 15 if not provided>
    current_research_strategy: wide-exploration
    research_strategies_completed: []
    strategy_rotation_threshold: 3
    contributions_last_iteration: 0
    consecutive_low_contributions: 0
+   command: |
+     <the full invocation command, e.g. /autonomous-workflow:research-and-plan '$1' '$2' --research-iterations N --plan-iterations N>
    ---
 
    # Autonomous Workflow State: $1
@@ -97,7 +102,7 @@ Check if `docs/autonomous/$1/research/$1-state.md` exists.
    1. [Derive 5 initial questions focused on technical feasibility, competitive landscape, architecture patterns, defensibility, and technology stack]
 
    ## Context Restoration Files
-   1. docs/autonomous/$1/research/$1-state.md (this file)
+   1. .claude/autonomous-$1-research-state.md (this file)
    2. docs/autonomous/$1/research/$1-report.tex
    3. docs/autonomous/$1/implementation/$1-implementation-plan.md (after Phase B starts)
    4. CLAUDE.md
@@ -180,9 +185,9 @@ If `total_iterations_research >= research_budget`:
 
 4. **Update research state**:
    - Mark Phase A as complete in the checklist
-   - Set `status: complete` in `docs/autonomous/$1/research/$1-state.md`
+   - Set `status: complete` in `.claude/autonomous-$1-research-state.md`
 
-5. **Create implementation state file** at `docs/autonomous/$1/implementation/$1-state.md`:
+5. **Create implementation state file** at `.claude/autonomous-$1-implementation-state.md`:
    ```yaml
    ---
    workflow_type: autonomous-research-plan
@@ -195,11 +200,14 @@ If `total_iterations_research >= research_budget`:
    sources_cited: <from research state>
    findings_count: <from research state>
    research_budget: <from research state>
+   planning_budget: <from research state>
    current_research_strategy: <from research state>
    research_strategies_completed: <from research state>
    strategy_rotation_threshold: 3
    contributions_last_iteration: 0
    consecutive_low_contributions: 0
+   command: |
+     <same command from research state>
    ---
 
    # Autonomous Workflow State: $1
@@ -220,7 +228,7 @@ If `total_iterations_research >= research_budget`:
    - Open design decisions: 0
 
    ## Context Restoration Files
-   1. docs/autonomous/$1/implementation/$1-state.md (this file)
+   1. .claude/autonomous-$1-implementation-state.md (this file)
    2. docs/autonomous/$1/research/$1-report.tex
    3. docs/autonomous/$1/implementation/$1-implementation-plan.md
    4. CLAUDE.md
@@ -289,9 +297,18 @@ Write the updated `docs/autonomous/$1/implementation/$1-implementation-plan.md`.
 1. Increment `iteration` and `total_iterations_planning`
 2. Update `## Planning Progress` counts
 
-Planning runs until `ralph-loop --max-iterations` stops the workflow.
+### Completion Check
 
-**`ralph-loop --max-iterations` is the only stopping mechanism for Mode 2.** Do not attempt to signal or force workflow completion.
+After updating the state file, check:
+
+If `total_iterations_planning >= planning_budget`:
+1. Set `status: complete` in `.claude/autonomous-$1-implementation-state.md`
+2. Send macOS notification:
+   ```
+   Run via Bash: osascript -e 'display notification "Planning budget reached for $1" with title "Autonomous Workflow" subtitle "Planning"'
+   ```
+
+The Stop hook verifies `status: complete` AND both `total_iterations_research >= research_budget` AND `total_iterations_planning >= planning_budget` before allowing the workflow to end.
 
 ---
 

@@ -19,7 +19,7 @@ Parse optional flags from **All Arguments**:
 
 ## Objective
 
-Run ONE ITERATION of research (Phase A), planning (Phase B), or implementation (Phase C). The workflow transitions between phases based on iteration budgets. Ralph-loop calls this command repeatedly for multi-day execution.
+Run ONE ITERATION of research (Phase A), planning (Phase B), or implementation (Phase C). The workflow transitions between phases based on iteration budgets. The Stop hook re-feeds this command for multi-iteration execution.
 
 **REQUIRED**: Use the Skill tool to invoke `autonomous-workflow:autonomous-workflow-guide` to load the workflow source of truth.
 
@@ -27,7 +27,7 @@ Run ONE ITERATION of research (Phase A), planning (Phase B), or implementation (
 
 ## STEP 1: Initialize or Resume
 
-Check if `docs/autonomous/$1/research/$1-state.md` exists.
+Check if `.claude/autonomous-$1-research-state.md` exists.
 
 ### If state file does NOT exist (first iteration):
 
@@ -35,6 +35,7 @@ Same as `/autonomous-workflow:research-and-plan` initialization, but with:
 - `workflow_type: autonomous-full-auto`
 - Set `research_budget` in YAML frontmatter to the value from `--research-iterations` (or 30 if not provided)
 - Set `planning_budget` in YAML frontmatter to the value from `--plan-iterations` (or 15 if not provided)
+- Include `command` field with the full invocation command
 - Add `## Implementation Progress` section to state file
 - Add `features_total: 0`, `features_complete: 0`, `features_failed: 0`, `total_iterations_coding: 0` to YAML frontmatter
 - Add Phase C to the Completed Phases checklist
@@ -55,7 +56,7 @@ Uses strategy rotation from `/autonomous-workflow:research` Step 7 (never auto-t
 
 Phase transition trigger: `total_iterations_research >= research_budget`.
 
-On transition: compile report, create implementation directory and Markdown plan at `docs/autonomous/$1/implementation/$1-implementation-plan.md`, set research state to `complete`, create implementation state file at `docs/autonomous/$1/implementation/$1-state.md` with `current_phase: "Phase B: Planning"`, send notification, continue to Phase B in this same iteration. Follow the same Phase A->B transition logic from `/autonomous-workflow:research-and-plan`.
+On transition: compile report, create implementation directory and Markdown plan at `docs/autonomous/$1/implementation/$1-implementation-plan.md`, set research state to `complete`, create implementation state file at `.claude/autonomous-$1-implementation-state.md` with `current_phase: "Phase B: Planning"` and the same `command` field, send notification, continue to Phase B in this same iteration. Follow the same Phase A->B transition logic from `/autonomous-workflow:research-and-plan`.
 
 ---
 
@@ -86,7 +87,7 @@ When planning budget is exhausted:
      ]
    }
    ```
-   Write to `docs/autonomous/$1/implementation/feature-list.json`.
+   Write to `.claude/autonomous-$1-feature-list.json`.
 
    **Feature decomposition rules**:
    - Each feature should be independently testable
@@ -127,7 +128,7 @@ When planning budget is exhausted:
 
 ### Step C1: Find Next Feature
 
-Read `docs/autonomous/$1/implementation/feature-list.json`.
+Read `.claude/autonomous-$1-feature-list.json`.
 
 **First**, cascade dependency failures: for each feature where `passes` is `false` and `failed` is `false`, check if ANY feature in its `dependencies` has `failed: true`. If so, immediately mark that feature as `failed: true` in `feature-list.json` and log to `progress.txt`: `[<timestamp>] DEPENDENCY_FAILED: <feature.id> - <feature.name> — dependency <dep.id> failed`. Do NOT stop the workflow — continue scanning remaining features.
 
@@ -166,7 +167,7 @@ Implement using strict RED-GREEN-REFACTOR. Commit at each phase. Run the full te
 Read the autonomous-coder agent's output:
 
 **If PASSING** (tests pass):
-1. Update `feature-list.json`: set `"passes": true` for this feature
+1. Update `.claude/autonomous-$1-feature-list.json`: set `"passes": true` for this feature
 2. Append to `progress.txt`: `[<timestamp>] PASS: <feature.id> - <feature.name>`
 3. Send notification:
    ```
@@ -174,7 +175,7 @@ Read the autonomous-coder agent's output:
    ```
 
 **If FEATURE_FAILED**:
-1. Update `feature-list.json`: set `"failed": true` for this feature (leave `passes` as `false`)
+1. Update `.claude/autonomous-$1-feature-list.json`: set `"failed": true` for this feature (leave `passes` as `false`)
 2. Append to `progress.txt`: `[<timestamp>] FAIL: <feature.id> - <feature.name> - Reason: <reason>`
 3. Send notification:
    ```
@@ -205,7 +206,7 @@ If all features are resolved (passed or failed):
 
 4. **Output summary** (see OUTPUT section)
 
-Note: The workflow does NOT signal ralph-loop to stop. `--max-iterations` is the only stopping mechanism. Remaining iterations after all features are resolved will detect `status: complete` and skip work.
+Note: The Stop hook verifies `status: complete` AND research + planning budgets fulfilled AND all features resolved before allowing the workflow to end.
 
 ---
 

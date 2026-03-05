@@ -13,7 +13,6 @@ Long-running autonomous research, planning, and TDD implementation workflows wit
 | 2 | `/autonomous-workflow:research-and-plan` | Research + iteratively refined implementation plan |
 | 3 | `/autonomous-workflow:full-auto` | Research + plan + autonomous TDD implementation |
 | 4 | `/autonomous-workflow:implement` | TDD implementation from an existing plan |
-| - | `/autonomous-workflow:continue-auto` | Resume any interrupted workflow |
 
 ## Installation
 
@@ -21,8 +20,7 @@ Long-running autonomous research, planning, and TDD implementation workflows wit
 # Register marketplace
 /plugin marketplace add alejandroBallesterosC/personal_configs
 
-# Install this plugin and its required dependency
-/plugin install ralph-loop
+# Install the plugin
 /plugin install autonomous-workflow
 ```
 
@@ -30,38 +28,37 @@ Long-running autonomous research, planning, and TDD implementation workflows wit
 
 | Dependency | Required | Install |
 |------------|----------|---------|
-| ralph-loop plugin | Yes | `/plugin install ralph-loop` |
 | yq + jq | Yes (hooks) | `brew install yq jq` |
 | MacTeX | For PDF output | `brew install --cask mactex-no-gui` |
 | exa MCP server | For deep research | Configure with `EXA_API_KEY` |
 
 ## Quick Start
 
-All modes run inside ralph-loop for multi-iteration autonomous execution:
+The Stop hook drives iteration automatically — run the command once and it loops until budget is reached:
 
 ```bash
-# Mode 1: Research only
-/ralph-loop:ralph-loop "/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...'" --max-iterations 50
+# Mode 1: Research only (50 iterations)
+/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...' --research-iterations 50
 
-# Mode 2: Research + Planning (research budget: 40 iterations)
-/ralph-loop:ralph-loop "/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40" --max-iterations 60
+# Mode 2: Research + Planning (research: 40, planning: 20 iterations)
+/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40 --plan-iterations 20
 
-# Mode 3: Full autonomous (research budget: 50, planning budget: 20)
-/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20" --max-iterations 150
+# Mode 3: Full autonomous (research: 50, planning: 20 iterations)
+/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20
 
 # Mode 4: Implement from existing plan
-/ralph-loop:ralph-loop "/autonomous-workflow:implement 'project-name'" --max-iterations 80
+/autonomous-workflow:implement 'project-name'
 ```
 
-Commands can also be run once without ralph-loop for testing (single iteration).
+Commands can also be run once for testing (single iteration, set `status: complete` to stop).
 
 ## Architecture
 
 ```
-commands/          6 commands (research, research-and-plan, full-auto, implement, continue-auto, help)
+commands/          5 commands (research, research-and-plan, full-auto, implement, help)
 agents/            6 agents (researcher, repo-analyst, latex-compiler, plan-architect, plan-critic, autonomous-coder)
 skills/            1 skill (autonomous-workflow-guide — source of truth loaded by all commands)
-hooks/             2 hooks (Stop agent for state verification, SessionStart shell for context resume)
+hooks/             2 hooks (Stop shell for iteration + verification, SessionStart shell for context resume)
 templates/         1 LaTeX template (report)
 ```
 
@@ -80,7 +77,7 @@ templates/         1 LaTeX template (report)
 
 | Event | Type | Hook | Purpose |
 |-------|------|------|---------|
-| Stop | agent | (inline prompt) | Verifies state file accuracy before allowing exit |
+| Stop | command | stop-hook.sh | Iteration engine + completion verifier |
 | SessionStart | command | auto-resume-after-compact-or-clear.sh | Restores context after compact/clear |
 
 ## Research Strategies
@@ -98,38 +95,37 @@ Research cycles through 8 strategies. When a strategy produces low contributions
 
 ## Artifacts
 
-Artifacts live in `docs/autonomous/<topic>/` with separate research and implementation directories:
-
-**Research** (`docs/autonomous/<topic>/research/`):
+**State files** (`.claude/`):
 
 | File | Modes | Purpose |
 |------|-------|---------|
-| `<topic>-state.md` | 1, 2, 3 | Research phase state |
-| `<topic>-report.tex` | All | Research report (LaTeX) |
-| `sources.bib` | All | BibTeX bibliography |
-| `transcripts/` | All | Transcript backups |
+| `autonomous-<topic>-research-state.md` | 1, 2, 3 | Research phase state |
+| `autonomous-<topic>-implementation-state.md` | 2, 3, 4 | Implementation phase state |
+| `autonomous-<topic>-feature-list.json` | 3, 4 | Implementation feature tracker |
+| `autonomous-stop-hook-debug.md` | All | Stop hook debug log |
 
-**Implementation** (`docs/autonomous/<topic>/implementation/`):
+**Work artifacts** (`docs/autonomous/<topic>/`):
 
 | File | Modes | Purpose |
 |------|-------|---------|
-| `<topic>-state.md` | 2, 3, 4 | Implementation phase state |
-| `<topic>-implementation-plan.md` | 2, 3, 4 | Implementation plan (Markdown) |
-| `feature-list.json` | 3, 4 | Implementation feature tracker (JSON) |
-| `progress.txt` | 3, 4 | Human-readable progress log |
-| `transcripts/` | 2, 3, 4 | Transcript backups |
+| `research/<topic>-report.tex` | All | Research report (LaTeX) |
+| `research/sources.bib` | All | BibTeX bibliography |
+| `research/transcripts/` | All | Transcript backups |
+| `implementation/<topic>-implementation-plan.md` | 2, 3, 4 | Implementation plan (Markdown) |
+| `implementation/progress.txt` | 3, 4 | Human-readable progress log |
+| `implementation/transcripts/` | 2, 3, 4 | Transcript backups |
 
 ## Phase Transitions
 
-- **Research (Mode 1)**: Runs until `ralph-loop --max-iterations` stops it.
+- **Research (Mode 1)**: Stops when `total_iterations_research >= research_budget`.
 - **Research -> Planning** (Modes 2, 3): Budget-based. Transitions when `total_iterations_research >= research_budget`.
-- **Planning (Mode 2)**: Runs until `ralph-loop --max-iterations` stops it.
+- **Planning (Mode 2)**: Stops when `total_iterations_planning >= planning_budget`.
 - **Planning -> Implementation** (Mode 3): Budget-based. Transitions when `total_iterations_planning >= planning_budget`.
-- **Implementation** (Modes 3, 4): Each iteration implements one feature. When all features have `passes: true` or `failed: true`, remaining iterations skip work.
+- **Implementation** (Modes 3, 4): Each iteration implements one feature. Stops when all features have `passes: true` or `failed: true`.
 
 ## Cost Estimates
 
-~$0.50-$3.00 per iteration. Costs scale linearly with `--max-iterations`.
+~$0.50-$3.00 per iteration. Costs scale linearly with `--research-iterations`/`--plan-iterations`.
 
 | Iterations | Approx. Cost |
 |-----------|--------------|

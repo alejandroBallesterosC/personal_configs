@@ -64,9 +64,10 @@ else
 fi
 
 # Find active autonomous workflow state file
+# State files live at .claude/autonomous-<topic>-{implementation,research}-state.md
 # Check implementation state files first (later phases take priority)
 ACTIVE_STATE=""
-for state_file in docs/autonomous/*/implementation/*-state.md; do
+for state_file in .claude/autonomous-*-implementation-state.md; do
   [ -f "$state_file" ] || continue
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
   if [ "$status" = "in_progress" ]; then
@@ -77,7 +78,7 @@ done
 
 # If no implementation state, check research state files
 if [ -z "$ACTIVE_STATE" ]; then
-  for state_file in docs/autonomous/*/research/*-state.md; do
+  for state_file in .claude/autonomous-*-research-state.md; do
     [ -f "$state_file" ] || continue
     status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
     if [ "$status" = "in_progress" ]; then
@@ -100,19 +101,23 @@ WORKFLOW_TYPE=$(yq --front-matter=extract '.workflow_type' "$ACTIVE_STATE" 2>/de
 CURRENT_PHASE=$(yq --front-matter=extract '.current_phase' "$ACTIVE_STATE" 2>/dev/null)
 NAME=$(yq --front-matter=extract '.name' "$ACTIVE_STATE" 2>/dev/null)
 
-STATE_DIR=$(dirname "$ACTIVE_STATE")
-TOPIC_DIR=$(dirname "$STATE_DIR")
 STATE_CONTENT=$(cat "$ACTIVE_STATE" 2>/dev/null)
 
-# Build context restoration files list based on workflow type
-RESEARCH_DIR="${TOPIC_DIR}/research"
-IMPL_DIR="${TOPIC_DIR}/implementation"
+# Derive artifact paths from topic name
+# State files: .claude/autonomous-<topic>-{research,implementation}-state.md
+# Artifacts: docs/autonomous/<topic>/research/ and docs/autonomous/<topic>/implementation/
+RESEARCH_DIR="docs/autonomous/${NAME}/research"
+IMPL_DIR="docs/autonomous/${NAME}/implementation"
 
 RESTORE_FILES="- \`${ACTIVE_STATE}\` (state file — already included below)"
 
-# Research report is always relevant
-RESTORE_FILES="${RESTORE_FILES}
+# Research report is relevant for modes that have a research phase
+case "$WORKFLOW_TYPE" in
+  autonomous-research|autonomous-research-plan|autonomous-full-auto)
+    RESTORE_FILES="${RESTORE_FILES}
 - \`${RESEARCH_DIR}/${NAME}-report.tex\` (research report)"
+    ;;
+esac
 
 # Implementation plan is relevant for research-plan, full-auto, and implement modes
 case "$WORKFLOW_TYPE" in
@@ -126,7 +131,7 @@ esac
 case "$WORKFLOW_TYPE" in
   autonomous-full-auto|autonomous-implement)
     RESTORE_FILES="${RESTORE_FILES}
-- \`${IMPL_DIR}/feature-list.json\` (implementation tracker)
+- \`.claude/autonomous-${NAME}-feature-list.json\` (implementation tracker)
 - \`${IMPL_DIR}/progress.txt\` (progress log)"
     ;;
 esac

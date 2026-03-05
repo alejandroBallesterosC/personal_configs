@@ -13,7 +13,7 @@ argument-hint: <project-name>
 
 ## Objective
 
-Run ONE ITERATION of TDD implementation from an existing plan. Skips research (Phase A) and planning (Phase B) entirely. If a `feature-list.json` already exists, resumes from where it left off. Ralph-loop calls this command repeatedly.
+Run ONE ITERATION of TDD implementation from an existing plan. Skips research (Phase A) and planning (Phase B) entirely. If a `feature-list.json` already exists, resumes from where it left off. The Stop hook re-feeds this command for multi-iteration execution.
 
 **REQUIRED**: Use the Skill tool to invoke `autonomous-workflow:autonomous-workflow-guide` to load the workflow source of truth.
 
@@ -21,7 +21,7 @@ Run ONE ITERATION of TDD implementation from an existing plan. Skips research (P
 
 ## STEP 1: Initialize or Resume
 
-Check if `docs/autonomous/$1/implementation/$1-state.md` exists.
+Check if `.claude/autonomous-$1-implementation-state.md` exists.
 
 ### If state file does NOT exist (first run):
 
@@ -52,7 +52,7 @@ Create a plan first using /autonomous-workflow:research-and-plan, or place a pla
    [<timestamp>] Workflow initialized.
    ```
 
-3. Create state file `docs/autonomous/$1/implementation/$1-state.md`:
+3. Create state file `.claude/autonomous-$1-implementation-state.md`:
    ```yaml
    ---
    workflow_type: autonomous-implement
@@ -64,6 +64,8 @@ Create a plan first using /autonomous-workflow:research-and-plan, or place a pla
    features_total: 0
    features_complete: 0
    features_failed: 0
+   command: |
+     /autonomous-workflow:implement '$1'
    ---
 
    # Autonomous Workflow State: $1
@@ -82,9 +84,9 @@ Create a plan first using /autonomous-workflow:research-and-plan, or place a pla
    - Features failed: 0
 
    ## Context Restoration Files
-   1. docs/autonomous/$1/implementation/$1-state.md (this file)
+   1. .claude/autonomous-$1-implementation-state.md (this file)
    2. docs/autonomous/$1/implementation/$1-implementation-plan.md
-   3. docs/autonomous/$1/implementation/feature-list.json (after first iteration)
+   3. .claude/autonomous-$1-feature-list.json (after first iteration)
    4. docs/autonomous/$1/implementation/progress.txt
    5. CLAUDE.md
    ```
@@ -92,7 +94,7 @@ Create a plan first using /autonomous-workflow:research-and-plan, or place a pla
 ### If state file EXISTS:
 
 1. Read state file
-2. Check if `docs/autonomous/$1/implementation/feature-list.json` exists
+2. Check if `.claude/autonomous-$1-feature-list.json` exists
 3. If feature-list.json exists: skip to STEP 3 (resume implementation)
 4. If feature-list.json does NOT exist: proceed to STEP 2 (validate plan and generate features)
 
@@ -152,7 +154,7 @@ Read the plan and decompose into features:
 }
 ```
 
-Write to `docs/autonomous/$1/implementation/feature-list.json`.
+Write to `.claude/autonomous-$1-feature-list.json`.
 
 **Feature decomposition rules**:
 - Each feature should be independently testable
@@ -175,7 +177,7 @@ Same as Phase C in `/autonomous-workflow:full-auto`:
 
 ### Find Next Feature
 
-Read `docs/autonomous/$1/implementation/feature-list.json`.
+Read `.claude/autonomous-$1-feature-list.json`.
 
 **First**, cascade dependency failures: for each feature where `passes` is `false` and `failed` is `false`, check if ANY feature in its `dependencies` has `failed: true`. If so, immediately mark that feature as `failed: true` in `feature-list.json` and log to `progress.txt`: `[<timestamp>] DEPENDENCY_FAILED: <feature.id> - <feature.name> — dependency <dep.id> failed`. Do NOT stop the workflow — continue scanning remaining features.
 
@@ -223,7 +225,7 @@ When all features resolved (all `passes: true` or `failed: true`):
 1. Send notification: `osascript -e 'display notification "All features resolved: N/M passing" with title "Autonomous Workflow" subtitle "$1"'`
 2. Update state: `status: complete`, mark Phase C in checklist
 
-Note: The workflow does NOT signal ralph-loop to stop. `--max-iterations` is the only stopping mechanism. Remaining iterations after all features are resolved will detect `status: complete` and skip work.
+Note: The Stop hook verifies `status: complete` AND all features resolved before allowing the workflow to end.
 
 ---
 
