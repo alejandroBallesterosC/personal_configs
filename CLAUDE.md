@@ -26,10 +26,9 @@ cursor/                # Cursor IDE mirror (42 files, TDD-only, unidirectional s
 - **Plugin structure**: Each plugin has `commands/`, `agents/`, `skills/`, optional `hooks/`
 - **Agent YAML frontmatter**: Defines `name`, `tools`, `model` (sonnet|opus)
 - **Skill activation**: Skills auto-activate when context matches their description
-- **Hooks**: Event-driven automation (Stop, SessionStart, PreCompact across dev-workflow + autonomous-workflow)
-  - `Stop`: Archive completed workflows + run scoped tests (dev-workflow) + iteration engine + completion verifier (autonomous-workflow)
-  - `SessionStart`: Auto-restore context after reset (checks both TDD implementation and debug state)
-  - autonomous-workflow also registers: `SessionStart` (resume), `Stop` (iteration engine + completion verifier)
+- **Hooks**: Event-driven automation (Stop, SessionStart across dev-workflow + autonomous-workflow)
+  - `Stop`: Archive completed workflows + run scoped tests + state verification agent (dev-workflow), iteration control (ralph-loop), iteration engine + completion verifier (autonomous-workflow)
+  - `SessionStart`: Auto-restore context after compact/clear (dev-workflow: TDD + debug state, autonomous-workflow: research/planning/impl state)
 
 ## No Application Code
 

@@ -1,6 +1,6 @@
 # Personal Configs - Codebase Analysis
 
-> Last updated: 2026-02-28
+> Last updated: 2026-03-04
 > Iteration: 3 of 3 (refresh cycle)
 
 ## 1. System Purpose & Domain
@@ -11,7 +11,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 - **Plugins** (7): Self-contained packages of commands, agents, skills, hooks
 - **Workflows**: TDD Implementation (8 phases), Debug (9 phases), Autonomous (3 phases: Research/Planning/Implementation with 4 modes)
 - **State files**: YAML frontmatter + markdown body tracking workflow progress
-- **Hooks**: Event-driven automation (Stop, SessionStart, PreCompact) for context preservation
+- **Hooks**: Event-driven automation (Stop, SessionStart) for context preservation and iteration control
 - **Sync scripts**: Bidirectional config sync between repo and `~/.claude/`
 
 ## 2. Technology Stack
@@ -20,10 +20,10 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 |-------|-----------|----------------|
 | Runtime | Claude Code CLI | Anthropic (external) |
 | Plugins | Claude Code Plugin System | plugin.json manifests |
-| Content | Markdown (113 files) | YAML frontmatter conventions |
-| Scripts | Bash (26 files) | POSIX-compatible |
+| Content | Markdown (117 files) | YAML frontmatter conventions |
+| Scripts | Bash (27 files) | POSIX-compatible |
 | Config | JSON (22 files) | Plugin manifests, hooks, MCP |
-| Browser automation | Playwright (JS) | package.json in skill (v1.57.0) |
+| Browser automation | Playwright (JS) | package.json in skill |
 | IDE mirror | Cursor IDE | Unidirectional sync |
 | MCP servers | context7 (HTTP), fetch (stdio), exa (npx), playwright (npx) | global_mcp_settings.json |
 | Dependencies | yq, jq (hooks), ralph-loop plugin (TDD/autonomous), MacTeX (optional, LaTeX PDF) | brew install |
@@ -37,7 +37,7 @@ personal_configs/
 ├── claude-code/                    # Primary source of truth
 │   ├── plugins/ (7 plugins)       # Encapsulated workflow packages
 │   │   ├── dev-workflow/          # 12 agents, 18 commands, 6 skills, 4 hooks
-│   │   ├── autonomous-workflow/   # 6 agents, 6 commands, 1 skill, 3 hooks
+│   │   ├── autonomous-workflow/   # 6 agents, 5 commands, 1 skill, 2 hooks
 │   │   ├── ralph-loop/           # 3 commands, 1 hook (iterative loops)
 │   │   ├── playwright/           # 1 skill (browser automation, JS)
 │   │   ├── claude-session-feedback/ # 4 commands
@@ -87,20 +87,16 @@ Stop Event (on Claude exit attempt) — sequential, order matters
 ├── 5. ralph-loop:
 │   └── stop-hook.sh                     # Block exit + feed prompt back (loop)
 └── 7. autonomous-workflow:
-    └── verify-state.sh                  # Block exit if state inconsistent with artifacts
+    └── stop-hook.sh                     # Iteration engine + completion verifier
 
 SessionStart Event (after compact|clear) — sequential
 ├── 1. dev-workflow:
 │   └── auto-resume-after-compact-or-clear.sh  # Inject TDD/debug context
 └── 7. autonomous-workflow:
-    └── auto-resume.sh                         # Inject research/planning/impl context
-
-PreCompact Event (before context compaction)
-└── 7. autonomous-workflow:
-    └── auto-checkpoint.sh                     # Save transcript + state snapshot
+    └── auto-resume-after-compact-or-clear.sh  # Inject research/planning/impl context
 ```
 
-**Ordering implication**: ralph-loop (5th) runs BEFORE autonomous-workflow (7th) in Stop chain. If ralph-loop blocks (feeds prompt back for next iteration), autonomous-workflow's verify-state.sh may not execute, meaning state file consistency is not verified between iterations.
+**Ordering implication**: ralph-loop (5th) runs BEFORE autonomous-workflow (7th) in Stop chain. If ralph-loop blocks (feeds prompt back for next iteration), autonomous-workflow's stop-hook.sh may not execute, meaning state file consistency is not verified between iterations.
 
 ## 4. Boundaries & Interfaces
 
@@ -114,11 +110,11 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 **Coupling**: Plugins are loosely coupled. dev-workflow depends on ralph-loop (hard, Phases 7-9) and optionally playwright (E2E). autonomous-workflow depends on ralph-loop (hard, iteration loop) and optionally exa MCP (deep research) and MacTeX (PDF output). claude-md-best-practices is a soft dependency (skill invocation).
 
 ### Hook Interface Contract
-- **Command hooks**: Shell scripts returning exit code 0 (success) or 1 (failure/block)
+- **Command hooks**: Shell scripts returning exit code 0 (allow) or JSON `{"decision": "block", ...}` (block)
 - **Agent hooks**: Return JSON `{"ok": true}` or `{"ok": false, "reason": "..."}`
-- **Stop hooks can block**: Returning failure prevents Claude from exiting
+- **Exit code 2**: Missing dependency (yq/jq) — fatal, with install instructions
+- **Stop hooks can block**: Returning JSON decision blocks Claude from exiting
 - **SessionStart hooks inject context**: Return JSON with `additionalContext` field
-- **PreCompact hooks**: Save state before context compaction (autonomous-workflow only)
 
 ### Sync Interface Contract
 - **Direction**: Bidirectional (to/from global) for Claude Code; unidirectional (to) for Cursor
@@ -128,9 +124,10 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 ### State File Contract
 - **TDD state**: `docs/workflow-<name>/<name>-state.md` — YAML frontmatter (`workflow_type`, `name`, `status`, `current_phase`)
 - **Debug state**: `docs/debug/<name>/<name>-state.md` — Same format + `fix_attempts`, `max_fix_attempts`
-- **Autonomous research state**: `docs/autonomous/<topic>/research/<topic>-state.md` — YAML with `current_research_strategy`, `research_budget`, iteration tracking
-- **Autonomous implementation state**: `docs/autonomous/<topic>/implementation/<topic>-state.md` — YAML with `planning_budget`, `features_total/complete/failed`
-- **Lifecycle**: Created at workflow start → updated per phase → verified on Stop → archived on completion
+- **Autonomous research state**: `.claude/autonomous-<topic>-research-state.md` — YAML with `current_research_strategy`, `research_budget`, iteration tracking
+- **Autonomous implementation state**: `.claude/autonomous-<topic>-implementation-state.md` — YAML with `planning_budget`, `features_total/complete/failed`
+- **Autonomous feature list**: `.claude/autonomous-<topic>-feature-list.json` — JSON array of features for TDD implementation
+- **Lifecycle**: Created at workflow start -> updated per phase -> verified on Stop -> archived on completion (dev-workflow) or deleted on completion (autonomous-workflow)
 - **Guard**: Only one active workflow per type (enforced by start commands)
 
 ## 5. Key Design Decisions & Tradeoffs
@@ -147,49 +144,60 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 | Subagent data isolation | Sonnet absorbs raw web data, Opus gets summaries | Main instance does all research | Prevents context bloat in long-running workflows |
 | Budget-based phase transitions | Iteration count triggers transition | Contribution-based / quality heuristics | Predictable timing vs. may transition when still productive |
 | Artifact-first memory | .tex/.md files are canonical state | Conversation history | Survives context compaction vs. requires disciplined file updates |
-| No auto-termination from research | ralph-loop --max-iterations stops | Contribution-based auto-stop | Always explores fully vs. may waste iterations |
+| Autonomous state in .claude/ | `.claude/` directory for state files | `docs/autonomous/` | Keeps ephemeral state separate from persistent docs vs. not git-tracked |
+| Stop hook iteration engine | Hook re-feeds command on in_progress | ralph-loop for autonomous iteration | Direct iteration control per workflow type vs. simpler but less workflow-aware |
 
 ## 6. Code Quality & Patterns
 
 ### Conventions Enforced
 1. **ABOUTME comments**: All code files start with 2-line `# ABOUTME:` comments (36+ occurrences)
 2. **YAML frontmatter**: Commands, agents, skills all use structured YAML headers
-3. **Loud dependency failures**: Hook scripts check for yq/jq and exit 1 with install instructions
+3. **Loud dependency failures**: Hook scripts check for yq/jq and exit 2 with install instructions
 4. **State file format**: Consistent YAML frontmatter across TDD, debug, and autonomous workflows
 5. **Guard clauses**: Single active workflow enforcement in start commands
 6. **Strategy rotation**: 8 research strategies with contribution-based rotation (autonomous-workflow)
+7. **Atomic file updates**: Hooks use temp file + mv for safe iteration counter increments
 
 ### Shell Script Quality
-- 26 scripts, majority with `set -e` (error exit on failure)
+- 27 scripts, majority with `set -euo pipefail` (strict error handling)
 - Proper quoting, `git rev-parse --show-toplevel` for repo root detection
 - Defensive file existence checks before operations
 - Non-fatal exits (exit 0) for optional features (no test runner = not an error)
+- Debug logging to `.claude/<hook-name>-debug.md` files
+- Trap handlers for cleanup in test scripts
 
 ### Test Runner Support
 9 frameworks auto-detected by `detect-test-runner.sh`:
 pytest, vitest, jest, playwright, go test, cargo test, rspec, minitest, mix
+
+### Testing
+- `test-stop-hook.sh` (20 test cases): Comprehensive hook validation with custom assertion helpers
+- `test-hooks.sh`: Integration tests for autonomous-workflow hooks
+- Custom shell testing: assert_exit_code(), assert_output_contains(), assert_valid_json(), assert_json_field()
+- Test isolation: Each test runs in mktemp -d, cleaned up via trap
+- No external linting configured (no application code to lint)
 
 ### No Linting/Formatting Config
 By design — repo contains only Markdown, JSON, and Bash (no application code to lint).
 
 ## 7. Plugin Details
 
-### dev-workflow (v1.0.0) — TDD Implementation + Debug
+### dev-workflow (v1.4.0) — TDD Implementation + Debug
 
-**Components**: 12 agents, 18 commands, 6 skills, 4 hooks (Stop×3, SessionStart×1)
+**Components**: 12 agents, 18 commands, 6 skills, 4 hooks (Stop x3, SessionStart x1)
 
 **TDD Phases** (8):
 | Phase | Command | Agents | Gate |
 |-------|---------|--------|------|
 | Init | `1-start-tdd-implementation` | None | ralph-loop check |
-| 2: Explore | `2-explore` | 5× code-explorer (Sonnet, parallel) | User confirmation |
+| 2: Explore | `2-explore` | 5x code-explorer (Sonnet, parallel) | User confirmation |
 | 3: Interview | `3-user-specification-interview` | None (Opus) | 40+ questions |
 | 4: Architecture | `4-plan-architecture` | code-architect (Opus) | None |
 | 5: Plan | `5-plan-implementation` | None (Opus) | None |
 | 6: Review | `6-review-plan` | plan-reviewer (Opus) | User approval |
-| 7: Implement | `7-implement` | ralph-loop → test-designer, implementer, refactorer | Per-component |
-| 8: E2E | `8-e2e-test` | ralph-loop → test-designer, implementer | All tests green |
-| 9: Review | `9-review` | 5× code-reviewer (Sonnet, parallel) | Fix criticals |
+| 7: Implement | `7-implement` | ralph-loop -> test-designer, implementer, refactorer | Per-component |
+| 8: E2E | `8-e2e-test` | ralph-loop -> test-designer, implementer | All tests green |
+| 9: Review | `9-review` | 5x code-reviewer (Sonnet, parallel) | Fix criticals |
 
 **Debug Phases** (9): Hypothesis-driven with loopback flows. 3-fix rule (after 3 failed fixes, question architecture).
 
@@ -197,44 +205,57 @@ By design — repo contains only Markdown, JSON, and Bash (no application code t
 - Foundation-first: shared types/interfaces before parallel component implementation
 - `.tdd-test-scope` file: one-shot test scope consumed by Stop hook
 - Phase 6 is only phase requiring explicit user approval
+- Model strategy: Sonnet (1M context) for exploration/review agents, Opus for architecture/implementation/testing
 
-### autonomous-workflow (v1.2.0) — Research/Planning/Implementation
+### autonomous-workflow (v1.7.0) — Research/Planning/Implementation
 
-**Components**: 6 agents, 6 commands, 1 skill, 3 hooks (PreCompact, SessionStart, Stop)
+**Components**: 6 agents, 5 commands, 1 skill, 2 hooks (Stop, SessionStart)
+
+**5 Commands**:
+| Command | Purpose |
+|---------|---------|
+| `research` | Mode 1: Deep research producing LaTeX report |
+| `research-and-plan` | Mode 2: Research + iterative planning |
+| `full-auto` | Mode 3: Research + planning + TDD implementation |
+| `implement` | Mode 4: TDD implementation from existing plan |
+| `help` | Help documentation |
 
 **4 Modes**:
 | Mode | Command | Phases | Termination |
 |------|---------|--------|-------------|
-| 1: Research | `/research` | A only | ralph-loop stops |
-| 2: Research+Plan | `/research-and-plan` | A→B | ralph-loop stops |
-| 3: Full Auto | `/full-auto` | A→B→C | WORKFLOW_COMPLETE |
-| 4: Implement | `/implement` | C only | WORKFLOW_COMPLETE |
-| - | `/continue-auto` | Auto-detect | Resumes any |
+| 1: Research | `/research` | A only | Budget exhausted |
+| 2: Research+Plan | `/research-and-plan` | A->B | Budget exhausted |
+| 3: Full Auto | `/full-auto` | A->B->C | All features resolved |
+| 4: Implement | `/implement` | C only | All features resolved |
 
 **8 Research Strategies** (rotate on low contribution):
-wide-exploration → source-verification → contradiction-resolution → deep-dive → adversarial-challenge → gaps-and-blind-spots → temporal-analysis → cross-domain-synthesis
+wide-exploration -> source-verification -> contradiction-resolution -> deep-dive -> adversarial-challenge -> gaps-and-blind-spots -> temporal-analysis -> cross-domain-synthesis
 
 **Agents**:
 | Agent | Model | Phase | Role |
 |-------|-------|-------|------|
 | researcher | Sonnet | A | 3-5 parallel internet research agents |
 | repo-analyst | Sonnet | A | 0-2 parallel codebase analysis |
-| latex-compiler | Sonnet | Boundaries | LaTeX → PDF compilation |
-| plan-architect | Opus | B | 2× parallel plan improvement |
-| plan-critic | Opus | B, Mode 4 | 2× parallel plan scrutiny |
+| latex-compiler | Sonnet | Boundaries | LaTeX -> PDF compilation |
+| plan-architect | Opus | B | 2x parallel plan improvement |
+| plan-critic | Opus | B, Mode 4 | 2x parallel plan scrutiny |
 | autonomous-coder | Opus | C | Full TDD cycle per feature |
 
-**Artifacts**: `docs/autonomous/<topic>/research/` (.tex, .bib, state) + `docs/autonomous/<topic>/implementation/` (plan.md, feature-list.json, progress.txt, state)
+**State files**: `.claude/autonomous-<topic>-research-state.md`, `.claude/autonomous-<topic>-implementation-state.md`, `.claude/autonomous-<topic>-feature-list.json`
+
+**Iteration engine**: Stop hook reads state YAML; if `status: in_progress` and iteration < budget, increments counter and re-feeds command. Cleanup (rm -f state files) on completion.
 
 **Budget system**: research_budget (default 30) and planning_budget (default 15) control phase transitions. Only Phase C has natural completion (all features resolved).
 
-**Cost estimates**: ~$0.50-$3.00 per iteration; 50 iterations ≈ $25-$150.
+**Cost estimates**: ~$0.50-$3.00 per iteration; 50 iterations ~ $25-$150.
 
-### ralph-loop (v1.0.0) — Iterative Loop Engine
+### ralph-loop (v1.2.0) — Iterative Loop Engine
 
 **Components**: 3 commands, 1 hook (Stop)
 
-**Role**: Provides the iteration loop for both dev-workflow (Phases 7-9) and autonomous-workflow (all modes). Calls command once per iteration, checks for `<promise>WORKFLOW_COMPLETE</promise>` signal.
+**Role**: Provides iteration loop for dev-workflow (Phases 7-9). Uses `.claude/ralph-loop.local.md` state file with YAML frontmatter tracking iteration count and completion promise.
+
+**Mechanism**: Stop hook checks for `<promise>TEXT</promise>` XML tags in Claude's output via Perl regex. If found -> allows stop. If not -> increments iteration counter atomically (PID-based temp file + mv) -> blocks stop with JSON `{decision: "block"}` containing prompt for next iteration.
 
 **Safety**: Always set `--max-iterations` (50 iterations = $50-100+ in API costs).
 
@@ -249,11 +270,13 @@ wide-exploration → source-verification → contradiction-resolution → deep-d
 
 | Doc Claim | Reality | File Reference |
 |-----------|---------|----------------|
-| CLAUDE.md says "6 plugins" | Now 7 plugins (autonomous-workflow added) | `CLAUDE.md:1,3` |
-| CLAUDE.md architecture shows 6 plugins | Missing autonomous-workflow | `CLAUDE.md:7-21` |
-| README.md references 6 plugins | Should be 7 | `README.md` |
+| CLAUDE.md says "6 agents, 5 commands, 1 skill, 2 hooks" for autonomous-workflow | Correct: 6 agents, 5 commands, 1 skill, 2 hooks (Stop + SessionStart) | `CLAUDE.md:8` |
+| Previous CODEBASE.md claimed PreCompact hook exists | No PreCompact hook registered in hooks.json; only Stop and SessionStart | `autonomous-workflow/hooks/hooks.json` |
+| Previous CODEBASE.md referenced verify-state.sh, auto-checkpoint.sh, auto-resume.sh | These were replaced by stop-hook.sh and auto-resume-after-compact-or-clear.sh | `autonomous-workflow/hooks/` |
+| Previous CODEBASE.md said autonomous state in docs/autonomous/ | State files are in `.claude/` (e.g., `.claude/autonomous-*-research-state.md`) | `autonomous-workflow/hooks/stop-hook.sh:55-66` |
+| Previous CODEBASE.md said autonomous-workflow had 6 commands | Has 5 commands (no continue-auto command file exists) | `autonomous-workflow/commands/` |
 | VS Code tasks.json lists "Sync Skills" and "Sync Plugins" tasks | No corresponding sync scripts exist | `.vscode/tasks.json` |
-| CLAUDE.md says "8 bidirectional + 1 unidirectional sync scripts" | Correct count | `sync-content-scripts/` |
+| CLAUDE.md architecture shows correct counts | Matches actual plugin structure | `CLAUDE.md:7-21` |
 
 ## 9. Cursor Mirror Drift Analysis
 
@@ -274,39 +297,55 @@ The Cursor mirror at `cursor/` has **significant drift** from the Claude Code so
 ## 10. VS Code Tasks Audit
 
 `.vscode/tasks.json` has **4 dead tasks** referencing non-existent sync scripts:
-- "Sync Claude Code Skills to/from Global" → scripts removed (plugin system replaced)
-- "Sync Claude Code Plugins to/from Global" → scripts removed (plugin system replaced)
+- "Sync Claude Code Skills to/from Global" -> scripts removed (plugin system replaced)
+- "Sync Claude Code Plugins to/from Global" -> scripts removed (plugin system replaced)
 
 Also has leftover tasks: "Compile Frontend Typescript" and "HoPF config file" input from a previous project.
 
-## 11. Hook Execution Analysis (Iteration 2 Deep Dive)
+## 11. Hook Execution Analysis
 
 ### Stop Hook Chain (corrected order per marketplace.json)
 
 ```
-1. dev-workflow: archive-completed-workflows.sh   → always exits 0
-2. dev-workflow: run-scoped-tests.sh              → exits 0 or 1+
-   IF exit 1+: CHAIN MAY HALT (subsequent hooks may not run)
-3. dev-workflow: State verification agent          → {ok:true/false}, 120s timeout
-4. ralph-loop: stop-hook.sh                       → exits 0 or blocks with JSON
-   IF active loop: blocks stop, feeds prompt back → steps 5+ never run
-5. autonomous-workflow: verify-state.sh           → exits 0 or blocks with JSON
+1. dev-workflow: archive-completed-workflows.sh   -> always exits 0
+2. dev-workflow: run-scoped-tests.sh              -> exits 0 or blocks with JSON
+   IF blocks: CHAIN MAY HALT (subsequent hooks may not run)
+3. dev-workflow: State verification agent          -> {ok:true/false}, 120s timeout
+4. ralph-loop: stop-hook.sh                       -> exits 0 or blocks with JSON
+   IF active loop: blocks stop, feeds prompt back -> steps 5+ never run
+5. autonomous-workflow: stop-hook.sh              -> iteration engine + completion verifier
 ```
 
-**Risk 1**: If tests fail (step 2 exits nonzero), steps 3-5 may never execute.
-**Risk 2**: If ralph-loop blocks (step 4 feeds prompt back), autonomous-workflow verify-state never runs. State file consistency is not verified between ralph-loop iterations.
-**Risk 3**: On final ralph-loop iteration (WORKFLOW_COMPLETE detected or max reached), ralph-loop allows stop (exit 0) and autonomous-workflow verify-state finally runs.
+**Risk 1**: If tests fail (step 2 blocks), steps 3-5 may never execute.
+**Risk 2**: If ralph-loop blocks (step 4 feeds prompt back), autonomous-workflow stop-hook never runs. State file consistency is not verified between ralph-loop iterations.
+**Risk 3**: On final ralph-loop iteration (WORKFLOW_COMPLETE detected or max reached), ralph-loop allows stop (exit 0) and autonomous-workflow stop-hook finally runs.
+
+### Autonomous-Workflow Stop Hook Mechanism
+
+The stop-hook.sh acts as both iteration engine and completion verifier:
+
+1. Searches for active state files: `.claude/autonomous-*-implementation-state.md` (priority) then `.claude/autonomous-*-research-state.md`
+2. Reads YAML frontmatter with yq: `status`, `iteration`, `command`, budget fields
+3. If `status: in_progress` and iteration < budget:
+   - Increments iteration atomically (sed + temp file + mv)
+   - Returns JSON `{decision: "block", reason: "<command>"}` to re-feed command
+4. If budget exhausted or `status: complete`:
+   - Cleans up state files (rm -f)
+   - Exits 0 (allows stop)
+5. Validates per workflow type:
+   - `autonomous-research`: research_budget only
+   - `autonomous-research-and-plan`: research_budget + planning_budget
+   - `autonomous-full-auto`: both budgets + feature resolution
+   - `autonomous-implement`: feature resolution only
 
 ### Ralph-Loop Integration Mechanism
-
-Ralph-loop provides iteration control via Stop hook blocking + prompt injection:
 
 1. `setup-ralph-loop.sh` creates `.claude/ralph-loop.local.md` state file with YAML frontmatter (`iteration`, `max_iterations`, `completion_promise`) and prompt body
 2. On Stop event, `stop-hook.sh` reads state file, extracts last assistant message from transcript
 3. Checks for `<promise>TEXT</promise>` XML tags via Perl regex; literal string match against `completion_promise`
-4. If match found → deletes state file → exits 0 (allows stop, loop ends)
-5. If no match → increments iteration counter atomically (temp file + mv) → outputs JSON `{decision: "block", reason: "<prompt>"}` → Claude receives prompt as next iteration input
-6. If `iteration >= max_iterations` → deletes state file → exits 0 (allows stop, budget exhausted)
+4. If match found -> deletes state file -> exits 0 (allows stop, loop ends)
+5. If no match -> increments iteration counter atomically (temp file + mv) -> outputs JSON `{decision: "block", reason: "<prompt>"}` -> Claude receives prompt as next iteration input
+6. If `iteration >= max_iterations` -> deletes state file -> exits 0 (allows stop, budget exhausted)
 
 **State file atomicity**: Uses PID-based temp file `${FILE}.tmp.$$` + `mv` for POSIX-atomic iteration counter updates.
 
@@ -323,76 +362,71 @@ All blocking hooks use the same format:
 
 **Plugin-specific behavior**:
 - **ralph-loop**: `reason` = the prompt to re-execute; `systemMessage` = iteration count + promise reminder
-- **autonomous-workflow**: `reason` = what's wrong (stale state/missing artifact); `systemMessage` = what to fix
+- **autonomous-workflow**: `reason` = re-feed command; `systemMessage` = iteration progress
 - **dev-workflow agent**: Returns `{ok: true/false, reason: "..."}` (different format)
 
 ### Shell Script Dependencies
 
 | Script | Hard Deps | Failure Mode |
 |--------|-----------|--------------|
-| archive-completed-workflows.sh | yq | Exit 1 if yq missing |
-| run-scoped-tests.sh | (none) | Exit 0 if no runner found |
-| auto-resume-after-compact-or-clear.sh | yq, jq | Exit 1 if missing |
-| auto-checkpoint.sh | jq | Exit 0 if no active workflow |
-| auto-resume.sh | jq | Exit 0 if no active workflow |
-| verify-state.sh | jq | Exit 0 if no active workflow |
+| archive-completed-workflows.sh | yq | Exit 2 if yq missing |
+| run-scoped-tests.sh | jq | Exit 2 if jq missing |
+| auto-resume-after-compact-or-clear.sh (dev) | yq, jq | Exit 2 if missing |
+| auto-resume-after-compact-or-clear.sh (autonomous) | yq, jq | Exit 2 if missing |
+| stop-hook.sh (autonomous) | yq, jq | Exit 2 if missing |
 | ralph-loop stop-hook.sh | (none) | Exit 0 on parse failure |
 | detect-test-runner.sh | (none) | Always exits 0 |
 
 ## 12. Open Questions
 
-- [ ] Should CLAUDE.md and README.md be updated to reflect 7 plugins (autonomous-workflow)?
 - [ ] Should the Cursor mirror be updated to include the debug workflow?
 - [ ] Should dead VS Code tasks be removed?
 - [ ] Is the 120s timeout for the Stop hook state verification agent sufficient for large workflows?
 - [ ] Should `detect-test-runner.sh` support additional frameworks (e.g., PHPUnit, dotnet test)?
 - [x] ~~How do multiple Stop hooks interact across plugins when one fails?~~ **Answered**: Sequential execution per marketplace.json order. If hook exits nonzero or blocks, downstream hooks may not run.
-- [x] ~~Should autonomous-workflow verify-state.sh run before or after ralph-loop?~~ **Answered**: Currently runs AFTER ralph-loop (marketplace order: dev-workflow→ralph-loop→autonomous-workflow). This means verify-state doesn't run between ralph-loop iterations — only on final iteration when ralph-loop allows stop. Moving autonomous-workflow before ralph-loop in marketplace.json would fix this.
-- [x] ~~Is there risk of state file naming collisions?~~ **Answered**: No. dev-workflow uses `docs/workflow-*/` and `docs/debug/*/`, autonomous-workflow uses `docs/autonomous/*/`. Completely separate directory hierarchies.
+- [x] ~~Should autonomous-workflow verify-state.sh run before or after ralph-loop?~~ **Answered**: autonomous-workflow stop-hook.sh runs AFTER ralph-loop (marketplace order). This means it doesn't run between ralph-loop iterations — only on final iteration.
+- [x] ~~Is there risk of state file naming collisions?~~ **Answered**: No. dev-workflow uses `docs/workflow-*/` and `docs/debug/*/`, autonomous-workflow uses `.claude/autonomous-*`. Completely separate locations.
 - [ ] Should there be a cost cap mechanism in autonomous-workflow beyond ralph-loop --max-iterations?
 - [ ] Should research results be cached to avoid re-searching on workflow restart?
-- [ ] Should autonomous-workflow be registered before ralph-loop in marketplace.json so verify-state.sh runs before ralph-loop feeds the next prompt?
-- [x] ~~Do both SessionStart hooks (dev-workflow + autonomous-workflow) conflict when both have active workflows?~~ **Answered**: YES, potential conflict. Both output identical JSON structure `{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: "..."}}` independently. When both have active workflows, two separate JSON objects hit stdout sequentially. Behavior depends on Claude Code's hook handler (likely last-write-wins or only first parsed). No merging logic exists.
+- [ ] Should autonomous-workflow be registered before ralph-loop in marketplace.json so stop-hook.sh runs before ralph-loop feeds the next prompt?
+- [x] ~~Do both SessionStart hooks (dev-workflow + autonomous-workflow) conflict when both have active workflows?~~ **Answered**: YES, potential conflict. Both output independent JSON objects to stdout. No merging logic exists.
+- [ ] Skill doc references `continue-auto` command but no command file exists — should it be created or the reference removed?
+- [ ] Should GitHub Actions workflows (claude.yml, claude-code-review.yml) be re-enabled?
 
-## 13. SessionStart Hook Conflict Analysis (Iteration 3)
+## 13. SessionStart Hook Conflict Analysis
 
 Both dev-workflow and autonomous-workflow register SessionStart hooks with matcher `"compact|clear"`. When both have active workflows:
 
-**dev-workflow** (`auto-resume-after-compact-or-clear.sh`, 184 lines):
+**dev-workflow** (`auto-resume-after-compact-or-clear.sh`):
 - Scans `docs/workflow-*/*-state.md` (TDD) and `docs/debug/*/*-state.md` (debug)
 - Can detect both TDD and debug workflows simultaneously (concatenates with `---` separator)
 - Outputs single JSON with `additionalContext` containing workflow state + Skill invocation instructions
 
-**autonomous-workflow** (`auto-resume.sh`, 128 lines):
-- Scans `docs/autonomous/*/research/*-state.md` and `docs/autonomous/*/implementation/*-state.md`
-- Outputs single JSON with `additionalContext` containing state + context restoration file list
+**autonomous-workflow** (`auto-resume-after-compact-or-clear.sh`):
+- Scans `.claude/autonomous-*-research-state.md` and `.claude/autonomous-*-implementation-state.md`
+- Outputs single JSON with `additionalContext` containing state + context restoration
 
 **Conflict**: Both hooks output independent JSON objects to stdout. No coordination mechanism. If both have active workflows, one hook's context may be lost (depends on Claude Code's SessionStart handler merging behavior).
 
 **Severity**: MEDIUM — unlikely scenario (running TDD + autonomous workflows simultaneously is uncommon), but if it occurs, one workflow loses context restoration.
 
-## 14. Changes Since 2026-02-23
+## 14. File Inventory
 
-### New Plugin
-- **autonomous-workflow** (v1.2.0): 6 agents, 6 commands, 1 skill, 3 hooks
-  - 4 execution modes (research, research+plan, full-auto, implement)
-  - 8 research strategy rotation system
-  - Budget-based phase transitions
-  - LaTeX report output with BibTeX bibliography
-  - Feature-list.json for TDD implementation tracking
-  - PreCompact hook for transcript/state checkpointing
+| Category | Count | Details |
+|----------|-------|---------|
+| **Total Files** | 176 | Excluding .git |
+| **Markdown** | 117 | Agents, commands, skills, docs |
+| **Shell Scripts** | 27 | Sync (9), hooks (13), IDE (3), tests (2) |
+| **JSON Configs** | 22 | Plugin (14), IDE (5), MCP (1), hooks (4) |
+| **Plugins** | 7 | dev-workflow, autonomous-workflow, ralph-loop, playwright, claude-session-feedback, infrastructure-as-code, claude-md-best-practices |
+| **Agents** | 18 | 12 dev-workflow, 6 autonomous-workflow |
+| **Commands** | 37 | 18 dev-workflow, 5 autonomous-workflow, 3 ralph-loop, 4 claude-session-feedback, 1 infrastructure-as-code, 6 global |
+| **Skills** | 9 | 6 dev-workflow, 1 autonomous-workflow, 1 playwright, 1 infrastructure-as-code |
+| **VS Code Tasks** | 13 | 9 working, 4 dead/stale |
+| **GitHub Workflows** | 2 | Both disabled/commented out |
+| **Sync Scripts** | 9 | 8 bidirectional (claude-code), 1 unidirectional (cursor) |
 
-### Updated Counts
-| Component | Previous (Feb 23) | Current (Feb 28) |
-|-----------|-------------------|-------------------|
-| Total files | 152 | 175 |
-| Plugins | 6 | 7 (+autonomous-workflow) |
-| Markdown files | 96 | 113 |
-| Shell scripts | 23 | 26 |
-| JSON files | 20 | 22 |
-| Hook events used | Stop, SessionStart | Stop, SessionStart, PreCompact |
-
-## 14. Ambiguities
+## 15. Ambiguities
 
 - **Hook execution order across plugins**: When multiple plugins register Stop hooks, the order depends on plugin load order. If one hook fails, downstream hooks may not execute.
 - **Sync conflict resolution**: Bidirectional sync with last-sync-wins behavior has no merge strategy. Independent edits on both sides silently overwrite.
@@ -400,5 +434,5 @@ Both dev-workflow and autonomous-workflow register SessionStart hooks with match
 - **VS Code tasks.json leftovers**: Contains tasks from previous projects (TypeScript compilation, HoPF config).
 - **Debug phase 5 ownership**: No dedicated command for Phase 5 (Reproduce). User manually triggers bug.
 - **State file verification scope**: 120s timeout may not suffice for complex multi-component workflows.
-- **Autonomous workflow restart**: No merge/warning if `docs/autonomous/<topic>/` already exists; initialization overwrites.
+- **Autonomous workflow restart**: No merge/warning if `.claude/autonomous-<topic>-*` state files already exist; initialization overwrites.
 - **Feature dependency graph**: feature-list.json dependencies are specified during decomposition. Cyclic or incomplete graphs may cause silent failures.
