@@ -143,7 +143,7 @@ debugLog.Printf("[DEBUG-H1] user=%+v config=%+v", user, config)
 writeln!(debug_file, "[DEBUG-H1] data={:?} state={:?}", data, state).ok();
 ```
 
-See the `instrumenter` agent or `4-instrument` command for full entry point initialization templates.
+See the `instrumenter` agent or `5-instrument` command for full entry point initialization templates.
 
 
 ## Anti-Patterns to Avoid
@@ -285,10 +285,10 @@ For the full orchestrated workflow:
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:1-start-debug <bug>` | Start full workflow |
-| `/dev-workflow:1-explore-debug <area>` | Explore codebase |
-| `/dev-workflow:3-hypothesize <name>` | Generate hypotheses |
-| `/dev-workflow:4-instrument <name>` | Add logging |
-| `/dev-workflow:6-analyze <name>` | Analyze logs |
-| `/dev-workflow:8-verify <name>` | Verify fix + cleanup |
+| `/dev-workflow:2-explore-debug <area>` | Explore codebase |
+| `/dev-workflow:4-hypothesize <name>` | Generate hypotheses |
+| `/dev-workflow:5-instrument <name>` | Add logging |
+| `/dev-workflow:7-analyze <name>` | Analyze logs |
+| `/dev-workflow:9-verify <name>` | Verify fix + cleanup |
 | `/dev-workflow:continue-workflow <name>` | Resume session |
 | `/dev-workflow:help` | Show help |

@@ -6,6 +6,16 @@
 !playwright/lib/
 
 # ====================
+# Claude Code Hook Debug Logs
+# ====================
+archive-workflows-debug.md
+autonomous-stop-hook-debug.md
+ralph-debug.md
+run-scoped-tests-debug.md
+autonomous-auto-resume-debug.md
+dev-auto-resume-debug.md
+
+# ====================
 # OS-specific
 # ====================
 .DS_Store

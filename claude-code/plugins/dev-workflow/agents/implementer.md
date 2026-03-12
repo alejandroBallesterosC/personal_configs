@@ -2,7 +2,7 @@
 name: implementer
 description: GREEN phase - Write minimal code to pass existing tests
 tools: [Read, Write, Edit, Bash, Grep, Glob]
-model: opus
+model: sonnet
 ---
 
 # Implementer Agent

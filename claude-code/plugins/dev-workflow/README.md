@@ -19,12 +19,12 @@ This **single command** orchestrates the entire TDD implementation workflow auto
 /dev-workflow:1-start-debug "API returns 500 error when user has emoji in name"
 
 # Or step through manually
-/dev-workflow:1-explore-debug user-api
-/dev-workflow:3-hypothesize emoji-bug
-/dev-workflow:4-instrument emoji-bug
+/dev-workflow:2-explore-debug user-api
+/dev-workflow:4-hypothesize emoji-bug
+/dev-workflow:5-instrument emoji-bug
 # [user reproduces bug, logs captured to logs/debug-output.log]
-/dev-workflow:6-analyze emoji-bug
-/dev-workflow:8-verify emoji-bug
+/dev-workflow:7-analyze emoji-bug
+/dev-workflow:9-verify emoji-bug
 ```
 
 ## TDD Workflow (Phases 2-9)
@@ -63,19 +63,19 @@ EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX 
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:1-start-debug <bug>` | **Start full debug workflow** |
-| `/dev-workflow:1-explore-debug <area>` | Phase 1: Explore codebase for context |
-| `/dev-workflow:3-hypothesize <name>` | Phase 3: Generate ranked hypotheses |
-| `/dev-workflow:4-instrument <name>` | Phase 4: Add debug logging |
-| `/dev-workflow:6-analyze <name>` | Phase 6: Analyze log output |
-| `/dev-workflow:8-verify <name>` | Phases 8-9: Verify fix and cleanup |
+| `/dev-workflow:2-explore-debug <area>` | Phase 2: Explore codebase for context |
+| `/dev-workflow:4-hypothesize <name>` | Phase 4: Generate ranked hypotheses |
+| `/dev-workflow:5-instrument <name>` | Phase 5: Add debug logging |
+| `/dev-workflow:7-analyze <name>` | Phase 7: Analyze log output |
+| `/dev-workflow:9-verify <name>` | Phases 9-10: Verify fix and cleanup |
 
 ### Key Features
 
 - **File-based log capture**: Instrumentation writes to `logs/debug-output.log` (overwritten on each app run). Claude reads the file directly after reproduction — no copy/paste needed.
 - **Hypothesis-driven**: 3-5 ranked theories with tagged instrumentation (`[DEBUG-H1]`)
-- **Human verification gates**: Phases 2 (describe), 5 (reproduce), 8 (verify fix)
+- **Human verification gates**: Phases 3 (describe), 6 (reproduce), 9 (verify fix)
 - **3-Fix Rule**: After 3 failed fixes, question the architecture
-- **Loopback flows**: Rejected hypotheses loop to Phase 3; failed fixes loop to Phase 6
+- **Loopback flows**: Rejected hypotheses loop to Phase 4; failed fixes loop to Phase 7
 
 ## Shared
 

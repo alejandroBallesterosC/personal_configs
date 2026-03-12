@@ -122,8 +122,8 @@ Use this template:
 ## STEP 5: UPDATE STATE FILE
 
 If a debug session exists, update the state file:
-- Mark Phase 1 complete
-- Update current phase to Phase 2
+- Mark Phase 2 complete
+- Update current phase to Phase 3
 - Record any key findings from exploration
 
 ---
@@ -133,9 +133,9 @@ If a debug session exists, update the state file:
 After exploration, proceed to:
 
 **If running full workflow:**
-The orchestrator (`/dev-workflow:1-start-debug`) will continue to Phase 2 automatically.
+The orchestrator (`/dev-workflow:1-start-debug`) will continue to Phase 3 automatically.
 
 **If running standalone:**
 ```
-/dev-workflow:3-hypothesize $ARGUMENTS
+/dev-workflow:4-hypothesize $ARGUMENTS
 ```

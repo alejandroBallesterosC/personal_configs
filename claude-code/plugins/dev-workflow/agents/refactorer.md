@@ -2,7 +2,7 @@
 name: refactorer
 description: REFACTOR phase - Improve code while keeping tests green
 tools: [Read, Write, Edit, Bash, Grep, Glob]
-model: opus
+model: sonnet
 ---
 
 # Refactorer Agent

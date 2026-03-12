@@ -88,12 +88,12 @@ EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE �
 /dev-workflow:1-start-debug "API returns 500 error when user has emoji in name"
 
 # Run individual phases
-/dev-workflow:1-explore-debug user-api
-/dev-workflow:3-hypothesize emoji-bug
-/dev-workflow:4-instrument emoji-bug
+/dev-workflow:2-explore-debug user-api
+/dev-workflow:4-hypothesize emoji-bug
+/dev-workflow:5-instrument emoji-bug
 # [user reproduces bug, logs captured to logs/debug-output.log]
-/dev-workflow:6-analyze emoji-bug
-/dev-workflow:8-verify emoji-bug
+/dev-workflow:7-analyze emoji-bug
+/dev-workflow:9-verify emoji-bug
 ```
 
 ### Autonomous Workflow Plugin

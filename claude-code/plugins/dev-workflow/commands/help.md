@@ -74,12 +74,12 @@ EXPLORE -> INTERVIEW -> ARCHITECTURE -> PLAN -> REVIEW -> IMPLEMENT -> E2E TEST 
 /dev-workflow:1-start-debug "Login fails with 500 error for users with special characters in email"
 
 # Or step through manually
-/dev-workflow:1-explore-debug authentication
-/dev-workflow:3-hypothesize login-bug
-/dev-workflow:4-instrument login-bug
+/dev-workflow:2-explore-debug authentication
+/dev-workflow:4-hypothesize login-bug
+/dev-workflow:5-instrument login-bug
 # [user reproduces bug, logs captured to logs/debug-output.log]
-/dev-workflow:6-analyze login-bug
-/dev-workflow:8-verify login-bug
+/dev-workflow:7-analyze login-bug
+/dev-workflow:9-verify login-bug
 ```
 
 ### Debug Phases
@@ -93,11 +93,11 @@ EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX 
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:1-start-debug <bug description>` | **Start full debug workflow** |
-| `/dev-workflow:1-explore-debug <area>` | Phase 1: Explore codebase for context |
-| `/dev-workflow:3-hypothesize <bug-name>` | Phase 3: Generate ranked hypotheses |
-| `/dev-workflow:4-instrument <bug-name>` | Phase 4: Add debug logging |
-| `/dev-workflow:6-analyze <bug-name>` | Phase 6: Analyze log output |
-| `/dev-workflow:8-verify <bug-name>` | Phases 8-9: Verify fix and cleanup |
+| `/dev-workflow:2-explore-debug <area>` | Phase 2: Explore codebase for context |
+| `/dev-workflow:4-hypothesize <bug-name>` | Phase 4: Generate ranked hypotheses |
+| `/dev-workflow:5-instrument <bug-name>` | Phase 5: Add debug logging |
+| `/dev-workflow:7-analyze <bug-name>` | Phase 7: Analyze log output |
+| `/dev-workflow:9-verify <bug-name>` | Phases 9-10: Verify fix and cleanup |
 
 ### Debug Agents
 

@@ -28,7 +28,7 @@ Error: Exploration not found
 The file docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md does not exist.
 Exploration must be completed before generating hypotheses.
 
-Run: /dev-workflow:1-explore-debug $ARGUMENTS
+Run: /dev-workflow:2-explore-debug $ARGUMENTS
 ```
 
 ### 2.2 Check bug description exists
@@ -120,9 +120,9 @@ Include:
 ## STEP 7: UPDATE STATE FILE
 
 Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
-- Mark Phase 3 complete
+- Mark Phase 4 complete
 - Add hypotheses status (all PENDING)
-- Update current phase to Phase 4
+- Update current phase to Phase 5
 - Record any key findings
 
 ---
@@ -154,5 +154,5 @@ Before saving, verify:
 
 After generating hypotheses:
 ```
-/dev-workflow:4-instrument $ARGUMENTS
+/dev-workflow:5-instrument $ARGUMENTS
 ```

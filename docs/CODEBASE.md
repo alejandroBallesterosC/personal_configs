@@ -283,7 +283,7 @@ wide-exploration -> source-verification -> contradiction-resolution -> deep-dive
 The Cursor mirror at `cursor/` has **significant drift** from the Claude Code source:
 
 ### Missing from Cursor (entire debug + autonomous workflows)
-- **6 debug commands**: `1-start-debug`, `1-explore-debug`, `3-hypothesize`, `4-instrument`, `6-analyze`, `8-verify`
+- **6 debug commands**: `1-start-debug`, `2-explore-debug`, `4-hypothesize`, `5-instrument`, `7-analyze`, `9-verify`
 - **4 debug agents**: `debug-explorer`, `hypothesis-generator`, `instrumenter`, `log-analyzer`
 - **2 debug skills**: `debug-workflow-guide`, `structured-debug`
 - **1 hook script**: `archive-completed-workflows.sh`

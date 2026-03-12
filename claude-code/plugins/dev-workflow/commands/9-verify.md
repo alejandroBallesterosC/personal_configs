@@ -90,7 +90,7 @@ Use AskUserQuestionTool to ask:
 1. Capture new log output from the user
 2. Check the 3-Fix Rule: read the fix attempt count from the state file
 3. If count >= 3: STOP and ask "We've tried 3 fixes without success. Should we question our fundamental approach?"
-4. If count < 3: Increment counter, loop back to analysis (`/dev-workflow:6-analyze $ARGUMENTS`)
+4. If count < 3: Increment counter, loop back to analysis (`/dev-workflow:7-analyze $ARGUMENTS`)
 
 ---
 

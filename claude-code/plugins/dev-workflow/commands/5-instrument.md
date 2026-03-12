@@ -28,7 +28,7 @@ Error: Hypotheses not found
 The file docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md does not exist.
 Hypotheses must be generated before adding instrumentation.
 
-Run: /dev-workflow:3-hypothesize $ARGUMENTS
+Run: /dev-workflow:4-hypothesize $ARGUMENTS
 ```
 
 ### 2.2 Read context
@@ -118,8 +118,8 @@ Write clear instructions for the user:
 ## STEP 6: UPDATE STATE FILE
 
 Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
-- Mark Phase 4 complete
-- Update current phase to Phase 5 (Reproduce)
+- Mark Phase 5 complete
+- Update current phase to Phase 6 (Reproduce)
 - Note which files were instrumented
 
 ---
@@ -261,5 +261,5 @@ logging.debug(f"[DEBUG-H2] slow_operation took {elapsed:.3f}s")
 
 After user captures logs:
 ```
-/dev-workflow:6-analyze $ARGUMENTS
+/dev-workflow:7-analyze $ARGUMENTS
 ```

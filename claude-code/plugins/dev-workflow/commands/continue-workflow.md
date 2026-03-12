@@ -120,7 +120,7 @@ If the current phase involves ralph-loop:
 
 ### Check if complete
 
-If `docs/debug/$1/$1-state.md` contains "Current Phase" with "COMPLETE" or all 9 phases checked:
+If `docs/debug/$1/$1-state.md` contains "Current Phase" with "COMPLETE" or all phases checked:
 
 ```
 Error: Debug session for '$1' is already complete
@@ -155,15 +155,15 @@ Output a summary of current state, hypotheses status, loaded artifacts, and cont
 
 | Current Phase | How to Continue |
 |---------------|-----------------|
-| Phase 1: Explore | Continue exploration, then Phase 2 |
-| Phase 2: Describe | Continue gathering bug context from user |
-| Phase 3: Hypothesize | Continue hypothesis generation |
-| Phase 4: Instrument | Continue adding instrumentation |
-| Phase 5: Reproduce | Ask user to reproduce and share logs |
-| Phase 6: Analyze | Continue log analysis |
-| Phase 7: Fix | Apply fix (check 3-Fix Rule) |
-| Phase 8: Verify | Guide user through verification |
-| Phase 9: Clean | Complete cleanup and archival |
+| Phase 2: Explore | Continue exploration, then Phase 3 |
+| Phase 3: Describe | Continue gathering bug context from user |
+| Phase 4: Hypothesize | Continue hypothesis generation |
+| Phase 5: Instrument | Continue adding instrumentation |
+| Phase 6: Reproduce | Ask user to reproduce and share logs |
+| Phase 7: Analyze | Continue log analysis |
+| Phase 8: Fix | Apply fix (check 3-Fix Rule) |
+| Phase 9: Verify | Guide user through verification |
+| Phase 10: Clean | Complete cleanup and archival |
 
 ### For Loopback Phases
 
@@ -171,7 +171,7 @@ If the state file indicates a loopback (e.g., "all hypotheses rejected"):
 
 1. Read the analysis file to understand what was rejected and why
 2. Use the unexpected findings to generate new hypotheses
-3. Continue from Phase 3 with the new context
+3. Continue from Phase 4 with the new context
 
 ---
 

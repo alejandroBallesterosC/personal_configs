@@ -7,7 +7,7 @@ description: Source of truth for the debug workflow (9 phases - explore, describ
 
 This skill provides **navigation guidance** for the debug workflow plugin's 9 phases. Based on practices from Boris Cherny (Claude Code creator), Cursor's Debug Mode, Anthropic's engineering team, and the @obra/superpowers systematic debugging skill.
 
-**Important:** This skill is the **source of truth** for understanding the workflow (overview, principles, context management, state file format). The command files (`1-start-debug.md`, `1-explore-debug.md`, etc.) contain the **execution instructions** only.
+**Important:** This skill is the **source of truth** for understanding the workflow (overview, principles, context management, state file format). The command files (`1-start-debug.md`, `2-explore-debug.md`, etc.) contain the **execution instructions** only.
 
 ## When to Activate
 
@@ -26,52 +26,52 @@ Activate when:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 1: EXPLORE - /1-explore-debug                                         │
+│ PHASE 2: EXPLORE - /2-explore-debug                                        │
 │   File Discovery │ Execution Flow │ Dependencies │ Git History │ Tests     │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 2: DESCRIBE - (main instance, user input)                            │
+│ PHASE 3: DESCRIBE - (main instance, user input)                            │
 │   Expected vs Actual │ Reproduction │ Timing │ Environment │ Errors       │
 │   HUMAN GATE: User provides bug context via AskUserQuestionTool            │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 3: HYPOTHESIZE - /3-hypothesize                                      │
+│ PHASE 4: HYPOTHESIZE - /4-hypothesize                                      │
 │   Generate 3-5 ranked theories │ Evidence needed │ Instrumentation plan    │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 4: INSTRUMENT - /4-instrument                                        │
+│ PHASE 5: INSTRUMENT - /5-instrument                                        │
 │   Tagged logging ([DEBUG-H1]) │ Cleanup markers │ Decision points          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 5: REPRODUCE - (main instance, user action)                          │
+│ PHASE 6: REPRODUCE - (main instance, user action)                          │
 │   Provide reproduction steps │ Specify log capture │ Explain markers       │
 │   HUMAN GATE: User triggers bug, captures logs, shares output              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 6: ANALYZE - /6-analyze                                              │
+│ PHASE 7: ANALYZE - /7-analyze                                              │
 │   Match logs to hypotheses │ CONFIRMED/REJECTED/INCONCLUSIVE verdicts      │
-│   If all rejected → loop back to Phase 3 with new findings                 │
+│   If all rejected → loop back to Phase 4 with new findings                 │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 7: FIX - (main instance)                                             │
+│ PHASE 8: FIX - (main instance)                                             │
 │   Root cause explanation │ Minimal code change │ Keep instrumentation       │
 │   3-FIX RULE: After 3 failed fixes, STOP and question architecture         │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 8: VERIFY - /8-verify                                                │
+│ PHASE 9: VERIFY - /9-verify                                                │
 │   Reproduce original scenario │ Run tests │ Write regression test          │
 │   HUMAN GATE: User confirms bug is fixed                                   │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 9: CLEAN - /8-verify (continued)                                     │
+│ PHASE 10: CLEAN - /9-verify (continued)                                    │
 │   Remove DEBUG markers │ Remove debug imports │ Run tests │ Commit         │
 │   Archive debug artifacts                                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -105,7 +105,7 @@ Track failed fix attempts in the state file. If 3+ fixes have failed:
 
 Context and verification are managed via three hooks (same system as TDD implementation workflow):
 
-1. **Stop hook - Test runner** (command): Runs scoped tests if a `.tdd-test-scope` file exists. Active during Phases 7-9 when Claude writes the scope file for verification. No-op during investigation phases (1-6).
+1. **Stop hook - Test runner** (command): Runs scoped tests if a `.tdd-test-scope` file exists. Active during Phases 8-10 when Claude writes the scope file for verification. No-op during investigation phases (2-7).
 2. **Stop hook - State verifier** (agent): Before Claude stops responding, verifies the state file is up to date. If outdated, blocks Claude from stopping until the state file is updated.
 3. **SessionStart hook** (command): After context reset (`/compact` or `/clear`), reads the state file and injects full context for seamless resume.
 
@@ -115,9 +115,9 @@ Context and verification are managed via three hooks (same system as TDD impleme
 
 The `.tdd-test-scope` file (shared contract with the TDD implementation workflow) controls which tests the Stop hook runs. Claude writes this file to the **repository root** when it needs test verification:
 
-- During Phase 8 (VERIFY): Run the regression test
-- During Phase 9 (CLEAN): Confirm cleanup didn't break tests
-- During investigation phases (1-6): File doesn't exist, hook is a no-op
+- During Phase 9 (VERIFY): Run the regression test
+- During Phase 10 (CLEAN): Confirm cleanup didn't break tests
+- During investigation phases (2-7): File doesn't exist, hook is a no-op
 
 See the `testing` skill for `.tdd-test-scope` format details.
 
@@ -151,9 +151,9 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 ## Phase Details
 
-**Note:** These summaries explain what each phase does. For **execution instructions**, see the individual phase commands (`1-explore-debug.md`, `3-hypothesize.md`, etc.). The `1-start-debug.md` command orchestrates all phases in sequence.
+**Note:** These summaries explain what each phase does. For **execution instructions**, see the individual phase commands (`2-explore-debug.md`, `4-hypothesize.md`, etc.). The `1-start-debug.md` command orchestrates all phases in sequence.
 
-### Phase 1: EXPLORE
+### Phase 2: EXPLORE
 **Purpose**: Understand the relevant systems before debugging begins
 
 **What happens**:
@@ -164,11 +164,11 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 **Output**: `docs/debug/<bug-name>/<bug-name>-exploration.md`
 
-**Command**: `/dev-workflow:1-explore-debug <bug description>`
+**Command**: `/dev-workflow:2-explore-debug <bug description>`
 
 ---
 
-### Phase 2: DESCRIBE
+### Phase 3: DESCRIBE
 **Purpose**: Gather complete bug context from the user
 
 **What happens**:
@@ -182,7 +182,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 ---
 
-### Phase 3: HYPOTHESIZE
+### Phase 4: HYPOTHESIZE
 **Purpose**: Generate testable theories about root cause
 
 **What happens**:
@@ -193,11 +193,11 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 **Output**: `docs/debug/<bug-name>/<bug-name>-hypotheses.md`
 
-**Command**: `/dev-workflow:3-hypothesize <bug-name>`
+**Command**: `/dev-workflow:4-hypothesize <bug-name>`
 
 ---
 
-### Phase 4: INSTRUMENT
+### Phase 5: INSTRUMENT
 **Purpose**: Add surgical logging to test hypotheses
 
 **What happens**:
@@ -208,11 +208,11 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 **Output**: Modified source files with instrumentation
 
-**Command**: `/dev-workflow:4-instrument <bug-name>`
+**Command**: `/dev-workflow:5-instrument <bug-name>`
 
 ---
 
-### Phase 5: REPRODUCE
+### Phase 6: REPRODUCE
 **Purpose**: User triggers the bug with instrumentation in place
 
 **What happens**:
@@ -225,24 +225,24 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 ---
 
-### Phase 6: ANALYZE
+### Phase 7: ANALYZE
 **Purpose**: Match log output against hypotheses to determine root cause
 
 **What happens**:
 - Claude reads `logs/debug-output.log` from the repository root
 - log-analyzer agent extracts debug markers and matches to hypotheses
 - Each hypothesis evaluated: CONFIRMED / REJECTED / INCONCLUSIVE
-- If CONFIRMED → proceed to Phase 7
-- If all REJECTED → loop back to Phase 3 with new findings
-- If INCONCLUSIVE → add more instrumentation and loop back to Phase 5
+- If CONFIRMED → proceed to Phase 8
+- If all REJECTED → loop back to Phase 4 with new findings
+- If INCONCLUSIVE → add more instrumentation and loop back to Phase 6
 
 **Output**: `docs/debug/<bug-name>/<bug-name>-analysis.md`
 
-**Command**: `/dev-workflow:6-analyze <bug-name>`
+**Command**: `/dev-workflow:7-analyze <bug-name>`
 
 ---
 
-### Phase 7: FIX
+### Phase 8: FIX
 **Purpose**: Apply minimal code change to address confirmed root cause
 
 **What happens**:
@@ -255,7 +255,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 ---
 
-### Phase 8: VERIFY
+### Phase 9: VERIFY
 **Purpose**: Confirm the fix works
 
 **What happens**:
@@ -265,11 +265,11 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 **Human gate**: User confirms bug is fixed
 
-**Command**: `/dev-workflow:8-verify <bug-name>`
+**Command**: `/dev-workflow:9-verify <bug-name>`
 
 ---
 
-### Phase 9: CLEAN
+### Phase 10: CLEAN
 **Purpose**: Remove all debug instrumentation and finalize
 
 **What happens**:
@@ -279,7 +279,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Commit fix + regression test (not debug logs)
 - Archive debug artifacts
 
-**Command**: `/dev-workflow:8-verify <bug-name>` (continued)
+**Command**: `/dev-workflow:9-verify <bug-name>` (continued)
 
 ---
 
@@ -289,11 +289,11 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:1-start-debug <bug>` | Start full orchestrated debug workflow |
-| `/dev-workflow:1-explore-debug <area>` | Phase 1: Explore codebase for context |
-| `/dev-workflow:3-hypothesize <bug-name>` | Phase 3: Generate ranked hypotheses |
-| `/dev-workflow:4-instrument <bug-name>` | Phase 4: Add targeted instrumentation |
-| `/dev-workflow:6-analyze <bug-name>` | Phase 6: Analyze logs against hypotheses |
-| `/dev-workflow:8-verify <bug-name>` | Phases 8-9: Verify fix and cleanup |
+| `/dev-workflow:2-explore-debug <area>` | Phase 2: Explore codebase for context |
+| `/dev-workflow:4-hypothesize <bug-name>` | Phase 4: Generate ranked hypotheses |
+| `/dev-workflow:5-instrument <bug-name>` | Phase 5: Add targeted instrumentation |
+| `/dev-workflow:7-analyze <bug-name>` | Phase 7: Analyze logs against hypotheses |
+| `/dev-workflow:9-verify <bug-name>` | Phases 9-10: Verify fix and cleanup |
 | `/dev-workflow:continue-workflow <bug-name>` | **Continue an in-progress debug session** |
 | `/dev-workflow:help` | Show help |
 
@@ -302,24 +302,24 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 | Phase | Agent Used | How to Invoke |
 |-------|------------|---------------|
-| Phase 1: Explore | `debug-explorer` | `Task tool with subagent_type: "dev-workflow:debug-explorer"` |
-| Phase 2: Describe | None (main instance) | Main instance uses AskUserQuestionTool |
-| Phase 3: Hypothesize | `hypothesis-generator` | `Task tool with subagent_type: "dev-workflow:hypothesis-generator"` |
-| Phase 4: Instrument | `instrumenter` | `Task tool with subagent_type: "dev-workflow:instrumenter"` |
-| Phase 5: Reproduce | None (user action) | User triggers bug |
-| Phase 6: Analyze | `log-analyzer` | `Task tool with subagent_type: "dev-workflow:log-analyzer"` |
-| Phase 7: Fix | None (main instance) | Main instance applies fix |
-| Phase 8: Verify | None (main instance) | Main instance + user verification |
-| Phase 9: Clean | None (main instance) | Main instance cleans up |
+| Phase 2: Explore | `debug-explorer` | `Task tool with subagent_type: "dev-workflow:debug-explorer"` |
+| Phase 3: Describe | None (main instance) | Main instance uses AskUserQuestionTool |
+| Phase 4: Hypothesize | `hypothesis-generator` | `Task tool with subagent_type: "dev-workflow:hypothesis-generator"` |
+| Phase 5: Instrument | `instrumenter` | `Task tool with subagent_type: "dev-workflow:instrumenter"` |
+| Phase 6: Reproduce | None (user action) | User triggers bug |
+| Phase 7: Analyze | `log-analyzer` | `Task tool with subagent_type: "dev-workflow:log-analyzer"` |
+| Phase 8: Fix | None (main instance) | Main instance applies fix |
+| Phase 9: Verify | None (main instance) | Main instance + user verification |
+| Phase 10: Clean | None (main instance) | Main instance cleans up |
 
 
 ## Human Verification Gates
 
 Three explicit gates where the workflow pauses for human input:
 
-1. **Phase 2 (DESCRIBE)**: User provides bug context - expected behavior, reproduction steps, error messages
-2. **Phase 5 (REPRODUCE)**: User triggers the bug with instrumentation active, captures and shares log output
-3. **Phase 8 (VERIFY)**: User confirms the bug is fixed by reproducing the original scenario
+1. **Phase 3 (DESCRIBE)**: User provides bug context - expected behavior, reproduction steps, error messages
+2. **Phase 6 (REPRODUCE)**: User triggers the bug with instrumentation active, captures and shares log output
+3. **Phase 9 (VERIFY)**: User confirms the bug is fixed by reproducing the original scenario
 
 At each gate, use AskUserQuestionTool to collect input and confirm readiness to proceed.
 
@@ -330,13 +330,13 @@ The workflow is not always linear. Two loopback flows exist:
 
 ### Hypotheses Rejected Loop
 ```
-Phase 6 (all REJECTED) → Phase 3 (new hypotheses from findings) → Phase 4 → Phase 5 → Phase 6
+Phase 7 (all REJECTED) → Phase 4 (new hypotheses from findings) → Phase 5 → Phase 6 → Phase 7
 ```
 When all hypotheses are rejected, the log analysis reveals unexpected findings. Use these findings to generate new hypotheses (H4, H5, etc.) and repeat the cycle.
 
 ### Fix Failed Loop
 ```
-Phase 8 (fix failed) → Phase 6 (re-analyze with new evidence) → Phase 7 (refined fix)
+Phase 9 (fix failed) → Phase 7 (re-analyze with new evidence) → Phase 8 (refined fix)
 ```
 When a fix doesn't work, capture new log output and re-analyze. The 3-Fix Rule applies across all iterations.
 
@@ -381,15 +381,15 @@ Phase [N]: [Phase Name]
 - **Description**: <description>
 
 ## Completed Phases
-- [ ] Phase 1: Explore
-- [ ] Phase 2: Describe
-- [ ] Phase 3: Hypothesize
-- [ ] Phase 4: Instrument
-- [ ] Phase 5: Reproduce
-- [ ] Phase 6: Analyze
-- [ ] Phase 7: Fix
-- [ ] Phase 8: Verify
-- [ ] Phase 9: Clean
+- [ ] Phase 2: Explore
+- [ ] Phase 3: Describe
+- [ ] Phase 4: Hypothesize
+- [ ] Phase 5: Instrument
+- [ ] Phase 6: Reproduce
+- [ ] Phase 7: Analyze
+- [ ] Phase 8: Fix
+- [ ] Phase 9: Verify
+- [ ] Phase 10: Clean
 
 ## Hypotheses Status
 - H1: [summary] - PENDING / CONFIRMED / REJECTED / INCONCLUSIVE
@@ -445,7 +445,7 @@ If a debug session is initiated from a TDD implementation workflow:
 
 ```
 TDD Phase 7 (tests fail unexpectedly)
-  → /dev-workflow:1-start-debug "test failure description"
+  -> /dev-workflow:1-start-debug "test failure description"
   → Debug workflow completes
   → Return to TDD with: /dev-workflow:continue-workflow <feature>
 ```

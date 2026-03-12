@@ -28,7 +28,7 @@ Error: Hypotheses not found
 The file docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md does not exist.
 Hypotheses must be generated before analyzing logs.
 
-Run: /dev-workflow:3-hypothesize $ARGUMENTS
+Run: /dev-workflow:4-hypothesize $ARGUMENTS
 ```
 
 ### 2.2 Read debug log output
@@ -125,7 +125,7 @@ Proceed to the fix phase:
 **Why This Fixes It**: [how fix addresses root cause]
 ```
 
-Update state file: mark hypothesis as CONFIRMED, advance to Phase 7.
+Update state file: mark hypothesis as CONFIRMED, advance to Phase 8.
 
 ### 5.2 If all hypotheses are REJECTED
 
@@ -134,9 +134,9 @@ Generate new hypotheses from unexpected log findings:
 1. Review what the logs DID reveal (unexpected values, paths, timing)
 2. Generate new hypotheses H4, H5 based on these findings
 3. Inform the user: "All initial hypotheses were rejected. The logs revealed: [findings]. Generating new hypotheses."
-4. Loop back to Phase 3 (hypothesize) with the new context
+4. Loop back to Phase 4 (hypothesize) with the new context
 
-Update state file: mark rejected hypotheses, note unexpected findings, set phase back to Phase 3.
+Update state file: mark rejected hypotheses, note unexpected findings, set phase back to Phase 4.
 
 ### 5.3 If INCONCLUSIVE
 
@@ -144,9 +144,9 @@ Identify what additional instrumentation is needed:
 
 1. What evidence is missing?
 2. Where should new logs be added?
-3. Loop back to Phase 4 (instrument) to add more targeted logging
+3. Loop back to Phase 5 (instrument) to add more targeted logging
 
-Update state file: note what's inconclusive, set phase back to Phase 4.
+Update state file: note what's inconclusive, set phase back to Phase 5.
 
 ---
 
@@ -155,7 +155,7 @@ Update state file: note what's inconclusive, set phase back to Phase 4.
 Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
 - Update hypothesis verdicts
 - Record key findings from log analysis
-- Update current phase based on results (Phase 7, or loopback to 3/4)
+- Update current phase based on results (Phase 8, or loopback to 4/5)
 - Update next action
 
 ---
@@ -191,11 +191,11 @@ Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
 **If root cause found:**
 ```
 Proceed to fix phase, then verify:
-/dev-workflow:8-verify $ARGUMENTS
+/dev-workflow:9-verify $ARGUMENTS
 ```
 
 **If more investigation needed:**
 ```
 Add instrumentation for new hypotheses:
-/dev-workflow:4-instrument $ARGUMENTS
+/dev-workflow:5-instrument $ARGUMENTS
 ```

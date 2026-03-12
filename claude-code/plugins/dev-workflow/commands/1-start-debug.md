@@ -98,7 +98,7 @@ Write the initial state file to `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
 workflow_type: debug
 name: $ARGUMENTS
 status: in_progress
-current_phase: "Phase 1: Explore"
+current_phase: "Phase 2: Explore"
 fix_attempts: 0
 max_fix_attempts: 3
 ---
@@ -106,22 +106,22 @@ max_fix_attempts: 3
 # Debug Session State: $ARGUMENTS
 
 ## Current Phase
-Phase 1: Explore
+Phase 2: Explore
 
 ## Bug
 - **Name**: $ARGUMENTS
 - **Description**: [From user's bug description]
 
 ## Completed Phases
-- [ ] Phase 1: Explore
-- [ ] Phase 2: Describe
-- [ ] Phase 3: Hypothesize
-- [ ] Phase 4: Instrument
-- [ ] Phase 5: Reproduce
-- [ ] Phase 6: Analyze
-- [ ] Phase 7: Fix
-- [ ] Phase 8: Verify
-- [ ] Phase 9: Clean
+- [ ] Phase 2: Explore
+- [ ] Phase 3: Describe
+- [ ] Phase 4: Hypothesize
+- [ ] Phase 5: Instrument
+- [ ] Phase 6: Reproduce
+- [ ] Phase 7: Analyze
+- [ ] Phase 8: Fix
+- [ ] Phase 9: Verify
+- [ ] Phase 10: Clean
 
 ## Hypotheses Status
 [Not yet generated]
@@ -133,7 +133,7 @@ Count: 0/3
 [None yet]
 
 ## Session Progress (Auto-saved)
-- **Phase**: Phase 1: Explore
+- **Phase**: Phase 2: Explore
 - **Hypothesis**: N/A
 - **Next Action**: Explore codebase for context on the bug
 
@@ -150,11 +150,11 @@ Read these files to restore context:
 
 ### 2.3 Save original prompt
 
-Write the user's bug description to `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md` with what is known so far. This file will be enriched in Phase 2.
+Write the user's bug description to `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md` with what is known so far. This file will be enriched in Phase 3.
 
 ---
 
-## STEP 3: PHASE 1 - EXPLORE (Codebase Understanding)
+## STEP 3: PHASE 2 - EXPLORE (Codebase Understanding)
 
 Before debugging, understand the relevant systems.
 
@@ -173,11 +173,11 @@ Write exploration output to: `docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md`
 
 ### 3.3 Update state file
 
-Mark Phase 1 complete. Update current phase to Phase 2.
+Mark Phase 2 complete. Update current phase to Phase 3.
 
 ---
 
-## STEP 4: PHASE 2 - DESCRIBE (Gather Bug Context)
+## STEP 4: PHASE 3 - DESCRIBE (Gather Bug Context)
 
 **HUMAN GATE**: Collect complete information about the bug from the user.
 
@@ -222,11 +222,11 @@ Enrich `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md` with the user's answers:
 
 ### 4.3 Update state file
 
-Mark Phase 2 complete. Update current phase to Phase 3.
+Mark Phase 3 complete. Update current phase to Phase 4.
 
 ---
 
-## STEP 5: PHASE 3 - HYPOTHESIZE (Generate Theories)
+## STEP 5: PHASE 4 - HYPOTHESIZE (Generate Theories)
 
 ### 5.1 Generate hypotheses
 
@@ -248,11 +248,11 @@ Write to: `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
 
 ### 5.4 Update state file
 
-Mark Phase 3 complete. Update hypotheses status (all PENDING). Update current phase to Phase 4.
+Mark Phase 4 complete. Update hypotheses status (all PENDING). Update current phase to Phase 5.
 
 ---
 
-## STEP 6: PHASE 4 - INSTRUMENT (Add Targeted Logging)
+## STEP 6: PHASE 5 - INSTRUMENT (Add Targeted Logging)
 
 ### 6.1 Add instrumentation
 
@@ -272,11 +272,11 @@ After the agent adds logs, verify:
 
 ### 6.3 Update state file
 
-Mark Phase 4 complete. Update current phase to Phase 5.
+Mark Phase 5 complete. Update current phase to Phase 6.
 
 ---
 
-## STEP 7: PHASE 5 - REPRODUCE (User Triggers Bug)
+## STEP 7: PHASE 6 - REPRODUCE (User Triggers Bug)
 
 **HUMAN GATE**: The user must trigger the bug with instrumentation active.
 
@@ -314,11 +314,11 @@ If `logs/debug-output.log` is empty or missing, ask the user to check that the a
 
 ### 7.3 Update state file
 
-Mark Phase 5 complete. Update current phase to Phase 6.
+Mark Phase 6 complete. Update current phase to Phase 7.
 
 ---
 
-## STEP 8: PHASE 6 - ANALYZE (Match Logs to Hypotheses)
+## STEP 8: PHASE 7 - ANALYZE (Match Logs to Hypotheses)
 
 ### 8.1 Analyze logs
 
@@ -336,26 +336,26 @@ Write to: `docs/debug/$ARGUMENTS/$ARGUMENTS-analysis.md`
 
 **If a hypothesis is CONFIRMED:**
 - Update hypothesis status in state file
-- Proceed to Phase 7 (Fix)
+- Proceed to Phase 8 (Fix)
 
 **If all hypotheses are REJECTED:**
 - Update hypothesis statuses in state file
 - Note unexpected findings from the logs
-- Loop back to STEP 5 (Phase 3) to generate new hypotheses (H4, H5, etc.)
+- Loop back to STEP 5 (Phase 4) to generate new hypotheses (H4, H5, etc.)
 - Inform the user: "All initial hypotheses were rejected. The logs revealed [findings]. Generating new hypotheses."
 
 **If INCONCLUSIVE:**
 - Identify what additional instrumentation is needed
-- Loop back to STEP 6 (Phase 4) to add more logs
+- Loop back to STEP 6 (Phase 5) to add more logs
 - Inform the user: "Need more evidence. Adding additional instrumentation."
 
 ### 8.4 Update state file
 
-Mark Phase 6 complete (if proceeding to fix). Update current phase.
+Mark Phase 7 complete (if proceeding to fix). Update current phase.
 
 ---
 
-## STEP 9: PHASE 7 - FIX (Minimal Code Change)
+## STEP 9: PHASE 8 - FIX (Minimal Code Change)
 
 ### 9.1 Explain root cause
 
@@ -384,11 +384,11 @@ Increment the fix attempt counter in the state file.
 
 ### 9.4 Update state file
 
-Mark Phase 7 complete. Update current phase to Phase 8.
+Mark Phase 8 complete. Update current phase to Phase 9.
 
 ---
 
-## STEP 10: PHASE 8 - VERIFY (Confirm Fix)
+## STEP 10: PHASE 9 - VERIFY (Confirm Fix)
 
 **HUMAN GATE**: The user must verify the fix works.
 
@@ -414,21 +414,21 @@ Write a regression test that would have caught this bug:
 
 **If fix confirmed:**
 - Ask user via AskUserQuestionTool to confirm
-- Proceed to Phase 9 (Clean)
+- Proceed to Phase 10 (Clean)
 
 **If fix failed:**
 - Capture new log output
 - Increment fix attempt counter
 - Check 3-Fix Rule
-- Loop back to STEP 8 (Phase 6) to re-analyze with new evidence
+- Loop back to STEP 8 (Phase 7) to re-analyze with new evidence
 
 ### 10.5 Update state file
 
-Mark Phase 8 complete. Update current phase to Phase 9.
+Mark Phase 9 complete. Update current phase to Phase 10.
 
 ---
 
-## STEP 11: PHASE 9 - CLEAN (Remove Instrumentation)
+## STEP 11: PHASE 10 - CLEAN (Remove Instrumentation)
 
 ### 11.1 Remove debug instrumentation
 
@@ -502,7 +502,7 @@ current_phase: "COMPLETE"
 ---
 ```
 
-Then update the markdown body - mark Phase 9 complete, set current phase to COMPLETE.
+Then update the markdown body - mark Phase 10 complete, set current phase to COMPLETE.
 
 ### 11.7 Archive debug session directory
 
