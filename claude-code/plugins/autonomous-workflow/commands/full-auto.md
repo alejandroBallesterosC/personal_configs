@@ -50,7 +50,7 @@ Same as `/autonomous-workflow:research-and-plan` initialization, but with:
 
 ## PHASE A: Research
 
-**You MUST read `/autonomous-workflow:research` (Steps 2-8) AND `/autonomous-workflow:research-and-plan` (Phase A) before executing this phase.** The full iteration logic lives in those commands. This phase follows the same logic with research focused on: technical feasibility, competitive landscape, architecture patterns, defensibility, technology stack.
+**You MUST read `/autonomous-workflow:research` (Steps 2-8, including Step 4.5 consistency audit and Step 5 in-line citation and Synthesis section rules) AND `/autonomous-workflow:research-and-plan` (Phase A) before executing this phase.** The full iteration logic lives in those commands. This phase follows the same logic with research focused on: technical feasibility, competitive landscape, architecture patterns, defensibility, technology stack.
 
 Uses strategy rotation from `/autonomous-workflow:research` Step 7 (never auto-terminates within Phase A).
 

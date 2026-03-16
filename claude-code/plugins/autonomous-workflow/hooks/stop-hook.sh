@@ -50,23 +50,45 @@ fi
 cat > /dev/null
 
 # Find active autonomous workflow state files
-# Check implementation state files first (later phases take priority)
+# Prioritize in_progress over complete to avoid stale complete files killing active workflows
 ACTIVE_STATE=""
+
+# First pass: find in_progress files (implementation state takes priority over research state)
 for state_file in .claude/autonomous-*-implementation-state.md; do
   [ -f "$state_file" ] || continue
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
-  if [ -n "$status" ] && [ "$status" != "null" ]; then
+  if [ "$status" = "in_progress" ]; then
     ACTIVE_STATE="$state_file"
     break
   fi
 done
-
-# If no implementation state, check research state files
 if [ -z "$ACTIVE_STATE" ]; then
   for state_file in .claude/autonomous-*-research-state.md; do
     [ -f "$state_file" ] || continue
     status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
-    if [ -n "$status" ] && [ "$status" != "null" ]; then
+    if [ "$status" = "in_progress" ]; then
+      ACTIVE_STATE="$state_file"
+      break
+    fi
+  done
+fi
+
+# Second pass: if no in_progress found, check for complete files needing verification
+if [ -z "$ACTIVE_STATE" ]; then
+  for state_file in .claude/autonomous-*-implementation-state.md; do
+    [ -f "$state_file" ] || continue
+    status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
+    if [ "$status" = "complete" ]; then
+      ACTIVE_STATE="$state_file"
+      break
+    fi
+  done
+fi
+if [ -z "$ACTIVE_STATE" ]; then
+  for state_file in .claude/autonomous-*-research-state.md; do
+    [ -f "$state_file" ] || continue
+    status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
+    if [ "$status" = "complete" ]; then
       ACTIVE_STATE="$state_file"
       break
     fi

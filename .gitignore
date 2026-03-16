@@ -1,9 +1,7 @@
 # ====================
 # Project-specific
 # ====================
-*.claude.json
-*.env
-!playwright/lib/
+
 
 # ====================
 # Claude Code Hook Debug Logs
@@ -22,6 +20,18 @@ dev-auto-resume-debug.md
 .AppleDouble
 .LSOverride
 Thumbs.db
+
+# ====================
+# Git worktrees
+# ====================
+# worktrees/
+# .worktrees/
+
+# ====================
+# Benchmarks & DeepEval
+# ====================
+# .benchmarks/
+# .deepeval/
 
 # ====================
 # IDE & Editors
@@ -78,6 +88,7 @@ Thumbs.db
 # ====================
 # Logs & Temporary files
 # ====================
+logs/
 *.log
 tmp/
 temp/
@@ -90,6 +101,7 @@ temp/
 .env.local
 .env.production
 .envrc
+.env.backup.*
 .venv
 env/
 venv/
@@ -103,6 +115,29 @@ venv.bak/
 *.db
 db.sqlite3
 db.sqlite3-journal
+
+# ====================
+# Terraform
+# ====================
+.terraform/
+.terraform.tfstate.lock.info
+terraform.tfstate.d/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+*.auto.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
 
 # ====================
 # Python - Core

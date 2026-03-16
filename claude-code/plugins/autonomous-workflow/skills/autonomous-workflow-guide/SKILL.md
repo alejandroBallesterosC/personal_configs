@@ -62,11 +62,17 @@ Mode 3: Full Auto              Mode 4: Implement Only
 
 3. **State file tracks gaps.** Open questions, unverified claims, sections needing expansion — all tracked in the state file so each iteration knows where to focus.
 
-4. **Compile LaTeX at phase boundaries only.** Mid-phase, `.tex` files are updated every iteration but not compiled to PDF. Compilation happens at phase transitions and on `continue-auto` invocations.
+4. **Every claim must be cited.** All factual claims in the report must have in-line `\cite{key}` references. Researcher agents return structured source entries with BibTeX keys. The main instance converts these to BibTeX entries in `sources.bib` (with deduplication) and places `\cite{}` references in-line throughout the report. No orphan references allowed — every `sources.bib` entry must appear as a `\cite{}` somewhere.
 
-5. **One iteration per command invocation.** The Stop hook re-feeds the command for continuation. Each command invocation does one cycle of work, updates state, and exits.
+5. **Internal consistency is enforced every iteration.** Before updating the report, new findings are checked against existing sections for contradictions. Contradictions are resolved by keeping the stronger evidence and updating the weaker claim. Every 5th iteration, a deep consistency audit re-reads the entire report checking all claims pairwise. The Synthesis section is rewritten in full every iteration (not patched) to maintain coherence.
 
-6. **Budget-based termination.** Every phase runs for its iteration budget. Research rotates through strategies. Planning refines the plan. Implementation works through features. The Stop hook blocks exit while `status: in_progress`, verifies completion criteria when `status: complete`, and allows stop only when all criteria are met.
+6. **The Synthesis section is the most important section.** It is a 3-4 page standalone summary (1500-2000 words) with: Summary, Key Takeaways (5-7 ranked, with section cross-references), Conclusions \& Recommendations (each conclusion paired with its actionable recommendation), and Confidence \& Limitations. A reader should be able to read only this section and understand the core findings, conclusions, and recommended actions. Mixed evidence must be presented as nuance within a single takeaway, never as contradictory separate takeaways.
+
+7. **Compile LaTeX at phase boundaries only.** Mid-phase, `.tex` files are updated every iteration but not compiled to PDF. Compilation happens at phase transitions.
+
+8. **One iteration per command invocation.** The Stop hook re-feeds the command for continuation. Each command invocation does one cycle of work, updates state, and exits.
+
+9. **Budget-based termination.** Every phase runs for its iteration budget. Research rotates through strategies. Planning refines the plan. Implementation works through features. The Stop hook blocks exit while `status: in_progress`, verifies completion criteria when `status: complete`, and allows stop only when all criteria are met.
 
 ## Research Strategies
 
@@ -102,7 +108,9 @@ Budget-based. The user specifies a `research_budget` (default: 30) via the `--re
 
 On transition: compile report PDF, set research state to `complete`, create implementation directory with Markdown plan and implementation state file, send macOS notification.
 
-### Planning (Mode 2)
+### Planning (Modes 2+3)
+Each planning iteration conducts targeted technical research before spawning planning agents. Every iteration spawns 2-3 technical researchers focused on architecture, best practices, dependencies, tech stack, and reference implementations. For technically complex domains (AI/ML, statistical methods, cryptography, etc.), 1-2 additional academic researchers are spawned for literature review. Research findings are fed directly to plan-architect and plan-critic agents to ground their proposals in credible sources. New sources are added to `sources.bib`.
+
 When `total_iterations_planning >= planning_budget`, the command sets `status: complete`. The Stop hook verifies both research and planning budgets are fulfilled before allowing stop.
 
 ### Planning to Implementation (Mode 3)
@@ -189,7 +197,7 @@ command: |
 
 | Agent | Model | Used In | Purpose |
 |-------|-------|---------|---------|
-| researcher | Sonnet | Phase A | Strategy-aware internet research, returns structured summaries |
+| researcher | Sonnet | Phase A, Phase B | Strategy-aware internet research, returns structured summaries. In Phase B: targeted technical and academic research for planning. |
 | repo-analyst | Sonnet | Phase A | Codebase analysis (skipped if repo is empty) |
 | latex-compiler | Sonnet | Phase boundaries | LaTeX formatting + pdflatex compilation |
 | plan-architect | Opus | Phase B | Plan section improvement proposals |

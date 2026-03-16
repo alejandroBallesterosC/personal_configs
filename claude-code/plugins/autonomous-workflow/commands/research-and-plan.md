@@ -132,7 +132,7 @@ Researcher agents should focus on topics directly relevant to building a softwar
 
 ### Execution
 
-Follow the same Steps 2-6 from `/autonomous-workflow:research` (spawn strategy-dependent parallel researcher agents, optionally repo-analysts, synthesize with contribution counting, update LaTeX, update state with strategy tracking) but with the research focus above.
+Follow the same Steps 2-6 from `/autonomous-workflow:research` (spawn strategy-dependent parallel researcher agents, optionally repo-analysts, synthesize with contribution counting, run consistency audit per Step 4.5, update LaTeX with in-line citations and Synthesis section per Step 5, update state with strategy tracking) but with the research focus above.
 
 Follow Step 7 from `/autonomous-workflow:research` for strategy rotation (rotate strategies on low contributions, never auto-terminate).
 
@@ -242,7 +242,81 @@ If `total_iterations_research >= research_budget`:
 
 If `current_phase` is `"Phase B: Planning"`:
 
-### Step B1: Spawn Parallel Planning Agents
+### Step B1: Identify Technical Research Needs
+
+Read the current plan at `docs/autonomous/$1/implementation/$1-implementation-plan.md` and the research report. Identify what technical decisions the plan needs to make or refine this iteration. Categorize research needs into two types:
+
+**Technical implementation research** (spawn for EVERY planning iteration):
+Identify 2-4 specific technical questions the plan needs answered. These typically fall into:
+- Architecture patterns and best practices for the specific system being built
+- Technology stack evaluation (frameworks, libraries, databases — trade-offs and recommendations)
+- Dependencies and third-party services (APIs, SDKs, pricing, rate limits, integration complexity)
+- Relevant open-source repositories and reference implementations
+- Deployment and infrastructure patterns
+- Testing strategies for the specific tech stack
+
+**Academic/literature research** (spawn ONLY when the project involves technically complex domains):
+Determine whether the project requires academic grounding. Spawn academic researchers when the implementation involves domains like:
+- AI/ML algorithms, model architectures, training pipelines, or inference optimization
+- Statistical methods, prediction models, or probabilistic systems
+- Cryptography, consensus algorithms, or formal verification
+- Signal processing, computer vision, NLP, or other specialized computational domains
+- Novel algorithmic approaches where peer-reviewed research would inform implementation choices
+
+Do NOT spawn academic researchers for straightforward implementations like CRUD applications, standard ETL pipelines, typical web/mobile apps, REST API services, or infrastructure automation — for these, the technical implementation research above is sufficient.
+
+### Step B2: Spawn Technical Research Agents
+
+In a SINGLE message, spawn ALL research agents for this iteration:
+
+**2-3 technical researcher agents** (parallel, every iteration):
+```
+Task tool with subagent_type='autonomous-workflow:researcher'
+prompt: "Strategy: deep-dive
+
+Technical implementation research for a software project.
+
+Project: $1
+Current plan: docs/autonomous/$1/implementation/$1-implementation-plan.md (read this first)
+
+Research question: <specific technical question from Step B1>
+
+Focus on:
+- Production-grade libraries and frameworks (not toy examples)
+- Architecture patterns used by similar real-world systems
+- GitHub repositories with reference implementations
+- Official documentation for recommended dependencies
+- Known pitfalls, performance characteristics, and scaling considerations
+- Community consensus on best practices (Stack Overflow, engineering blogs, HN)
+
+Return findings with full structured source entries for BibTeX integration."
+```
+
+**1-2 academic researcher agents** (parallel, ONLY when Step B1 determines the domain requires it):
+```
+Task tool with subagent_type='autonomous-workflow:researcher'
+prompt: "Strategy: deep-dive
+
+Academic literature review for a technically complex implementation.
+
+Project: $1
+Current plan: docs/autonomous/$1/implementation/$1-implementation-plan.md (read this first)
+
+Research question: <specific academic/algorithmic question from Step B1>
+
+Focus on:
+- Peer-reviewed papers and preprints (arXiv, conference proceedings)
+- Survey papers that compare approaches
+- Reference implementations accompanying papers (GitHub links)
+- Practical considerations for production deployment of academic methods
+- State-of-the-art benchmarks and baseline comparisons
+
+Prefer papers from the last 3 years unless foundational. Include paper titles, authors, and publication venues in your source entries."
+```
+
+### Step B3: Spawn Parallel Planning Agents
+
+After all research agents return, read their outputs and make them available to planning agents.
 
 In a SINGLE message with multiple Task tool calls, spawn:
 
@@ -254,7 +328,10 @@ prompt: "Review and improve the '<section-name>' section of the plan.
 Current plan: docs/autonomous/$1/implementation/$1-implementation-plan.md
 Research report: docs/autonomous/$1/research/$1-report.tex
 
-Read both documents. Propose specific improvements to this section grounded in the research findings."
+Technical research findings from this iteration:
+<paste summarized findings from Step B2 researchers relevant to this section>
+
+Read the plan and research report. Propose specific improvements to this section grounded in both the original research findings AND the technical research above. Prefer specific library/framework/tool recommendations backed by the technical research over generic suggestions."
 ```
 
 **2 plan-critic agents** (parallel), each scrutinizing a different aspect:
@@ -265,34 +342,28 @@ prompt: "Scrutinize the '<aspect>' of the plan against research findings.
 Current plan: docs/autonomous/$1/implementation/$1-implementation-plan.md
 Research report: docs/autonomous/$1/research/$1-report.tex
 
-Read both documents. Identify logical conflicts, unsupported claims, feasibility concerns, and defensibility gaps."
+Technical research findings from this iteration:
+<paste summarized findings from Step B2 researchers relevant to this aspect>
+
+Read both documents. Identify logical conflicts, unsupported claims, feasibility concerns, and defensibility gaps. Flag any technical decisions that contradict the technical research findings."
 ```
 
-### Step B2: Synthesize
+### Step B4: Synthesize
 
-1. Read all 4 agent outputs
-2. Integrate architect proposals into the plan (prioritize changes with strong research backing)
+1. Read all planning agent outputs (architects + critics)
+2. Integrate architect proposals into the plan (prioritize changes backed by technical research)
 3. Address critic issues:
    - BLOCKER issues: must be resolved in this iteration
    - CONCERN issues: address if straightforward, track otherwise
    - SUGGESTION issues: incorporate if they improve the plan without adding complexity
 4. Count BLOCKER issues that remain unresolved
+5. Update `docs/autonomous/$1/research/sources.bib` with BibTeX entries from any new sources discovered by technical/academic researchers (follow the same dedup rules from Phase A Step 5)
 
-### Step B3: Validate New Claims
-
-If architects introduced claims not in the original research, spawn 1 researcher agent to validate:
-```
-Task tool with subagent_type='autonomous-workflow:researcher'
-prompt: "Strategy: source-verification
-
-Validate the following claims made in an implementation plan: <claims>. Check if they are supported by credible sources."
-```
-
-### Step B4: Update Plan
+### Step B5: Update Plan
 
 Write the updated `docs/autonomous/$1/implementation/$1-implementation-plan.md`.
 
-### Step B5: Update State
+### Step B6: Update State
 
 1. Increment `iteration` and `total_iterations_planning`
 2. Update `## Planning Progress` counts

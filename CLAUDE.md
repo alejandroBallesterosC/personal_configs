@@ -83,8 +83,8 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - Cursor mirror (`cursor/`) is TDD-only — missing entire debug workflow (6 commands, 4 agents, 2 skills)
 - VS Code `tasks.json` has 4 dead tasks (sync_skills/sync_plugins) and 1 leftover task from a previous project (Compile Frontend Typescript)
 - Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 7 plugins
-- Stop hook chain order (per marketplace.json): dev-workflow → ralph-loop → autonomous-workflow. If test failure exits nonzero, ralph-loop and autonomous-workflow hooks may not run
-- `autonomous-workflow` uses its own Stop hook (stop-hook.sh) for iteration control and completion verification
+- Stop hook chain order (per marketplace.json): dev-workflow → ralph-loop → autonomous-workflow. If an earlier hook blocks, later hooks do not run
+- `autonomous-workflow` has its own Stop hook iteration engine (stop-hook.sh) — it does NOT depend on ralph-loop for iteration
 - Running TDD and autonomous workflows simultaneously may cause SessionStart hook context loss (both output independently, no merging)
 
 ## Plugin Installation

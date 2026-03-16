@@ -212,6 +212,29 @@ After all agents return:
    - **Source quality upgrades** — weak sources replaced with stronger ones
 4. Sum all types to get `contributions_this_iteration`
 
+### Step 4.5: Internal Consistency Audit
+
+Before updating the report, audit the current report against the new findings for consistency:
+
+1. **New-vs-existing check**: For each new finding, check whether it contradicts any existing section of the report. If it does:
+   - Determine which has stronger evidence (more sources, higher credibility, more recent)
+   - The weaker claim must be updated or removed — do NOT leave both standing as separate conclusions
+   - Note the resolution in the `\section{Open Questions}` if confidence is not high
+
+2. **Cross-section consistency check**: Verify that:
+   - The Synthesis section's Key Takeaways do not contradict each other
+   - The Actionable Strategy recommendations flow logically from the Conclusions
+   - No Key Finding subsection contradicts another Key Finding subsection
+   - If genuinely mixed evidence exists, it must be presented as nuance in a single location, not as contradictory claims in separate sections. Use the pattern: "Evidence suggests X; however Y — on balance, Z."
+
+3. **Deep consistency audit** (every 5th iteration, i.e., when `total_iterations_research` is a multiple of 5):
+   - Re-read the ENTIRE report from start to finish
+   - List all major claims and conclusions made across all sections
+   - Check each pair of claims for logical consistency
+   - Resolve any contradictions found by updating the weaker claim
+   - Ensure the Synthesis section accurately reflects the current state of Key Findings
+   - Update confidence levels across the report if new evidence has shifted the balance
+
 ---
 
 ## STEP 5: Update LaTeX Report
@@ -222,16 +245,60 @@ After all agents return:
    - Update `\section{Analysis \& Synthesis}` with cross-cutting patterns
    - Add unresolved items to `\section{Open Questions}`
    - Update `\section{Methodology}` with iteration count and source count
-   - Update `\section{Executive Summary}` (keep it current, not just at the end)
 3. Write the updated `.tex` file
+
+### In-Line Citation Rules
+
+Every factual claim in the report MUST have an in-line `\cite{key}` reference. Follow these rules:
+
+1. **Converting researcher output to BibTeX**: Each researcher agent returns structured source entries with a `key` field (format: `AuthorOrOrg_Year_ShortTopic`). Convert each to a BibTeX entry:
+   ```bibtex
+   @article{AuthorOrOrg_Year_ShortTopic,
+     title = {Article Title},
+     author = {Author Name or Organization},
+     year = {2024},
+     url = {https://...},
+     note = {Type: article/report/blog. Credibility note here.}
+   }
+   ```
+   Use `@misc` for web content, `@article` for journal papers, `@techreport` for reports/whitepapers.
+
+2. **Deduplication**: Before adding a new BibTeX entry to `sources.bib`, check if an entry with the same URL already exists. If it does, reuse the existing key — do NOT create a duplicate entry. If the same source appears with a slightly different URL (e.g., with/without trailing slash, with tracking parameters), treat it as the same source.
+
+3. **In-line citation placement**: Place `\cite{key}` immediately after the claim it supports. For claims supported by multiple sources, use `\cite{key1, key2}`. Examples:
+   - "DSOs process 40\% of dental claims nationally \cite{ADA_2024_ClaimsData}."
+   - "Automated RCM reduces denial rates by 15-30\% \cite{McKinsey_2024_DentalAI, Becker_2024_RCMBenchmarks}."
+
+4. **Coverage requirement**: Every entry in `sources.bib` MUST appear as a `\cite{}` somewhere in the report (no orphan references). Every factual claim in Key Findings and Analysis \& Synthesis MUST have at least one `\cite{}`.
+
+5. Update `docs/autonomous/$1/research/sources.bib` with new BibTeX entries (after dedup check)
+
+### Synthesis Section Rules
+
+The `\section{Synthesis}` is the most important section of the report. It is rewritten IN FULL every iteration (not incrementally patched) to ensure internal coherence. Follow these rules:
+
+1. **Self-contained**: A reader should understand the core findings, conclusions, and recommended actions from this section alone, without reading the rest of the report.
+
+2. **Length**: 3-4 pages (1500-2000 words in LaTeX). Do not exceed this — be concise and prioritize.
+
+3. **Internal consistency enforcement**: Before writing the Synthesis, enumerate all major conclusions the report currently supports. Check each pair for logical consistency. If genuinely mixed evidence exists, present it as nuance within a single takeaway using the pattern: "Evidence suggests X; however Y — on balance, Z." NEVER state X as one takeaway and not-X as another takeaway.
+
+4. **Structure**:
+   - `\subsection{Summary}`: What was researched, why it matters, scope (1-2 paragraphs)
+   - `\subsection{Key Takeaways}`: 5-7 ranked findings. Each must reference the Key Findings subsection that supports it (e.g., "see Section 3.2"). Include `\cite{}` references for the most important supporting sources.
+   - `\subsection{Conclusions \& Recommendations}`: What the evidence means and what to do about it. Each conclusion is paired with its actionable recommendation. Every conclusion must be derived from the Key Takeaways above. Every recommendation must flow logically from its paired conclusion.
+   - `\subsection{Confidence \& Limitations}`: Overall confidence, areas of weak/conflicting evidence, what would change the conclusions.
+
+5. **Anti-contradiction rules for the Synthesis**:
+   - No recommendation that contradicts its paired conclusion
+   - No Key Takeaway that contradicts another Key Takeaway
+   - If the report contains mixed evidence on a topic (e.g., "selling to small practices is not viable" vs "small practices represent an opportunity"), the Synthesis MUST reconcile this into a single coherent position with appropriate nuance, not present both as separate unqualified claims
 
 **LaTeX formatting rules**:
 - Escape special characters in content: `\%`, `\&`, `\$`, `\#`, `\_`, `\^{}`, `\{`, `\}`, `\textasciitilde{}`
 - Use `\url{...}` for URLs (requires hyperref package, already included)
 - Organize findings thematically, NOT chronologically
-- Each finding subsection should have: claim, evidence, sources, confidence level
-
-4. Update `docs/autonomous/$1/research/sources.bib` with any new BibTeX entries for sources cited
+- Each finding subsection should have: claim, evidence with `\cite{}` references, confidence level
 
 ---
 

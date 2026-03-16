@@ -577,6 +577,38 @@ else
 fi
 echo ""
 
+# ==================================================================
+# STATE DISCOVERY EDGE CASES
+# ==================================================================
+
+# ---- Test 21: Stale complete implementation state must not kill in_progress research ----
+echo "--- Test 21: Stale complete impl state must not kill in_progress research ---"
+reset_test_dir
+# Create a research state that is in_progress (active work)
+create_research_state "edge-case" "in_progress" "autonomous-research" 5 50 10 "/autonomous-workflow:research 'edge-case' 'test prompt' --research-iterations 50"
+# Create a stale implementation state that is complete (leftover from previous run)
+create_implementation_state "edge-case" "complete" "autonomous-full-auto" 50 50 20 20
+create_feature_list "edge-case" '{
+  "features": [
+    {"id": "F001", "name": "feat1", "passes": true, "failed": false}
+  ]
+}'
+EXIT_CODE=0
+run_hook || EXIT_CODE=$?
+assert_valid_json "$OUTPUT" "output is valid JSON"
+assert_json_field "$OUTPUT" '.decision' "block" "decision is block (should continue research)"
+assert_output_contains "$OUTPUT" "research" "blocks with research command (not cleanup)"
+# Verify research state file still exists (not cleaned up)
+TEST_COUNT=$((TEST_COUNT + 1))
+if [ -f "$TEST_DIR/.claude/autonomous-edge-case-research-state.md" ]; then
+  echo -e "  ${GREEN}PASS${NC}: research state file preserved (not deleted by stale impl cleanup)"
+  PASS_COUNT=$((PASS_COUNT + 1))
+else
+  echo -e "  ${RED}FAIL${NC}: research state file was deleted (stale impl state killed active research)"
+  FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+echo ""
+
 # ---- Summary ----
 echo "========================================"
 echo "Results: $PASS_COUNT/$TEST_COUNT passed, $FAIL_COUNT failed"
