@@ -3,7 +3,7 @@
 # ABOUTME: Ensures archival happens deterministically even if Claude skipped it during completion
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/archive-workflows-debug.md"
+DEBUG_FILE=".claude/archive-workflows-debug.log"
 
 debug_log() {
   local msg="$1"

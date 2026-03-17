@@ -219,7 +219,7 @@ command: |
 ├── autonomous-<topic>-research-state.md         # Research phase state
 ├── autonomous-<topic>-implementation-state.md   # Implementation phase state
 ├── autonomous-<topic>-feature-list.json         # Feature tracker (Modes 3+4)
-└── autonomous-stop-hook-debug.md                # Stop hook debug log (append-only)
+└── autonomous-stop-hook-debug.log                # Stop hook debug log (append-only)
 ```
 
 **Work artifacts** (`docs/autonomous/<topic>/`):

@@ -9,7 +9,7 @@ REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
 cd "$REPO_ROOT"
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/autonomous-stop-hook-debug.md"
+DEBUG_FILE=".claude/autonomous-stop-hook-debug.log"
 
 debug_log() {
   local msg="$1"

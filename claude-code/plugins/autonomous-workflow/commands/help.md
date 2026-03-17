@@ -93,7 +93,7 @@ Research cycles through 8 strategies to stay productive. When a strategy produce
 | `autonomous-<topic>-research-state.md` | 1, 2, 3 | Research phase state (YAML frontmatter + markdown) |
 | `autonomous-<topic>-implementation-state.md` | 2, 3, 4 | Implementation phase state (YAML frontmatter + markdown) |
 | `autonomous-<topic>-feature-list.json` | 3, 4 | Implementation tracker (JSON) |
-| `autonomous-stop-hook-debug.md` | All | Stop hook debug log (append-only) |
+| `autonomous-stop-hook-debug.log` | All | Stop hook debug log (append-only) |
 
 **Work artifacts** (`docs/autonomous/<topic>/`):
 

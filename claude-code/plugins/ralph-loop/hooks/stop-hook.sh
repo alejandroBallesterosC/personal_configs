@@ -12,7 +12,7 @@ REPO_ROOT="${REPO_ROOT:-.}"
 cd "$REPO_ROOT"
 
 # Debug log file for diagnosing ralph-loop state file removal
-DEBUG_FILE=".claude/ralph-debug.md"
+DEBUG_FILE=".claude/ralph-debug.log"
 
 debug_log() {
   local reason="$1"

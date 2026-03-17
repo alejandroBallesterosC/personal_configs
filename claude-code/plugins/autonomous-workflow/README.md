@@ -102,7 +102,7 @@ Research cycles through 8 strategies. When a strategy produces low contributions
 | `autonomous-<topic>-research-state.md` | 1, 2, 3 | Research phase state |
 | `autonomous-<topic>-implementation-state.md` | 2, 3, 4 | Implementation phase state |
 | `autonomous-<topic>-feature-list.json` | 3, 4 | Implementation feature tracker |
-| `autonomous-stop-hook-debug.md` | All | Stop hook debug log |
+| `autonomous-stop-hook-debug.log` | All | Stop hook debug log |
 
 **Work artifacts** (`docs/autonomous/<topic>/`):
 

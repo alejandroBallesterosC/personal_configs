@@ -3,7 +3,7 @@
 # ABOUTME: Uses exit 0 + JSON decision:block pattern per Claude Code hooks spec.
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/run-scoped-tests-debug.md"
+DEBUG_FILE=".claude/run-scoped-tests-debug.log"
 
 debug_log() {
   local msg="$1"

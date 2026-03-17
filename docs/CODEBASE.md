@@ -163,7 +163,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 - Proper quoting, `git rev-parse --show-toplevel` for repo root detection
 - Defensive file existence checks before operations
 - Non-fatal exits (exit 0) for optional features (no test runner = not an error)
-- Debug logging to `.claude/<hook-name>-debug.md` files
+- Debug logging to `.claude/<hook-name>-debug.log` files
 - Trap handlers for cleanup in test scripts
 
 ### Test Runner Support

@@ -8,7 +8,7 @@ REPO_ROOT="${REPO_ROOT:-.}"
 cd "$REPO_ROOT"
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/autonomous-auto-resume-debug.md"
+DEBUG_FILE=".claude/autonomous-auto-resume-debug.log"
 
 debug_log() {
   local msg="$1"

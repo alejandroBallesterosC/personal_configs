@@ -3,7 +3,7 @@
 # ABOUTME: Returns: pytest, playwright, vitest, jest, go, cargo, rspec, minitest, mix, or "unknown"
 
 # Debug log file for diagnosing test runner detection
-DEBUG_FILE=".claude/detect-test-runner-debug.md"
+DEBUG_FILE=".claude/detect-test-runner-debug.log"
 
 debug_log() {
   local msg="$1"
