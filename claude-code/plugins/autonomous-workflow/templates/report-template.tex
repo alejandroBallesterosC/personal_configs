@@ -1,5 +1,6 @@
 % ABOUTME: Base LaTeX template for autonomous workflow research reports.
 % ABOUTME: Provides standard document structure, packages, and section placeholders.
+% ABOUTME: FORMATTING IS CRITICAL — use itemize/enumerate for lists, keep paragraphs short.
 
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
@@ -10,6 +11,22 @@
 \usepackage{graphicx}
 \usepackage{longtable}
 \usepackage{parskip}
+\usepackage{setspace}
+\usepackage{titlesec}
+
+% Paragraph and spacing settings for readability
+\setlength{\parskip}{0.8em}
+\setlength{\parindent}{0pt}
+\onehalfspacing
+
+% Tighter section spacing
+\titlespacing*{\section}{0pt}{1.5em}{0.8em}
+\titlespacing*{\subsection}{0pt}{1.2em}{0.6em}
+\titlespacing*{\subsubsection}{0pt}{1em}{0.4em}
+
+% Compact list settings
+\setlist[itemize]{itemsep=0.3em, parsep=0.2em, topsep=0.5em}
+\setlist[enumerate]{itemsep=0.3em, parsep=0.2em, topsep=0.5em}
 
 \hypersetup{
   colorlinks=true,
@@ -27,56 +44,74 @@
 \tableofcontents
 \newpage
 
+%% ==========================================================================
+%% FORMATTING RULES (read these before writing ANY content):
+%%
+%% 1. NEVER write paragraphs longer than 4-5 sentences. Break them up.
+%% 2. Use \begin{itemize}...\end{itemize} for ANY list of 3+ items.
+%% 3. Use \begin{enumerate}...\end{enumerate} for ranked/ordered items.
+%% 4. Use \textbf{bold lead-ins} for list items that need emphasis.
+%% 5. Use \subsubsection{} to break up long sections into scannable chunks.
+%% 6. Key Takeaways MUST use enumerate (numbered list), not prose paragraphs.
+%% 7. Conclusions & Recommendations MUST pair each as a labeled item.
+%% 8. Each paragraph should make ONE point. Then move on.
+%% 9. Prefer visual structure (lists, bold, subsections) over long prose.
+%% ==========================================================================
+
 \section{Synthesis}
-% 3-4 page (1500-2000 word) standalone synthesis for readers who need the essentials first.
-% This section is rewritten in full every iteration to maintain internal coherence.
-% It must be self-contained: a reader should understand the core findings without reading further.
+% 3-4 page (1500-2000 word) standalone synthesis.
+% Rewritten in full every iteration to maintain internal coherence.
+% Self-contained: a reader should understand core findings without reading further.
+% FORMATTING: Use bullet points and numbered lists liberally. No wall-of-text paragraphs.
 
 \subsection{Summary}
-% What was researched, why it matters, and the scope of this report.
+% 2-3 SHORT paragraphs (3-4 sentences each). What was researched, why it matters, scope.
 
 \subsection{Key Takeaways}
-% 5-7 most important findings, ranked by significance.
-% Each takeaway must reference the Key Findings subsection that supports it (e.g., "see Section 3.2").
-% Takeaways must be internally consistent -- no takeaway should contradict another.
-% If evidence is genuinely mixed, state the nuance explicitly:
-%   "Evidence suggests X; however Y -- on balance, Z."
+% 5-7 most important findings, MUST be a numbered list (\begin{enumerate}).
+% Each item: 2-4 sentences max. Reference supporting section (e.g., "see Section 3.2").
+% Format each takeaway as:
+%   \item \textbf{Takeaway title.} Supporting explanation with \cite{} references.
+% Takeaways must be internally consistent — no contradictions between items.
 
 \subsection{Conclusions \& Recommendations}
-% What the evidence means and what to do about it.
-% Each conclusion is paired with its actionable recommendation.
-% Every conclusion must be derived from the Key Takeaways above.
-% Every recommendation must flow logically from its paired conclusion.
+% Paired format — each conclusion gets a recommendation. Use description list or itemize.
+% Format:
+%   \item \textbf{Conclusion:} [What the evidence means]
+%         \textbf{Recommendation:} [What to do about it]
+% Keep each pair to 3-5 sentences total.
 
 \subsection{Confidence \& Limitations}
-% Overall confidence assessment for the report's main claims.
-% Areas where evidence is thin, conflicting, or absent.
-% What would change the conclusions if discovered.
+% Use itemize for listing limitations and confidence levels.
+% Short paragraph for overall confidence, then bullet list of specific limitations.
 
 \section{Background \& Context}
 % Problem domain, why this matters, what motivated the research.
+% Keep paragraphs short (3-5 sentences). Use itemize for listing context items.
 
 \section{Key Findings}
-% Each subsection represents a thematic finding.
-% Findings are organized thematically, not chronologically.
-% Each finding has: claim, evidence with in-line \cite{} references, confidence level.
-% Every factual claim must have at least one \cite{} reference.
+% Each subsection = one thematic finding.
+% Organized thematically, NOT chronologically.
+% Each finding structure:
+%   \subsection{Finding Title}
+%   1-2 paragraph summary of the claim
+%   \begin{itemize} for supporting evidence points with \cite{} \end{itemize}
+%   Brief confidence assessment (1 sentence)
 
 \section{Analysis \& Synthesis}
-% Cross-cutting analysis, patterns across findings.
-% Logical conflicts identified and resolved.
-% Novel insights from combining sources.
-% All analytical claims must cite supporting evidence via \cite{}.
+% Cross-cutting patterns across findings.
+% Use \subsection{} for each major analytical theme.
+% Use itemize for listing patterns, connections, and implications.
+% Keep paragraphs to 3-5 sentences max.
 
 \section{Open Questions}
-% What couldn't be determined from available sources.
-% What would require primary research.
-% Contradictions that remain unresolved.
+% Use enumerate or itemize — this is naturally a list.
+% Each question: 1-2 sentences explaining why it remains open.
 
 \section{Methodology}
-% How many iterations, how many sources consulted.
-% Source credibility criteria used.
-% Search strategies employed.
+% How many iterations, sources consulted.
+% Source credibility criteria (use itemize).
+% Search strategies employed (use itemize or table).
 
 \bibliographystyle{plainnat}
 \bibliography{sources}

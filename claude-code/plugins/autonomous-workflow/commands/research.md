@@ -240,12 +240,31 @@ Before updating the report, audit the current report against the new findings fo
 ## STEP 5: Update LaTeX Report
 
 1. Read the current `docs/autonomous/$1/research/$1-report.tex`
-2. Integrate new findings into the appropriate sections:
+2. Read the formatting rules in the template comments (between the `FORMATTING RULES` markers near the top of the document). Follow them strictly.
+3. Integrate new findings into the appropriate sections:
    - Add new findings to `\section{Key Findings}` as subsections
    - Update `\section{Analysis \& Synthesis}` with cross-cutting patterns
    - Add unresolved items to `\section{Open Questions}`
    - Update `\section{Methodology}` with iteration count and source count
-3. Write the updated `.tex` file
+4. Write the updated `.tex` file
+
+### CRITICAL: Document Formatting Rules
+
+**Readability is non-negotiable.** The report must be easy to scan and read as a PDF. Follow these rules for ALL content:
+
+1. **No wall-of-text paragraphs.** Maximum 4-5 sentences per paragraph. If a paragraph has more, split it.
+2. **Use `\begin{itemize}` or `\begin{enumerate}`** for ANY list of 3+ related items. Do NOT embed lists as inline comma-separated items in a sentence.
+3. **Use `\textbf{bold lead-ins}`** for list items that have a label + explanation pattern:
+   ```latex
+   \begin{itemize}
+     \item \textbf{Market timing:} Evidence suggests the dental AI market is at an early-majority inflection \cite{McKinsey_2024_DentalAI}.
+     \item \textbf{Competitive dynamics:} Three categories of competitors are converging \cite{ADA_2025_TechReport}.
+   \end{itemize}
+   ```
+4. **Use `\subsubsection{}`** to break up any section that exceeds ~1 page of content.
+5. **One point per paragraph.** State the claim, provide evidence, note confidence — then start a new paragraph for the next point.
+6. **Whitespace is your friend.** Leave blank lines between paragraphs in the `.tex` source. LaTeX paragraph spacing handles the rest.
+7. **Never write a single paragraph longer than ~150 words.** If you catch yourself doing this, stop and restructure with bullets or sub-sections.
 
 ### In-Line Citation Rules
 
@@ -283,11 +302,11 @@ The `\section{Synthesis}` is the most important section of the report. It is rew
 
 3. **Internal consistency enforcement**: Before writing the Synthesis, enumerate all major conclusions the report currently supports. Check each pair for logical consistency. If genuinely mixed evidence exists, present it as nuance within a single takeaway using the pattern: "Evidence suggests X; however Y — on balance, Z." NEVER state X as one takeaway and not-X as another takeaway.
 
-4. **Structure**:
-   - `\subsection{Summary}`: What was researched, why it matters, scope (1-2 paragraphs)
-   - `\subsection{Key Takeaways}`: 5-7 ranked findings. Each must reference the Key Findings subsection that supports it (e.g., "see Section 3.2"). Include `\cite{}` references for the most important supporting sources.
-   - `\subsection{Conclusions \& Recommendations}`: What the evidence means and what to do about it. Each conclusion is paired with its actionable recommendation. Every conclusion must be derived from the Key Takeaways above. Every recommendation must flow logically from its paired conclusion.
-   - `\subsection{Confidence \& Limitations}`: Overall confidence, areas of weak/conflicting evidence, what would change the conclusions.
+4. **Structure** (formatting is MANDATORY — these are not suggestions):
+   - `\subsection{Summary}`: 2-3 SHORT paragraphs (3-4 sentences each). What was researched, why it matters, scope.
+   - `\subsection{Key Takeaways}`: **MUST use `\begin{enumerate}`** with 5-7 items. Each item uses `\item \textbf{Takeaway title.}` followed by 2-4 sentences of explanation. Each must reference its supporting section (e.g., "see Section 3.2"). Include `\cite{}` references.
+   - `\subsection{Conclusions \& Recommendations}`: **MUST use `\begin{itemize}`** with paired items. Format: `\item \textbf{Conclusion:} [text] \\\\ \textbf{Recommendation:} [text]`. Keep each pair to 3-5 sentences total.
+   - `\subsection{Confidence \& Limitations}`: One short paragraph for overall confidence, then **`\begin{itemize}`** listing specific limitations (1-2 sentences each).
 
 5. **Anti-contradiction rules for the Synthesis**:
    - No recommendation that contradicts its paired conclusion
@@ -299,6 +318,8 @@ The `\section{Synthesis}` is the most important section of the report. It is rew
 - Use `\url{...}` for URLs (requires hyperref package, already included)
 - Organize findings thematically, NOT chronologically
 - Each finding subsection should have: claim, evidence with `\cite{}` references, confidence level
+- **NEVER write a paragraph longer than 5 sentences or ~150 words**
+- **ALWAYS use `\begin{itemize}` or `\begin{enumerate}` for lists** — never inline lists as comma-separated items in prose
 
 ---
 
