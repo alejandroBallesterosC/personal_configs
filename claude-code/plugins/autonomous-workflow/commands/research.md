@@ -508,7 +508,7 @@ After completing one research iteration, output a brief summary:
 
 ### Sources Added: [count]
 ### Open Questions Remaining: [count]
-### Strategy Progress: [completed_count]/8 strategies in current cycle
+### Strategy Progress: [completed_count]/9 strategies in current cycle
 ### Consecutive Low-Contribution Iterations: [N]/[threshold]
 
 ### Next Iteration Focus:

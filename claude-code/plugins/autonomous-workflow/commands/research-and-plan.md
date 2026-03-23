@@ -134,7 +134,16 @@ Researcher agents should focus on topics directly relevant to building a softwar
 
 Follow the same Steps 2-6 from `/autonomous-workflow:research` (spawn strategy-dependent parallel researcher agents, optionally repo-analysts, synthesize with contribution counting, run consistency audit per Step 4.5, update LaTeX with in-line citations and Synthesis section per Step 5, update state with strategy tracking) but with the research focus above.
 
-Follow Step 7 from `/autonomous-workflow:research` for strategy rotation (rotate strategies on low contributions, never auto-terminate).
+Follow Step 7 from `/autonomous-workflow:research` for strategy rotation (rotate through all 9 strategies on low contributions, never auto-terminate). The strategies are:
+1. `wide-exploration`
+2. `source-verification`
+3. `methodological-critique` (uses `methodological-critic` agent instead of `researcher`)
+4. `contradiction-resolution`
+5. `deep-dive`
+6. `adversarial-challenge`
+7. `gaps-and-blind-spots`
+8. `temporal-analysis`
+9. `cross-domain-synthesis`
 
 ### Phase Transition Check
 

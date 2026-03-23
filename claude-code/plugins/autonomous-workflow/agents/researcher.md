@@ -141,6 +141,8 @@ You are finding analogous problems and solutions in other fields.
 ### Strategy: methodological-critique
 You are evaluating whether sources already cited in the report actually support the claims being made from them. This is the most important strategy for research quality.
 
+**Note**: When dispatched via the autonomous research command (`/autonomous-workflow:research`), this strategy is handled by the dedicated `methodological-critic` agent (Opus), not this researcher agent. The section below exists as a fallback specification and for consistency documentation.
+
 - Read the source material directly (use WebFetch or crawling_exa on the source URLs).
 - For each source-claim pair assigned, evaluate:
   1. What the source's evidence actually demonstrates (narrowest defensible reading)

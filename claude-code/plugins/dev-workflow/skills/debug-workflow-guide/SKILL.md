@@ -292,7 +292,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Commit fix + regression test (not debug logs)
 - Archive debug artifacts
 
-**Command**: `/dev-workflow:9-verify <bug-name>` (continued)
+**Note**: CLEAN runs as the second stage of `/dev-workflow:9-verify` after user confirmation at the Phase 9 gate. It is not a separate command — the `9-verify` command handles both verification and cleanup in sequence.
 
 ---
 
@@ -361,10 +361,6 @@ When a fix doesn't work, capture new log output and re-analyze. The 3-Fix Rule a
 
 
 ## Key Principles
-
-> "Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result." - Boris Cherny
-
-> "AI doesn't fail because it's not smart enough. It fails because it can't see what you see." - Nathan Onn
 
 1. **Hypothesis-first** - Never fix without understanding root cause
 2. **Evidence-driven** - Let logs decide verdicts, not intuition

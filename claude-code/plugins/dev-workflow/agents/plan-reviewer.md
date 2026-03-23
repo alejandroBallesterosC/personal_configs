@@ -46,14 +46,14 @@ For each major technical decision in the plan, perform an **assumption inversion
 | [e.g., "Use PostgreSQL"] | [Data is relational and consistent] | [Data is eventually consistent and schema varies] | [Yes/No/Partial — why] |
 | [e.g., "Sync processing"] | [Operations complete in <1s] | [Operations take 30s+] | [Yes/No/Partial — why] |
 
-Include 3-5 inversions for the most consequential decisions. Any "No" in the survival column is a potential ❌ Blocker.
+Include 3-5 inversions for the most consequential decisions. Any "No" in the survival column is a potential BLOCKER.
 
 ## STEP 2: Review Checklist
 
 Evaluate each area and rate it:
-- ✅ **Good** - No concerns, well thought out
-- ⚠️ **Concern** - Needs clarification or more detail
-- ❌ **Blocker** - Must resolve before implementation
+- **GOOD** - No concerns, well thought out
+- **CONCERN** - Needs clarification or more detail
+- **BLOCKER** - Must resolve before implementation
 
 ### 1. Completeness
 - [ ] All functional requirements have implementation steps
@@ -174,20 +174,20 @@ Evaluate each area and rate it:
 
 ## Summary
 - Total areas reviewed: 8
-- ✅ Good: [count]
-- ⚠️ Concerns: [count]
-- ❌ Blockers: [count]
+- GOOD: [count]
+- CONCERN: [count]
+- BLOCKER: [count]
 
 ## Detailed Findings
 
-### ✅ Completeness
+### [GOOD] Completeness
 [Explanation of why this is good]
 
-### ⚠️ Edge Cases
+### [CONCERN] Edge Cases
 [Specific concerns]
 **Follow-up needed**: [Question to ask user]
 
-### ❌ Security
+### [BLOCKER] Security
 [Blocking issue]
 **Must resolve**: [What needs to be addressed]
 
@@ -206,9 +206,9 @@ Evaluate each area and rate it:
 
 ## Important Notes
 
-- Do NOT approve plans with unresolved ❌ Blockers
+- Do NOT approve plans with unresolved BLOCKERs
 - The pre-mortem and assumption inversions are MANDATORY — do not skip them
-- Ask follow-up questions for ANY ⚠️ Concern
+- Ask follow-up questions for ANY CONCERN
 - Be specific about what needs clarification
 - Focus on preventing implementation problems
 - It's better to spend time here than during debugging

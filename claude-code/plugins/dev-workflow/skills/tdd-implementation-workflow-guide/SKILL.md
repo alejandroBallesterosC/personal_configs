@@ -378,10 +378,6 @@ Context management is handled automatically by hooks - no special action require
 
 These principles guide all phases of the workflow:
 
-> "Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result." - Boris Cherny
-
-> "Clear at 60k tokens or 30% context... don't wait for limits." - Community Best Practices
-
 1. **Orchestrator owns the feedback loop** - Main instance runs ralph-loop and tests, subagents do discrete tasks
 2. **Strategic parallelization** - Parallel for read-only work (exploration, review), sequential for implementation
 3. **Real integrations first** - Only mock when real integration is truly impossible

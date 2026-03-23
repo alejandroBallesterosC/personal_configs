@@ -45,24 +45,26 @@ Commands can also be run once for testing (single iteration, set `status: comple
 
 ## Research Strategies
 
-Research cycles through 8 strategies to stay productive. When a strategy produces low contributions for 3 consecutive iterations, it rotates to the next strategy. After all 8 are exhausted, the cycle restarts.
+Research cycles through 9 strategies to stay productive. When a strategy produces low contributions for 3 consecutive iterations, it rotates to the next strategy. After all 9 are exhausted, the cycle restarts.
 
 | # | Strategy | Focus |
 |---|----------|-------|
 | 1 | `wide-exploration` | Broad search across many facets |
 | 2 | `source-verification` | Verify/refute existing claims with independent sources |
-| 3 | `contradiction-resolution` | Resolve conflicting information with authoritative evidence |
-| 4 | `deep-dive` | Thorough investigation of primary sources (800-word output) |
-| 5 | `adversarial-challenge` | Find strongest counter-arguments to conclusions |
-| 6 | `gaps-and-blind-spots` | Investigate uncovered areas and missing perspectives |
-| 7 | `temporal-analysis` | Historical evolution, recent developments, trajectory |
-| 8 | `cross-domain-synthesis` | Learnings from analogous problems in other fields |
+| 3 | `methodological-critique` | Evaluate whether cited sources' methodologies support their claims |
+| 4 | `contradiction-resolution` | Resolve conflicting information with authoritative evidence |
+| 5 | `deep-dive` | Thorough investigation of primary sources (800-word output) |
+| 6 | `adversarial-challenge` | Find strongest counter-arguments to conclusions |
+| 7 | `gaps-and-blind-spots` | Investigate uncovered areas and missing perspectives |
+| 8 | `temporal-analysis` | Historical evolution, recent developments, trajectory |
+| 9 | `cross-domain-synthesis` | Learnings from analogous problems in other fields |
 
 ## Agents
 
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | researcher | Sonnet | Strategy-aware parallel internet research, returns structured summaries |
+| methodological-critic | Opus | Evaluates whether sources' methodologies support their claims |
 | repo-analyst | Sonnet | Parallel codebase analysis, returns structured analysis |
 | latex-compiler | Sonnet | LaTeX formatting and pdflatex/bibtex compilation |
 | plan-architect | Opus | Proposes plan section improvements grounded in research |
