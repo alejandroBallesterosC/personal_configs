@@ -113,8 +113,10 @@ RESEARCH_BUDGET=$(yq --front-matter=extract '.research_budget' "$ACTIVE_STATE" 2
 TOTAL_PLANNING=$(yq --front-matter=extract '.total_iterations_planning' "$ACTIVE_STATE" 2>/dev/null)
 PLANNING_BUDGET=$(yq --front-matter=extract '.planning_budget' "$ACTIVE_STATE" 2>/dev/null)
 NAME=$(yq --front-matter=extract '.name' "$ACTIVE_STATE" 2>/dev/null)
+CURRENT_PHASE=$(yq --front-matter=extract '.current_phase' "$ACTIVE_STATE" 2>/dev/null)
+SYNTHESIS_ITERATION=$(yq --front-matter=extract '.synthesis_iteration' "$ACTIVE_STATE" 2>/dev/null)
 
-debug_log "**Fields:** status=$STATUS, iteration=$ITERATION, workflow_type=$WORKFLOW_TYPE, name=$NAME, command=$(echo "$COMMAND" | head -1)"
+debug_log "**Fields:** status=$STATUS, iteration=$ITERATION, workflow_type=$WORKFLOW_TYPE, name=$NAME, current_phase=$CURRENT_PHASE, synthesis_iteration=$SYNTHESIS_ITERATION, command=$(echo "$COMMAND" | head -1)"
 
 # ---------------------------------------------------------------
 # STATUS: in_progress — increment iteration and block with command
@@ -132,6 +134,25 @@ if [ "$STATUS" = "in_progress" ]; then
     debug_log "**WARNING:** command field is empty in $ACTIVE_STATE. Allowing stop."
     echo "WARNING: command field is empty in $ACTIVE_STATE. Cannot re-feed command." >&2
     exit 0
+  fi
+
+  # Phase R → Phase S transition (safety net for autonomous-research workflows)
+  # If research budget is reached but phase is still R, transition to Phase S
+  if [ "$WORKFLOW_TYPE" = "autonomous-research" ] && \
+     [ "$CURRENT_PHASE" = "Phase R: Research" ] && \
+     [ -n "$TOTAL_RESEARCH" ] && [ "$TOTAL_RESEARCH" != "null" ] && \
+     [ -n "$RESEARCH_BUDGET" ] && [ "$RESEARCH_BUDGET" != "null" ] && \
+     [ "$TOTAL_RESEARCH" -ge "$RESEARCH_BUDGET" ] 2>/dev/null; then
+    TEMP_PHASE=$(mktemp)
+    sed 's/^current_phase: .*/current_phase: "Phase S: Synthesis"/' "$ACTIVE_STATE" > "$TEMP_PHASE"
+    if grep -q '^synthesis_iteration:' "$TEMP_PHASE"; then
+      sed -i '' 's/^synthesis_iteration: .*/synthesis_iteration: 1/' "$TEMP_PHASE"
+    else
+      sed -i '' '/^current_phase:/a\
+synthesis_iteration: 1' "$TEMP_PHASE"
+    fi
+    mv "$TEMP_PHASE" "$ACTIVE_STATE"
+    debug_log "**Phase transition (safety net):** Phase R → Phase S for $NAME"
   fi
 
   # Increment iteration via sed + atomic temp file
@@ -171,6 +192,16 @@ if [ "$STATUS" = "complete" ]; then
          [ "$TOTAL_RESEARCH" != "null" ] && [ "$RESEARCH_BUDGET" != "null" ] && \
          [ "$TOTAL_RESEARCH" -lt "$RESEARCH_BUDGET" ] 2>/dev/null; then
         ERRORS="${ERRORS}Research budget not fulfilled: total_iterations_research ($TOTAL_RESEARCH) < research_budget ($RESEARCH_BUDGET). "
+      fi
+      # Verify: Phase S synthesis is complete (3 iterations)
+      # Backward compatible: if synthesis_iteration is missing, skip this check (old-format state file)
+      if [ -n "$SYNTHESIS_ITERATION" ] && [ "$SYNTHESIS_ITERATION" != "null" ]; then
+        if [ "$SYNTHESIS_ITERATION" -lt 3 ] 2>/dev/null; then
+          ERRORS="${ERRORS}Synthesis not complete: synthesis_iteration ($SYNTHESIS_ITERATION) < 3. "
+        fi
+        if [ "$CURRENT_PHASE" != "Phase S: Synthesis" ]; then
+          ERRORS="${ERRORS}Synthesis phase not reached: current_phase is '$CURRENT_PHASE', expected 'Phase S: Synthesis'. "
+        fi
       fi
       ;;
 

@@ -21,16 +21,16 @@ Announce at start: "I'm using the autonomous-workflow-guide skill for reference 
 ```
 Mode 1: Research Only          Mode 2: Research + Plan
 ┌──────────────────┐          ┌──────────────────┐
-│   Phase A:       │          │   Phase A:       │
+│   Phase R:       │          │   Phase A:       │
 │   Research       │          │   Research       │
 │   (budget: $3)   │          │   (budget: $3)   │
-│   Stops when     │          │        │         │
-│   budget reached │          │   Phase B:       │
-│                  │          │   Planning       │
-│   LaTeX Report   │          │   (budget: $4)   │
-└──────────────────┘          │                  │
-                              │   LaTeX Report   │
-                              │   + MD Plan      │
+│        │         │          │        │         │
+│   Phase S:       │          │   Phase B:       │
+│   Synthesis      │          │   Planning       │
+│   (3 iterations) │          │   (budget: $4)   │
+│                  │          │                  │
+│   LaTeX Report   │          │   LaTeX Report   │
+└──────────────────┘          │   + MD Plan      │
                               └──────────────────┘
 
 Mode 3: Full Auto              Mode 4: Implement Only
@@ -64,9 +64,9 @@ Mode 3: Full Auto              Mode 4: Implement Only
 
 4. **Every claim must be cited.** All factual claims in the report must have in-line `\cite{key}` references. Researcher agents return structured source entries with BibTeX keys. The main instance converts these to BibTeX entries in `sources.bib` (with deduplication) and places `\cite{}` references in-line throughout the report. No orphan references allowed — every `sources.bib` entry must appear as a `\cite{}` somewhere.
 
-5. **Internal consistency is enforced every iteration.** Before updating the report, new findings are checked against existing sections for contradictions. Contradictions are resolved by keeping the stronger evidence and updating the weaker claim. Every 5th iteration, a deep consistency audit re-reads the entire report checking all claims pairwise. The Synthesis section is rewritten in full every iteration (not patched) to maintain coherence.
+5. **Internal consistency is enforced every iteration.** Before updating the report, new findings are checked against existing sections for contradictions. Contradictions are resolved by keeping the stronger evidence and updating the weaker claim. Every 5th iteration, a deep consistency audit re-reads the entire report checking all claims pairwise.
 
-6. **The Synthesis section is the most important section.** It is a 3-4 page standalone summary (1500-2000 words) with: Summary, Key Takeaways (5-7 ranked, with section cross-references), Conclusions \& Recommendations (each conclusion paired with its actionable recommendation), and Confidence \& Limitations. A reader should be able to read only this section and understand the core findings, conclusions, and recommended actions. Mixed evidence must be presented as nuance within a single takeaway, never as contradictory separate takeaways.
+6. **The Synthesis section is written in Phase S, not during research.** During Phase R (research iterations), the Synthesis section contains only a placeholder. After the research budget is exhausted, Phase S runs 3 dedicated synthesis iterations: (1) Read and Outline, (2) Write, (3) Edit and Polish. This prevents drift from per-iteration rewrites and produces a coherent 1500-2500 word standalone summary with: Summary, Key Takeaways (5-7 ranked), Conclusions & Recommendations, and Confidence & Limitations. A `research-progress.md` file tracks high-level themes during Phase R to inform the synthesis.
 
 7. **Compile LaTeX at phase boundaries only.** Mid-phase, `.tex` files are updated every iteration but not compiled to PDF. Compilation happens at phase transitions.
 
@@ -100,8 +100,13 @@ Each iteration counts 5 types of productive contributions:
 
 ## Phase Transitions
 
-### Research (Mode 1)
-No phase transitions. Strategy rotation keeps research productive. When `total_iterations_research >= research_budget`, the command sets `status: complete`. The Stop hook verifies the budget is fulfilled before allowing stop.
+### Research → Synthesis (Mode 1)
+When `total_iterations_research >= research_budget`, Phase R transitions to Phase S (Synthesis). Phase S runs 3 dedicated iterations:
+- **Iteration 1 — Read and Outline**: Reads the entire report and research-progress.md, produces `synthesis-outline.md`
+- **Iteration 2 — Write**: Writes the full Synthesis section into the `.tex` report from the outline
+- **Iteration 3 — Edit and Polish**: Quality-checks, tightens prose, verifies citations, confirms word count (1500-2500 words)
+
+After Phase S iteration 3, the command sets `status: complete`. The Stop hook verifies `synthesis_iteration >= 3` and `total_iterations_research >= research_budget` before allowing stop. Total workflow: N research iterations + 3 synthesis iterations.
 
 ### Research to Planning (Modes 2+3)
 Budget-based. The user specifies a `research_budget` (default: 30) via the `--research-iterations` flag. When `total_iterations_research >= research_budget`, Phase A transitions to Phase B.
@@ -136,16 +141,17 @@ There are two state files in `.claude/`. Research state lives at `.claude/autono
 | 3 (full-auto) | Created at init, `complete` at Phase A->B | Created at Phase A->B, `in_progress` |
 | 4 (implement) | Never created | Created at init, `in_progress` |
 
-### Research State (Phase A)
+### Research State (Phase R / Phase S)
 
 ```yaml
 ---
 workflow_type: autonomous-research | autonomous-research-plan | autonomous-full-auto
 name: <topic>
 status: in_progress | complete
-current_phase: "Phase A: Research"
+current_phase: "Phase R: Research" | "Phase S: Synthesis"
 iteration: 15
 total_iterations_research: 15
+synthesis_iteration: 0  # 0 during Phase R, 1-3 during Phase S
 sources_cited: 47
 findings_count: 23
 current_research_strategy: wide-exploration
@@ -229,6 +235,8 @@ docs/autonomous/<topic>/
 │   ├── <topic>-report.tex         # Research report (LaTeX)
 │   ├── <topic>-report.pdf         # Compiled report
 │   ├── sources.bib                # BibTeX bibliography
+│   ├── research-progress.md       # Living research summary (Phase R, max 500 words)
+│   ├── synthesis-outline.md       # Synthesis outline (created in Phase S iteration 1)
 │   └── transcripts/               # Research phase transcript backups
 └── implementation/
     ├── <topic>-implementation-plan.md  # Implementation plan (Markdown)

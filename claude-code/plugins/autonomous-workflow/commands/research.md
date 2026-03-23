@@ -48,17 +48,38 @@ Check if `.claude/autonomous-$1-research-state.md` exists.
    % Entries are added as sources are discovered during research.
    ```
 
-4. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 50.
+4. Create `docs/autonomous/$1/research/research-progress.md`:
+   ```markdown
+   # Research Progress: $1
 
-5. Create state file `.claude/autonomous-$1-research-state.md` with YAML frontmatter:
+   ## Original Prompt
+   $2
+
+   ## Major Themes/Findings
+   - (none yet)
+
+   ## Well-Supported vs. Thin
+   - (to be updated as research progresses)
+
+   ## Open Contradictions
+   - (none yet)
+
+   ## Research Direction
+   - Begin with wide-exploration to establish baseline understanding
+   ```
+
+5. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 50.
+
+6. Create state file `.claude/autonomous-$1-research-state.md` with YAML frontmatter:
    ```yaml
    ---
    workflow_type: autonomous-research
    name: $1
    status: in_progress
-   current_phase: "Phase A: Research"
+   current_phase: "Phase R: Research"
    iteration: 1
    total_iterations_research: 0
+   synthesis_iteration: 0
    sources_cited: 0
    findings_count: 0
    research_budget: <parsed from --research-iterations flag, or 50 if not provided>
@@ -74,13 +95,14 @@ Check if `.claude/autonomous-$1-research-state.md` exists.
    # Autonomous Workflow State: $1
 
    ## Current Phase
-   Phase A: Research
+   Phase R: Research
 
    ## Original Prompt
    $2
 
    ## Completed Phases
-   - [ ] Phase A: Research
+   - [ ] Phase R: Research
+   - [ ] Phase S: Synthesis
 
    ## Research Progress
    - Sources consulted: 0
@@ -99,15 +121,26 @@ Check if `.claude/autonomous-$1-research-state.md` exists.
    ## Context Restoration Files
    1. .claude/autonomous-$1-research-state.md (this file)
    2. docs/autonomous/$1/research/$1-report.tex
-   3. CLAUDE.md
+   3. docs/autonomous/$1/research/research-progress.md
+   4. CLAUDE.md
    ```
 
 ### If state file EXISTS (resuming):
 
 1. Read `.claude/autonomous-$1-research-state.md` to get current state
 2. Read `docs/autonomous/$1/research/$1-report.tex` to understand what research has been done
-3. Extract open questions and gaps from the state file
-4. Read `current_research_strategy` from state YAML to determine dispatch behavior
+3. Read `docs/autonomous/$1/research/research-progress.md` for high-level research progress
+4. Extract open questions and gaps from the state file
+5. Read `current_research_strategy` and `current_phase` from state YAML
+
+---
+
+## Phase Router
+
+After initializing or resuming, check `current_phase` from the state file:
+
+- If `current_phase` is **"Phase R: Research"** (or "Phase A: Research" for backward compatibility): proceed to **STEP 2** below (normal research iteration).
+- If `current_phase` is **"Phase S: Synthesis"**: skip directly to the **Phase S: Synthesis** section at the end of this document.
 
 ---
 
@@ -222,9 +255,8 @@ Before updating the report, audit the current report against the new findings fo
    - Note the resolution in the `\section{Open Questions}` if confidence is not high
 
 2. **Cross-section consistency check**: Verify that:
-   - The Synthesis section's Key Takeaways do not contradict each other
-   - The Actionable Strategy recommendations flow logically from the Conclusions
    - No Key Finding subsection contradicts another Key Finding subsection
+   - The Analysis & Synthesis section's patterns are consistent with Key Findings
    - If genuinely mixed evidence exists, it must be presented as nuance in a single location, not as contradictory claims in separate sections. Use the pattern: "Evidence suggests X; however Y — on balance, Z."
 
 3. **Deep consistency audit** (every 5th iteration, i.e., when `total_iterations_research` is a multiple of 5):
@@ -232,7 +264,6 @@ Before updating the report, audit the current report against the new findings fo
    - List all major claims and conclusions made across all sections
    - Check each pair of claims for logical consistency
    - Resolve any contradictions found by updating the weaker claim
-   - Ensure the Synthesis section accurately reflects the current state of Key Findings
    - Update confidence levels across the report if new evidence has shifted the balance
 
 ---
@@ -292,26 +323,28 @@ Every factual claim in the report MUST have an in-line `\cite{key}` reference. F
 
 5. Update `docs/autonomous/$1/research/sources.bib` with new BibTeX entries (after dedup check)
 
-### Synthesis Section Rules
+### Synthesis Section — Placeholder During Phase R
 
-The `\section{Synthesis}` is the most important section of the report. It is rewritten IN FULL every iteration (not incrementally patched) to ensure internal coherence. Follow these rules:
+During Phase R (research iterations), do NOT write content into the `\section{Synthesis}`. Leave it as a placeholder:
 
-1. **Self-contained**: A reader should understand the core findings, conclusions, and recommended actions from this section alone, without reading the rest of the report.
+```latex
+\section{Synthesis}
+% Synthesis will be written in Phase S after research completes.
+\textit{This section will be written after all research iterations are complete.}
+```
 
-2. **Length**: 3-4 pages (1500-2000 words in LaTeX). Do not exceed this — be concise and prioritize.
+The full Synthesis is written during Phase S (see the Phase S section below). This prevents drift from per-iteration rewrites and avoids wasting tokens on work that's immediately overwritten.
 
-3. **Internal consistency enforcement**: Before writing the Synthesis, enumerate all major conclusions the report currently supports. Check each pair for logical consistency. If genuinely mixed evidence exists, present it as nuance within a single takeaway using the pattern: "Evidence suggests X; however Y — on balance, Z." NEVER state X as one takeaway and not-X as another takeaway.
+### Update research-progress.md
 
-4. **Structure** (formatting is MANDATORY — these are not suggestions):
-   - `\subsection{Summary}`: 2-3 SHORT paragraphs (3-4 sentences each). What was researched, why it matters, scope.
-   - `\subsection{Key Takeaways}`: **MUST use `\begin{enumerate}`** with 5-7 items. Each item uses `\item \textbf{Takeaway title.}` followed by 2-4 sentences of explanation. Each must reference its supporting section (e.g., "see Section 3.2"). Include `\cite{}` references.
-   - `\subsection{Conclusions \& Recommendations}`: **MUST use `\begin{itemize}`** with paired items. Format: `\item \textbf{Conclusion:} [text] \\\\ \textbf{Recommendation:} [text]`. Keep each pair to 3-5 sentences total.
-   - `\subsection{Confidence \& Limitations}`: One short paragraph for overall confidence, then **`\begin{itemize}`** listing specific limitations (1-2 sentences each).
+After updating the report, update `docs/autonomous/$1/research/research-progress.md` with:
 
-5. **Anti-contradiction rules for the Synthesis**:
-   - No recommendation that contradicts its paired conclusion
-   - No Key Takeaway that contradicts another Key Takeaway
-   - If the report contains mixed evidence on a topic (e.g., "selling to small practices is not viable" vs "small practices represent an opportunity"), the Synthesis MUST reconcile this into a single coherent position with appropriate nuance, not present both as separate unqualified claims
+1. **Major Themes/Findings**: Bullet points of the main themes discovered so far
+2. **Well-Supported vs. Thin**: Which findings have strong multi-source evidence vs. which are still single-source or shallow
+3. **Open Contradictions**: Any unresolved contradictions between sources or findings
+4. **Research Direction**: What the next iterations should focus on
+
+**Hard limit**: research-progress.md must never exceed 500 words / ~3000 characters. If it grows beyond that, trim older or less important items to stay within the limit. This file is a living summary, not a log.
 
 **LaTeX formatting rules**:
 - Escape special characters in content: `\%`, `\&`, `\$`, `\#`, `\_`, `\^{}`, `\{`, `\}`, `\textasciitilde{}`
@@ -377,18 +410,22 @@ If `consecutive_low_contributions >= strategy_rotation_threshold`:
      Run via Bash: osascript -e 'display notification "Rotating research strategy to <new_strategy> for $1" with title "Autonomous Workflow" subtitle "Research"'
      ```
 
-### Completion Check
+### Phase R Completion → Phase S Transition
 
 After updating the state file and checking strategy rotation, check:
 
 If `total_iterations_research >= research_budget`:
-1. Set `status: complete` in the state file
+1. Transition to Phase S — update the state file:
+   - Set `current_phase: "Phase S: Synthesis"`
+   - Set `synthesis_iteration: 1`
+   - Do NOT set `status: complete` — keep it as `in_progress`
+   - Mark `Phase R: Research` as completed in the `## Completed Phases` section
 2. Send macOS notification:
    ```
-   Run via Bash: osascript -e 'display notification "Research budget reached for $1" with title "Autonomous Workflow" subtitle "Research"'
+   Run via Bash: osascript -e 'display notification "Research budget reached for $1 — transitioning to Phase S: Synthesis" with title "Autonomous Workflow" subtitle "Research"'
    ```
 
-The Stop hook verifies `status: complete` AND `total_iterations_research >= research_budget` before allowing the workflow to end.
+The Stop hook re-feeds the command. The next invocation will enter Phase S via the Phase Router.
 
 ---
 
@@ -416,12 +453,12 @@ Based on the current strategy, write 3-5 prioritized research directions for the
 
 ---
 
-## OUTPUT
+## PHASE R OUTPUT
 
-After completing one iteration, output a brief summary:
+After completing one research iteration, output a brief summary:
 
 ```
-## Iteration N Complete
+## Iteration N Complete (Phase R: Research)
 
 ### Strategy: [current_research_strategy]
 ### Contributions This Iteration: [count]
@@ -439,4 +476,108 @@ After completing one iteration, output a brief summary:
 ### Next Iteration Focus:
 - Strategy: [current or next strategy]
 - [Top 3 research directions]
+```
+
+---
+---
+
+# Phase S: Synthesis (3 dedicated iterations)
+
+This phase runs AFTER the research budget is exhausted. The Phase Router (after Step 1) sends control here when `current_phase` is "Phase S: Synthesis".
+
+Read `synthesis_iteration` from the state file to determine which synthesis step to perform.
+
+---
+
+## Phase S — Iteration 1: "Read and Outline"
+
+**Goal**: Absorb the full report and produce a structured outline for the Synthesis section.
+
+1. Read the ENTIRE `docs/autonomous/$1/research/$1-report.tex` end-to-end — all Key Findings, Analysis & Synthesis, Open Questions sections
+2. Read `docs/autonomous/$1/research/research-progress.md` for the high-level view of what's well-supported vs. thin
+3. Produce a structured outline with:
+   - The 5-7 most important takeaways (ranked by importance, not discovery order)
+   - Key conclusions that flow from the evidence
+   - Actionable recommendations tied to each conclusion
+   - Confidence levels and known limitations
+4. Write the outline to `docs/autonomous/$1/research/synthesis-outline.md`
+5. Do NOT write anything to the `.tex` report in this iteration
+
+**After completing this iteration:**
+- Update `synthesis_iteration` to 2 in the state file
+- Update `iteration` (overall counter) by 1
+
+---
+
+## Phase S — Iteration 2: "Write"
+
+**Goal**: Write the full Synthesis section into the LaTeX report.
+
+1. Read `docs/autonomous/$1/research/synthesis-outline.md` from iteration 1
+2. Read the report's Key Findings section for `\cite{}` reference keys
+3. Write the full `\section{Synthesis}` into the `.tex` report, replacing the placeholder
+
+### Synthesis Structure (MANDATORY formatting):
+
+- `\subsection{Summary}`: 2-3 SHORT paragraphs (3-4 sentences each). What was researched, why it matters, scope.
+- `\subsection{Key Takeaways}`: **MUST use `\begin{enumerate}`** with 5-7 items. Each item uses `\item \textbf{Takeaway title.}` followed by 2-4 sentences of explanation. Each must reference its supporting section (e.g., "see Section 3.2"). Include `\cite{}` references.
+- `\subsection{Conclusions \& Recommendations}`: **MUST use `\begin{itemize}`** with paired items. Format: `\item \textbf{Conclusion:} [text] \\\\ \textbf{Recommendation:} [text]`. Keep each pair to 3-5 sentences total.
+- `\subsection{Confidence \& Limitations}`: One short paragraph for overall confidence, then **`\begin{itemize}`** listing specific limitations (1-2 sentences each).
+
+### Hard Rules:
+
+1. **Length**: 1500-2000 words. Absolute maximum 2500 words.
+2. **NEVER** reference iteration numbers, research phases, strategy names, or chronological discovery order.
+3. **Write as if all findings were discovered simultaneously.** No temporal narrative.
+4. **Self-contained**: A busy reader with 5 minutes should understand the core findings, conclusions, and action items from this section alone.
+5. **Demonstrate JUDGMENT** (curate the 5-7 most important things), not THOROUGHNESS (list everything found).
+6. **Anti-contradiction rules**:
+   - No recommendation that contradicts its paired conclusion
+   - No Key Takeaway that contradicts another Key Takeaway
+   - If the report contains mixed evidence on a topic, the Synthesis MUST reconcile this into a single coherent position with appropriate nuance, not present both as separate unqualified claims
+
+**After completing this iteration:**
+- Update `synthesis_iteration` to 3 in the state file
+- Update `iteration` (overall counter) by 1
+
+---
+
+## Phase S — Iteration 3: "Edit and Polish"
+
+**Goal**: Quality-check and tighten the Synthesis.
+
+1. Re-read the `\section{Synthesis}` alongside the full `\section{Key Findings}`
+2. Check for:
+   - Internal contradictions within the Synthesis
+   - Critical findings from Key Findings that are missing from the Synthesis
+   - Unsupported claims (claims in Synthesis without backing in Key Findings)
+   - Recommendations that don't flow logically from their paired conclusions
+3. Tighten prose — remove filler, improve clarity, fix formatting
+4. Verify all `\cite{}` references in the Synthesis resolve against `sources.bib`
+5. Verify word count is within 1500-2500 words
+6. After this iteration, set `status: complete` in the state file
+
+**After completing this iteration:**
+- Set `status: complete` in the state file
+- Mark `Phase S: Synthesis` as completed in the `## Completed Phases` section
+- Send macOS notification:
+  ```
+  Run via Bash: osascript -e 'display notification "Research complete for $1 — Synthesis written" with title "Autonomous Workflow" subtitle "Research"'
+  ```
+
+The Stop hook verifies `status: complete`, `synthesis_iteration >= 3`, and `total_iterations_research >= research_budget` before allowing the workflow to end.
+
+---
+
+## PHASE S OUTPUT
+
+After completing a synthesis iteration, output:
+
+```
+## Phase S — Iteration [1|2|3] Complete
+
+### Step: [Read and Outline | Write | Edit and Polish]
+### Synthesis Status: [outline produced | section written | polished and final]
+### Word Count: [N/A for iteration 1 | count for iterations 2-3]
+### Issues Found: [list any contradictions, missing findings, etc.]
 ```
