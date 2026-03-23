@@ -141,6 +141,13 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Cover 9 domains: functionality, constraints, integration, edge cases, security, testing, etc.
 - Challenge assumptions, pushback on idealistic ideas
 
+**Research quality gate**: When researcher agents return domain findings, the main instance should assess each finding's evidence-to-claim gap before incorporating it into the specification. Findings with WIDE gaps should be noted as uncertain rather than stated as established facts. This prevents the specification from being built on shaky evidence that later causes implementation problems.
+
+Specifically, before asking the user questions informed by research:
+- Check: Is this finding something the source PROVED or merely ASSERTED?
+- Check: Does this finding apply to our specific context, or was it studied under different conditions?
+- If uncertain, frame questions to the user as "research suggests X, but under conditions that may differ from ours — how does this apply to your case?"
+
 **Output**: `docs/workflow-<feature>/codebase-context/<feature>-domain-research.md`, `docs/workflow-<feature>/specs/<feature>-specs.md`
 
 **Command**: `/dev-workflow:3-user-specification-interview <feature> "<description>"`
@@ -190,10 +197,15 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 **What happens**:
 - 5 researcher agents validate decisions in parallel (architecture validation, technology risks, known issues, alternatives, security)
 - Research synthesized into validation research artifact
-- Plan-reviewer agent critically analyzes the plan with research context
+- Plan-reviewer agent critically analyzes the plan with research context:
+  1. **Pre-mortem** (mandatory first step): Imagines the implementation has failed and writes the post-mortem — identifies the most likely failure mode, the most dangerous unstated assumption, the highest-risk integration boundary, and the structural decision we'll regret
+  2. **Assumption inversion**: For each major technical decision, states the opposite assumption and checks if the plan survives
+  3. **Checklist review**: Standard 8-area evaluation (completeness, feasibility, edge cases, integration, testing, security, performance, assumptions)
 - Challenges assumptions, identifies gaps
 - Asks clarifying questions via AskUserQuestionTool
 - Gets explicit user approval to proceed
+
+**Key addition**: The pre-mortem and assumption inversions catch structural problems that checklists miss. A plan can pass every checklist item and still fail because of an unstated assumption about data volume, latency, or system behavior.
 
 **Output**: `docs/workflow-<feature>/plans/<feature>-review-research.md`, updated plans based on feedback + User approval
 
@@ -377,6 +389,7 @@ These principles guide all phases of the workflow:
 5. **Front-load planning** - Thorough questioning eliminates implementation rework
 6. **Automatic context management** - Stop hook enforces state file accuracy, SessionStart hook restores context after reset
 7. **Automatic orchestration** - User only provides input when needed
+8. **Critical evaluation of sources** - Research findings are not facts. Before incorporating any finding from researcher agents into specs, plans, or architecture, assess whether the source's methodology supports the specific claim being made. A source that studied large enterprises does not prove anything about startups. A benchmark from 2022 may not reflect current reality.
 
 ---
 

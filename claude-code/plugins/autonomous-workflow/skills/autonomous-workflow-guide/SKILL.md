@@ -76,18 +76,19 @@ Mode 3: Full Auto              Mode 4: Implement Only
 
 ## Research Strategies
 
-Research cycles through 8 strategies to stay productive. When a strategy produces fewer than 2 contributions for `strategy_rotation_threshold` (default: 3) consecutive iterations, it rotates to the next strategy. After all 8 strategies are exhausted, the cycle restarts from `wide-exploration`.
+Research cycles through 9 strategies to stay productive. When a strategy produces fewer than 2 contributions for `strategy_rotation_threshold` (default: 3) consecutive iterations, it rotates to the next strategy. After all 9 strategies are exhausted, the cycle restarts from `wide-exploration`.
 
 | # | Strategy | Focus | Agent Count | Output |
 |---|----------|-------|-------------|--------|
 | 1 | `wide-exploration` | Broad search across many facets | 3-5 | Standard 200-500 words |
 | 2 | `source-verification` | Verify/refute existing claims with independent sources | 3-4 | + Verification Results (CONFIRMED/REFUTED/INCONCLUSIVE) |
-| 3 | `contradiction-resolution` | Resolve conflicting information with authoritative evidence | 2-3 | + Resolution Analysis |
-| 4 | `deep-dive` | Thorough investigation of primary sources | 2-3 | Expanded 800 words |
-| 5 | `adversarial-challenge` | Find strongest counter-arguments to conclusions | 3-4 | + Counter-Argument Strength (STRONG/MODERATE/WEAK) |
-| 6 | `gaps-and-blind-spots` | Investigate uncovered areas and missing perspectives | 3-4 | + Relevance Assessment (HIGH/MEDIUM/LOW) |
-| 7 | `temporal-analysis` | How understanding evolved, latest developments, trajectory | 3-4 | + Timeline section |
-| 8 | `cross-domain-synthesis` | Learnings from analogous problems in other fields | 3-4 | + Cross-Domain Mapping section |
+| 3 | `methodological-critique` | Evaluate whether cited sources' methodologies support their claims | 2-3 | + Methodological Evaluation (evidence gap, load-bearing assumptions, verdict) |
+| 4 | `contradiction-resolution` | Resolve conflicting information with authoritative evidence | 2-3 | + Resolution Analysis |
+| 5 | `deep-dive` | Thorough investigation of primary sources | 2-3 | Expanded 800 words |
+| 6 | `adversarial-challenge` | Find strongest counter-arguments to conclusions | 3-4 | + Counter-Argument Strength (STRONG/MODERATE/WEAK) |
+| 7 | `gaps-and-blind-spots` | Investigate uncovered areas and missing perspectives | 3-4 | + Relevance Assessment (HIGH/MEDIUM/LOW) |
+| 8 | `temporal-analysis` | How understanding evolved, latest developments, trajectory | 3-4 | + Timeline section |
+| 9 | `cross-domain-synthesis` | Learnings from analogous problems in other fields | 3-4 | + Cross-Domain Mapping section |
 
 ### Contribution Types
 
@@ -204,6 +205,7 @@ command: |
 | Agent | Model | Used In | Purpose |
 |-------|-------|---------|---------|
 | researcher | Sonnet | Phase A, Phase B | Strategy-aware internet research, returns structured summaries. In Phase B: targeted technical and academic research for planning. |
+| methodological-critic | Opus | Phase A | Evaluates whether sources' methodologies support their claims. Identifies evidence gaps, load-bearing assumptions, regime-dependency. |
 | repo-analyst | Sonnet | Phase A | Codebase analysis (skipped if repo is empty) |
 | latex-compiler | Sonnet | Phase boundaries | LaTeX formatting + pdflatex compilation |
 | plan-architect | Opus | Phase B | Plan section improvement proposals |

@@ -80,7 +80,7 @@ Context is managed automatically via hooks - no manual checkpoints needed.
 ```
 
 
-## The Iron Law
+## The Iron Laws
 
 > **NO FIXES WITHOUT ROOT CAUSE PROVEN FIRST**
 
@@ -89,6 +89,14 @@ If you catch yourself thinking any of these, STOP and return to Phase 3:
 - "Just try changing X and see if it works"
 - "Add multiple changes, run tests"
 - "It's probably X, let me fix that"
+
+> **QUESTION THE FRAMING BEFORE QUESTIONING THE CODE**
+
+If you catch yourself thinking any of these, STOP and re-evaluate whether you're debugging the right thing:
+- "All my hypotheses were wrong, let me try more of the same"
+- "The logs don't show what I expected, the instrumentation must be wrong"
+- "This doesn't make sense" (this is your signal that the framing may be wrong)
+- "Let me just add more logging everywhere" (shotgun debugging = lost framing)
 
 ## The 3-Fix Rule
 
@@ -183,13 +191,18 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 ---
 
 ### Phase 4: HYPOTHESIZE
-**Purpose**: Generate testable theories about root cause
+**Purpose**: Assess debugging framing, then generate testable theories about root cause
 
 **What happens**:
-- hypothesis-generator agent produces 3-5 ranked theories
-- Each includes: theory, evidence needed, confidence, instrumentation plan
+- hypothesis-generator agent first performs a **framing assessment**:
+  - Is the reported bug the actual problem, or a downstream symptom?
+  - Could this be an architectural/design issue rather than an implementation bug?
+  - Is the "expected behavior" actually correct per the specification?
+- Then produces 3-5 ranked theories (at least one must be structural/architectural)
+- Each includes: theory, evidence needed, confidence, instrumentation plan, **disconfirming evidence**
 - Prioritized by likelihood and testability
-- Shared instrumentation identified
+
+**Key addition**: The framing assessment catches the case where we're debugging the wrong thing entirely. If framing confidence is LOW, the workflow should pause for user input before proceeding.
 
 **Output**: `docs/debug/<bug-name>/<bug-name>-hypotheses.md`
 
@@ -330,9 +343,15 @@ The workflow is not always linear. Two loopback flows exist:
 
 ### Hypotheses Rejected Loop
 ```
-Phase 7 (all REJECTED) → Phase 4 (new hypotheses from findings) → Phase 5 → Phase 6 → Phase 7
+Phase 7 (all REJECTED) → Framing Re-evaluation → Phase 4 (new hypotheses) → Phase 5 → Phase 6 → Phase 7
 ```
-When all hypotheses are rejected, the log analysis reveals unexpected findings. Use these findings to generate new hypotheses (H4, H5, etc.) and repeat the cycle.
+When all hypotheses are rejected:
+1. **Re-evaluate the framing**: Before generating new hypotheses, explicitly ask:
+   - Are we debugging the right thing? The fact that all hypotheses were rejected may mean we're looking in the wrong place.
+   - Should we re-examine the bug description with the user? The original report may be misleading.
+   - Is this a symptom of a deeper architectural issue?
+2. If framing seems suspect, pause for user input via AskUserQuestionTool before generating new hypotheses.
+3. Generate new hypotheses (H4, H5, etc.) with findings from the rejected analysis AND the framing re-evaluation.
 
 ### Fix Failed Loop
 ```
