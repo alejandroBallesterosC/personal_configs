@@ -56,7 +56,7 @@ Commands can also be run once for testing (single iteration, set `status: comple
 
 ```
 commands/          5 commands (research, research-and-plan, full-auto, implement, help)
-agents/            6 agents (researcher, repo-analyst, latex-compiler, plan-architect, plan-critic, autonomous-coder)
+agents/            7 agents (researcher, methodological-critic, repo-analyst, latex-compiler, plan-architect, plan-critic, autonomous-coder)
 skills/            1 skill (autonomous-workflow-guide — source of truth loaded by all commands)
 hooks/             2 hooks (Stop shell for iteration + verification, SessionStart shell for context resume)
 templates/         1 LaTeX template (report)
@@ -67,6 +67,7 @@ templates/         1 LaTeX template (report)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | researcher | Sonnet | Strategy-aware parallel internet research |
+| methodological-critic | Opus | Evaluates whether sources' methodologies support their claims |
 | repo-analyst | Sonnet | Parallel codebase analysis |
 | latex-compiler | Sonnet | LaTeX formatting and compilation |
 | plan-architect | Opus | Proposes plan improvements grounded in research |
@@ -82,16 +83,17 @@ templates/         1 LaTeX template (report)
 
 ## Research Strategies
 
-Research cycles through 8 strategies. When a strategy produces low contributions for 3 consecutive iterations, it rotates to the next. After all 8 are exhausted, the cycle restarts.
+Research cycles through 9 strategies. When a strategy produces low contributions for 3 consecutive iterations, it rotates to the next. After all 9 are exhausted, the cycle restarts.
 
 1. `wide-exploration` - Broad search across many facets
 2. `source-verification` - Verify/refute existing claims
-3. `contradiction-resolution` - Resolve conflicting information
-4. `deep-dive` - Thorough primary source investigation
-5. `adversarial-challenge` - Find counter-arguments
-6. `gaps-and-blind-spots` - Investigate uncovered areas
-7. `temporal-analysis` - Historical evolution and trajectory
-8. `cross-domain-synthesis` - Learnings from analogous fields
+3. `methodological-critique` - Evaluate whether sources' methodologies support their claims
+4. `contradiction-resolution` - Resolve conflicting information
+5. `deep-dive` - Thorough primary source investigation
+6. `adversarial-challenge` - Find counter-arguments
+7. `gaps-and-blind-spots` - Investigate uncovered areas
+8. `temporal-analysis` - Historical evolution and trajectory
+9. `cross-domain-synthesis` - Learnings from analogous fields
 
 ## Artifacts
 

@@ -64,6 +64,13 @@ Check if `.claude/autonomous-$1-research-state.md` exists.
    ## Open Contradictions
    - (none yet)
 
+   ## Methodological Quality
+   - Claims with TIGHT evidence gap: 0
+   - Claims with MODERATE evidence gap: 0
+   - Claims with WIDE evidence gap: 0
+   - Claims narrowed after critique: 0
+   - Sources flagged for removal: 0
+
    ## Research Direction
    - Begin with wide-exploration to establish baseline understanding
    ```
@@ -165,6 +172,7 @@ Read `current_research_strategy` from the state file YAML. Dispatch agents based
 |----------|--------|-------------|--------|
 | `wide-exploration` | 3-5 | Different broad questions (default behavior) | Standard 200-500 words |
 | `source-verification` | 3-4 | Each verifies 2-3 existing claims from report against independent sources | Standard + Verification Results (CONFIRMED/REFUTED/INCONCLUSIVE) |
+| `methodological-critique` | 2-3 | Each evaluates 2-3 source-claim pairs from the report | Standard + Methodological Evaluation |
 | `contradiction-resolution` | 2-3 | Each resolves 1-2 contradictions from open questions | Standard + Resolution Analysis |
 | `deep-dive` | 2-3 | Single high-value topic per agent, primary sources | Expanded 800 words |
 | `adversarial-challenge` | 3-4 | Each challenges a key conclusion from the report | Standard + Counter-Argument Strength (STRONG/MODERATE/WEAK) |
@@ -209,6 +217,31 @@ Return findings in the structured format appropriate for this strategy."
 **temporal-analysis**: Identify key topics. Assign agents to investigate: historical evolution, recent developments, emerging trends, future trajectory. Agent adds `### Timeline` section.
 
 **cross-domain-synthesis**: Identify the core problem structure. Assign agents to investigate analogous problems in other fields (e.g., if researching blockchain scalability, look at how distributed databases solved similar problems). Agent adds `### Cross-Domain Mapping` section with explicit mapping from analogous domain to research domain.
+
+**methodological-critique**: Read the current report and `sources.bib`. Identify the 6-8 most consequential source-claim pairs (claims that drive major conclusions or recommendations). Assign 2-3 pairs per agent. Use the `methodological-critic` agent type instead of the standard `researcher` agent type:
+
+```
+Task tool with subagent_type='autonomous-workflow:methodological-critic'
+prompt: "Evaluate these source-claim pairs from the research report.
+
+Report: docs/autonomous/$1/research/$1-report.tex
+Sources: docs/autonomous/$1/research/sources.bib
+
+Source-claim pairs to evaluate:
+1. Source [key1]: Claim '[claim text from report]'
+2. Source [key2]: Claim '[claim text from report]'
+3. Source [key3]: Claim '[claim text from report]'
+
+For each, assess: what the source actually proves vs. what the report claims from it, load-bearing assumptions, regime-dependency, and the evidence-to-claim gap. Identify the surviving insight from each source."
+```
+
+After receiving evaluations, apply verdicts to the report:
+- **KEEP_AS_IS**: No change needed
+- **NARROW_THE_CLAIM**: Rewrite the claim in the report to match the narrower valid interpretation. Update the prose to state the boundary conditions.
+- **DOWNGRADE_CONFIDENCE**: Add qualification language ("under conditions X, evidence suggests..." rather than "research shows...")
+- **FLAG_FOR_REMOVAL**: Remove the claim if no surviving insight exists, or replace with the surviving insight if one was identified.
+
+Count changes as contributions: each NARROW/DOWNGRADE/REMOVAL counts as one contribution.
 
 ### Repo-Analyst Agents (0-2 in parallel, if applicable)
 
@@ -259,7 +292,11 @@ Before updating the report, audit the current report against the new findings fo
    - The Analysis & Synthesis section's patterns are consistent with Key Findings
    - If genuinely mixed evidence exists, it must be presented as nuance in a single location, not as contradictory claims in separate sections. Use the pattern: "Evidence suggests X; however Y — on balance, Z."
 
-3. **Deep consistency audit** (every 5th iteration, i.e., when `total_iterations_research` is a multiple of 5):
+3. **Evidence gap audit** (during `methodological-critique` strategy iterations):
+   - For each claim modified by the methodological-critic (NARROW/DOWNGRADE/REMOVE), verify the change is reflected consistently across all sections that reference the same source.
+   - Update the `## Methodological Quality` section of research-progress.md with current gap counts.
+
+4. **Deep consistency audit** (every 5th iteration, i.e., when `total_iterations_research` is a multiple of 5):
    - Re-read the ENTIRE report from start to finish
    - List all major claims and conclusions made across all sections
    - Check each pair of claims for logical consistency
@@ -383,7 +420,7 @@ If `consecutive_low_contributions >= strategy_rotation_threshold`:
 1. Add `current_research_strategy` to `research_strategies_completed`
 2. Log to `## Strategy History`: strategy name, iterations spent, total contributions, rotation iteration number
 
-3. If ALL 8 strategies are in `research_strategies_completed`:
+3. If ALL 9 strategies are in `research_strategies_completed`:
    - Clear `research_strategies_completed` to `[]`
    - Set `current_research_strategy` to `wide-exploration`
    - Reset `consecutive_low_contributions` to 0
@@ -397,12 +434,13 @@ If `consecutive_low_contributions >= strategy_rotation_threshold`:
    - Pick next strategy from the fixed order NOT in `research_strategies_completed`:
      1. `wide-exploration`
      2. `source-verification`
-     3. `contradiction-resolution`
-     4. `deep-dive`
-     5. `adversarial-challenge`
-     6. `gaps-and-blind-spots`
-     7. `temporal-analysis`
-     8. `cross-domain-synthesis`
+     3. `methodological-critique`
+     4. `contradiction-resolution`
+     5. `deep-dive`
+     6. `adversarial-challenge`
+     7. `gaps-and-blind-spots`
+     8. `temporal-analysis`
+     9. `cross-domain-synthesis`
    - Set `current_research_strategy` to the next strategy
    - Reset `consecutive_low_contributions` to 0
    - Send notification:
@@ -470,7 +508,7 @@ After completing one research iteration, output a brief summary:
 
 ### Sources Added: [count]
 ### Open Questions Remaining: [count]
-### Strategy Progress: [completed_count]/8 strategies in current cycle
+### Strategy Progress: [completed_count]/9 strategies in current cycle
 ### Consecutive Low-Contribution Iterations: [N]/[threshold]
 
 ### Next Iteration Focus:
