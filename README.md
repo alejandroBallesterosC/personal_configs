@@ -15,12 +15,12 @@ personal_configs/
 │   │   ├── infrastructure-as-code/ # 1 command, 1 skill
 │   │   ├── claude-md-best-practices/ # 1 skill
 │   │   └── ralph-loop/            # Iterative AI loops (3 commands, 1 hook)
-│   ├── commands/                   # Shared global commands
-│   ├── docs/                       # Python, UV, Docker best practices
-│   ├── CLAUDE.md                   # Global coding standards template
+│   ├── commands/                   # Shared global commands (symlinked to ~/.claude/commands/)
+│   ├── docs/                       # Python, UV, Docker best practices (symlinked to ~/.claude/docs/)
+│   ├── CLAUDE.md                   # Global coding standards template (symlinked to ~/.claude/)
 │   └── global_mcp_settings.json    # MCP server configuration
 ├── cursor/                         # Cursor IDE parallel configs
-├── sync-content-scripts/           # 9 sync scripts (bidirectional + cursor)
+├── sync-content-scripts/           # Symlink setup (Claude Code) + copy sync (Cursor)
 ├── .vscode/                        # VS Code tasks (16 total: 9 working sync + 4 dead sync + 3 other)
 ├── docs/
 │   └── CODEBASE.md                 # Comprehensive codebase analysis
@@ -154,26 +154,39 @@ EXA_API_KEY       # For exa web search
 
 Store in `.env` file (gitignored).
 
-## Sync Scripts
+## Sync Setup
 
-Bidirectional sync between this repo and `~/.claude/` via `sync-content-scripts/claude-code/`:
+### Claude Code (symlinks)
 
-| Script | Direction |
-|--------|-----------|
-| `sync_commands_to_global.sh` | Commands → ~/.claude/commands/ |
-| `sync_docs_to_global.sh` | Docs → ~/.claude/docs/ |
-| `sync_claude_to_global.sh` | CLAUDE.md → ~/.claude/ |
-| `sync_mcp_servers_to_global.sh` | MCP config → ~/.claude/ |
+Claude Code commands, docs, and CLAUDE.md are symlinked from this repo to `~/.claude/`:
 
-Reverse sync scripts (`*_from_global.sh`) also available for each. Cursor sync: `sync-content-scripts/cursor/sync_to_cursor.sh` (unidirectional).
+```bash
+# One-time setup (idempotent, backs up existing files)
+./sync-content-scripts/claude-code/setup_symlinks.sh
+```
+
+This creates three symlinks:
+- `~/.claude/CLAUDE.md` → `claude-code/CLAUDE.md`
+- `~/.claude/commands/` → `claude-code/commands/`
+- `~/.claude/docs/` → `claude-code/docs/`
+
+Edits in this repo are immediately reflected in Claude Code. No re-sync needed.
+
+### Cursor (copy-based)
+
+Cursor configs use copy-based sync because Cursor has known bugs with symlinked directories:
+
+```bash
+./sync-content-scripts/cursor/sync_to_cursor.sh
+```
+
+### Plugins
 
 Plugins install via the marketplace system (not file sync):
 ```bash
 /plugin marketplace add alejandroBallesterosC/personal_configs
 /plugin install dev-workflow
 ```
-
-Sync behavior: Last sync wins (`cp -f`, optional `--overwrite` clears destination first).
 
 ## Usage
 

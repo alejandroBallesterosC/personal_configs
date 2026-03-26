@@ -14,10 +14,10 @@ claude-code/
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
 │   ├── claude-md-best-practices/ # 1 skill
 │   └── ralph-loop/   # Iterative AI loops (3 commands, 1 hook)
-├── commands/          # 6 shared global commands (syncs to ~/.claude/commands/)
-├── docs/              # Python, UV, Docker best practices (syncs to ~/.claude/docs/)
-└── CLAUDE.md          # Global coding standards template (syncs to ~/.claude/)
-sync-content-scripts/  # 8 bidirectional + 1 unidirectional sync scripts
+├── commands/          # 7 shared global commands (symlinked to ~/.claude/commands/)
+├── docs/              # Python, UV, Docker best practices (symlinked to ~/.claude/docs/)
+└── CLAUDE.md          # Global coding standards template (symlinked to ~/.claude/)
+sync-content-scripts/  # Symlink setup script (Claude Code) + 1 copy-based sync script (Cursor)
 cursor/                # Cursor IDE mirror (42 files, TDD-only, unidirectional sync)
 ```
 
@@ -43,11 +43,8 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 
 | Action | Command |
 |--------|---------|
-| Sync commands to global | `./sync-content-scripts/claude-code/sync_commands_to_global.sh` |
-| Sync docs to global | `./sync-content-scripts/claude-code/sync_docs_to_global.sh` |
-| Sync MCP config to global | `./sync-content-scripts/claude-code/sync_mcp_servers_to_global.sh` |
-| Sync CLAUDE.md to global | `./sync-content-scripts/claude-code/sync_claude_to_global.sh` |
-| Sync all to global | Run VS Code tasks (9 working sync tasks; 4 dead tasks for skills/plugins sync remain in tasks.json) |
+| Set up Claude Code symlinks | `./sync-content-scripts/claude-code/setup_symlinks.sh` |
+| Sync Cursor configs | `./sync-content-scripts/cursor/sync_to_cursor.sh` |
 | Install plugins | `/plugin marketplace add alejandroBallesterosC/personal_configs` then `/plugin install <name>` |
 | Test runner detection | `claude-code/plugins/dev-workflow/hooks/run-scoped-tests.sh` (auto via Stop hook) |
 
@@ -73,7 +70,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 ## Gotchas
 
 - `ralph-loop` is external dependency for dev-workflow - install via plugin marketplace (see Dependencies)
-- `claude-code/CLAUDE.md` is a TEMPLATE (syncs to ~/.claude/), not this repo's CLAUDE.md
+- `claude-code/CLAUDE.md` is a TEMPLATE (symlinked to ~/.claude/CLAUDE.md), not this repo's CLAUDE.md
 - Test auto-detection exits 0 when no framework found (non-fatal for repos without tests)
 - **Context is preserved automatically** via Stop/SessionStart hooks - no manual action needed
 - Phase transitions still validate prerequisites (can't skip phases)
@@ -81,7 +78,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - MCP servers require env vars: `CONTEXT7_API_KEY`, `EXA_API_KEY` (in `.env`, gitignored)
 - `dev-workflow` plugin contains both TDD implementation and debug workflows
 - Cursor mirror (`cursor/`) is TDD-only — missing entire debug workflow (6 commands, 4 agents, 2 skills)
-- VS Code `tasks.json` has 4 dead tasks (sync_skills/sync_plugins) and 1 leftover task from a previous project (Compile Frontend Typescript)
+- VS Code `tasks.json` has dead tasks referencing removed sync scripts and leftover tasks from previous projects
 - Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 7 plugins
 - Stop hook chain order (per marketplace.json): dev-workflow → ralph-loop → autonomous-workflow. If an earlier hook blocks, later hooks do not run
 - `autonomous-workflow` has its own Stop hook iteration engine (stop-hook.sh) — it does NOT depend on ralph-loop for iteration
@@ -103,17 +100,23 @@ Then install plugins via `/plugin install <name>`.
 
 ## Sync Usage
 
-Commands, docs, MCP config, and CLAUDE.md sync to `~/.claude/` via scripts:
+Claude Code commands, docs, and CLAUDE.md are symlinked from this repo to `~/.claude/`:
 ```bash
-./sync-content-scripts/claude-code/sync_commands_to_global.sh [--overwrite]
-./sync-content-scripts/claude-code/sync_docs_to_global.sh [--overwrite]
-./sync-content-scripts/claude-code/sync_mcp_servers_to_global.sh
-./sync-content-scripts/claude-code/sync_claude_to_global.sh
+# One-time setup (idempotent, backs up existing files)
+./sync-content-scripts/claude-code/setup_symlinks.sh
 ```
 
-Plugins install via marketplace (not file sync). Skills and plugins scripts were removed in favor of the plugin system.
+This creates three symlinks:
+- `~/.claude/CLAUDE.md` → `claude-code/CLAUDE.md`
+- `~/.claude/commands/` → `claude-code/commands/`
+- `~/.claude/docs/` → `claude-code/docs/`
 
-Sync behavior: Last sync wins (`cp -f`, optional `--overwrite` clears destination first).
+Cursor configs use copy-based sync (symlinks are unreliable in Cursor):
+```bash
+./sync-content-scripts/cursor/sync_to_cursor.sh
+```
+
+Plugins install via marketplace (not file sync).
 
 ## Documentation
 

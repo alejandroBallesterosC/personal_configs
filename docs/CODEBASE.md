@@ -12,7 +12,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 - **Workflows**: TDD Implementation (8 phases), Debug (9 phases), Autonomous (3 phases: Research/Planning/Implementation with 4 modes)
 - **State files**: YAML frontmatter + markdown body tracking workflow progress
 - **Hooks**: Event-driven automation (Stop, SessionStart) for context preservation and iteration control
-- **Sync scripts**: Bidirectional config sync between repo and `~/.claude/`
+- **Sync**: Symlinks for Claude Code (`~/.claude/`), copy-based for Cursor (`~/.cursor/`)
 
 ## 2. Technology Stack
 
@@ -43,12 +43,12 @@ personal_configs/
 │   │   ├── claude-session-feedback/ # 4 commands
 │   │   ├── infrastructure-as-code/  # 1 command, 1 skill
 │   │   └── claude-md-best-practices/ # 1 skill
-│   ├── commands/ (6)             # Global commands (synced to ~/.claude/commands/)
-│   ├── docs/ (3)                 # Best practice guides (synced to ~/.claude/docs/)
-│   ├── CLAUDE.md                 # Template (synced to ~/.claude/CLAUDE.md)
-│   └── global_mcp_settings.json  # MCP config (synced to ~/.claude.json)
+│   ├── commands/ (7)             # Global commands (symlinked to ~/.claude/commands/)
+│   ├── docs/ (3)                 # Best practice guides (symlinked to ~/.claude/docs/)
+│   ├── CLAUDE.md                 # Template (symlinked to ~/.claude/CLAUDE.md)
+│   └── global_mcp_settings.json  # MCP config
 ├── cursor/                        # Cursor IDE mirror (TDD-only, unidirectional)
-├── sync-content-scripts/          # 9 sync scripts (8 bidirectional + 1 unidirectional)
+├── sync-content-scripts/          # Symlink setup (Claude Code) + copy sync (Cursor)
 ├── CLAUDE.md                      # This repo's coding standards
 └── docs/CODEBASE.md              # This file
 ```
@@ -58,16 +58,15 @@ personal_configs/
 ```
 Repository (source of truth)
     │
-    ├──[sync scripts]──► ~/.claude/ (global config)
-    │   ├── commands/*.md
-    │   ├── docs/*.md
-    │   ├── CLAUDE.md
-    │   └── .claude.json (MCP servers)
+    ├──[symlinks]──► ~/.claude/ (global config)
+    │   ├── commands/ → claude-code/commands/
+    │   ├── docs/ → claude-code/docs/
+    │   └── CLAUDE.md → claude-code/CLAUDE.md
     │
     ├──[plugin marketplace]──► Claude Code runtime
     │   └── 7 installed plugins
     │
-    └──[sync_to_cursor.sh]──► ~/.cursor/ (IDE config)
+    └──[sync_to_cursor.sh]──► ~/.cursor/ (IDE config, copy-based)
         ├── commands/*.md (no YAML frontmatter)
         ├── hooks/ (camelCase events, version:1)
         └── skills/
@@ -117,8 +116,8 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 - **SessionStart hooks inject context**: Return JSON with `additionalContext` field
 
 ### Sync Interface Contract
-- **Direction**: Bidirectional (to/from global) for Claude Code; unidirectional (to) for Cursor
-- **Behavior**: `cp -f` (last sync wins), optional `--overwrite` clears destination first
+- **Claude Code**: Symlinks from `~/.claude/` to repo (`setup_symlinks.sh`). Changes in repo are immediately live.
+- **Cursor**: Copy-based sync (`sync_to_cursor.sh`), unidirectional. Symlinks are unreliable in Cursor due to known bugs with skill/agent discovery after restart.
 - **Plugins do NOT sync**: Installed via marketplace (`/plugin marketplace add` + `/plugin install`)
 
 ### State File Contract
@@ -137,7 +136,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 | Plugin encapsulation | Self-contained dirs with manifests | Flat global commands | Isolation + marketplace distribution vs. more complex installation |
 | YAML frontmatter state | Markdown files with YAML headers | JSON/SQLite state | Human-readable + git-friendly vs. no structured querying; requires yq |
 | Hook-based verification | Stop hook agent verifies state | Trust Claude to update state | Deterministic correctness vs. 120s timeout on every exit |
-| Bidirectional sync | cp -f with overwrite flag | Git submodules or symlinks | Simplicity vs. last-sync-wins can lose changes |
+| Symlinks for Claude Code | Symlinks to repo dirs | Copy-based sync scripts | Instant sync, single source of truth vs. breaks if repo moves |
 | Cursor mirror | Separate adapted copy | Shared source with adapters | Simpler sync script vs. files to maintain in parallel |
 | ralph-loop as external dep | Plugin marketplace install | Built-in to dev-workflow | Separation of concerns vs. extra install step |
 | yq for YAML parsing | Shell + yq | Python yaml module | Simpler scripts vs. hard dependency on yq binary |
@@ -424,12 +423,12 @@ Both dev-workflow and autonomous-workflow register SessionStart hooks with match
 | **Skills** | 9 | 6 dev-workflow, 1 autonomous-workflow, 1 playwright, 1 infrastructure-as-code |
 | **VS Code Tasks** | 13 | 9 working, 4 dead/stale |
 | **GitHub Workflows** | 2 | Both disabled/commented out |
-| **Sync Scripts** | 9 | 8 bidirectional (claude-code), 1 unidirectional (cursor) |
+| **Sync Scripts** | 2 | 1 symlink setup (claude-code), 1 copy sync (cursor) |
 
 ## 15. Ambiguities
 
 - **Hook execution order across plugins**: When multiple plugins register Stop hooks, the order depends on plugin load order. If one hook fails, downstream hooks may not execute.
-- **Sync conflict resolution**: Bidirectional sync with last-sync-wins behavior has no merge strategy. Independent edits on both sides silently overwrite.
+- **Symlink dependency**: Claude Code symlinks break if the repo is moved. Re-run `setup_symlinks.sh` after moving.
 - **Cursor mirror maintenance**: All adaptations baked into `cursor/` directory. Adding workflows requires creating adapted copies, not modifying sync script. Unclear if Cursor should have full parity.
 - **VS Code tasks.json leftovers**: Contains tasks from previous projects (TypeScript compilation, HoPF config).
 - **Debug phase 5 ownership**: No dedicated command for Phase 5 (Reproduce). User manually triggers bug.
