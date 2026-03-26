@@ -6,29 +6,31 @@ model: haiku
 # ABOUTME: Help command that displays modes, agents, hooks, strategies, dependencies, and cost estimates.
 # ABOUTME: Uses haiku model for minimal token usage.
 
-# Autonomous Workflow Plugin — Help
+# Autonomous Workflow Plugin — Help (v3.0.0)
 
 ## Modes
 
 | Mode | Command | Description |
 |------|---------|-------------|
 | 1 | `/autonomous-workflow:research` | Deep research producing a LaTeX report |
-| 2 | `/autonomous-workflow:research-and-plan` | Research + iteratively refined implementation plan |
-| 3 | `/autonomous-workflow:full-auto` | Research + plan + autonomous TDD implementation |
-| 4 | `/autonomous-workflow:implement` | TDD implementation from an existing plan |
+| 2 | `/autonomous-workflow:research-and-plan` | Research + scoping interview + 4 rigorous planning artifacts with cross-examination |
+| 3 | `/autonomous-workflow:implement` | TDD implementation from an approved plan with anti-slop escalation |
+
+## Design Philosophy
+
+**No full-auto mode.** Modes 1 and 2 produce artifacts. Between Mode 2 and Mode 3, a human reviews, edits, and approves the plans. Mode 3 implements with strict anti-slop rules — escalates instead of mocking.
 
 ## Invocation
 
-The Stop hook drives iteration automatically — run the command once and it loops until completion:
-
+Modes 1-2 use the Stop hook for iteration:
 ```
-/autonomous-workflow:research 'topic-name' 'Your detailed research prompt...' --research-iterations 50
+/autonomous-workflow:research 'topic' 'prompt' --research-iterations 50
+/autonomous-workflow:research-and-plan 'project' 'prompt' --research-iterations 30 --plan-iterations 20
+```
 
-/autonomous-workflow:research-and-plan 'project-name' 'Your detailed prompt...' --research-iterations 40 --plan-iterations 20
-
-/autonomous-workflow:full-auto 'project-name' 'Your detailed prompt...' --research-iterations 50 --plan-iterations 20
-
-/autonomous-workflow:implement 'project-name'
+Mode 3 uses ralph-loop:
+```
+/ralph-loop:ralph-loop "/autonomous-workflow:implement 'project'" --completion-promise "All features passing or resolved."
 ```
 
 ### Budget Arguments
@@ -36,78 +38,52 @@ The Stop hook drives iteration automatically — run the command once and it loo
 | Mode | Flag | Default | Description |
 |------|------|---------|-------------|
 | 1 | `--research-iterations N` | 50 | Total research iteration budget |
-| 2 | `--research-iterations N` | 30 | Iterations of research before transitioning to planning |
-| 2 | `--plan-iterations N` | 15 | Iterations of planning |
-| 3 | `--research-iterations N` | 30 | Iterations of research before transitioning to planning |
-| 3 | `--plan-iterations N` | 15 | Iterations of planning before transitioning to implementation |
+| 2 | `--research-iterations N` | 30 | Research iterations before planning |
+| 2 | `--plan-iterations N` | 20 | Total planning iterations (split across B1-B4) |
 
-Commands can also be run once for testing (single iteration, set `status: complete` to stop).
+### Mode 2 Planning Sub-Phases
+
+| Sub-Phase | Budget | Purpose |
+|-----------|--------|---------|
+| B0: Scoping Interview | 1 iteration (pauses) | Generate research-informed questions, wait for human answers |
+| B1: Functional Requirements | 20% of plan budget | Derive testable requirements from research + answers |
+| B2: Architecture | 30% of plan budget | Component design, tech stack, interfaces |
+| B3: Test Plan + Implementation Plan | 25% of plan budget | Test cases, feature list, build order |
+| B4: Cross-Examination | 25% of plan budget | Validate all artifacts against each other |
 
 ## Research Strategies
 
-Research cycles through 9 strategies to stay productive. When a strategy produces low contributions for 3 consecutive iterations, it rotates to the next strategy. After all 9 are exhausted, the cycle restarts.
+Research cycles through 9 strategies. Rotates on low contributions after 3 consecutive iterations. After all 9, restarts.
 
 | # | Strategy | Focus |
 |---|----------|-------|
-| 1 | `wide-exploration` | Broad search across many facets |
-| 2 | `source-verification` | Verify/refute existing claims with independent sources |
-| 3 | `methodological-critique` | Evaluate whether cited sources' methodologies support their claims |
-| 4 | `contradiction-resolution` | Resolve conflicting information with authoritative evidence |
-| 5 | `deep-dive` | Thorough investigation of primary sources (800-word output) |
-| 6 | `adversarial-challenge` | Find strongest counter-arguments to conclusions |
-| 7 | `gaps-and-blind-spots` | Investigate uncovered areas and missing perspectives |
-| 8 | `temporal-analysis` | Historical evolution, recent developments, trajectory |
-| 9 | `cross-domain-synthesis` | Learnings from analogous problems in other fields |
+| 1 | `wide-exploration` | Broad search |
+| 2 | `source-verification` | Verify/refute claims |
+| 3 | `methodological-critique` | Evaluate source methodologies |
+| 4 | `contradiction-resolution` | Resolve conflicts |
+| 5 | `deep-dive` | Primary sources (800-word) |
+| 6 | `adversarial-challenge` | Counter-arguments |
+| 7 | `gaps-and-blind-spots` | Uncovered areas |
+| 8 | `temporal-analysis` | Historical evolution |
+| 9 | `cross-domain-synthesis` | Analogous problems |
 
 ## Agents
 
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| researcher | Sonnet | Strategy-aware parallel internet research, returns structured summaries |
-| methodological-critic | Opus | Evaluates whether sources' methodologies support their claims |
-| repo-analyst | Sonnet | Parallel codebase analysis, returns structured analysis |
-| latex-compiler | Sonnet | LaTeX formatting and pdflatex/bibtex compilation |
-| plan-architect | Opus | Proposes plan section improvements grounded in research |
-| plan-critic | Opus | Scrutinizes plan for conflicts, unsupported claims, gaps |
-| autonomous-coder | Opus | Full RED-GREEN-REFACTOR TDD cycle for one feature |
+| Agent | Model | Used In | Purpose |
+|-------|-------|---------|---------|
+| researcher | Sonnet | Modes 1, 2 | Strategy-aware parallel research with evidence gap ratings |
+| methodological-critic | Opus | Mode 1, 2 | Evaluates source methodology vs claims |
+| repo-analyst | Sonnet | Modes 1, 2 | Codebase analysis |
+| latex-compiler | Sonnet | Phase boundaries | LaTeX compilation |
+| requirements-analyst | Opus | Mode 2 (B1) | Derives functional requirements |
+| plan-architect | Opus | Mode 2 (B2-B3) | Plan improvement proposals |
+| plan-critic | Opus | Modes 2, 3 | Plan scrutiny with evidence-to-decision audit |
+| plan-reviewer | Opus | Mode 2 (B4) | Cross-examines all artifacts |
+| autonomous-coder | Opus | Mode 3 | TDD with anti-slop escalation |
 
-## Hooks
+## Mode 3 Escalation Types
 
-| Event | Type | Hook | Purpose |
-|-------|------|------|---------|
-| Stop | command | stop-hook.sh | Iteration engine + completion verifier |
-| SessionStart | command | auto-resume-after-compact-or-clear.sh | Restores context after compact/clear |
-
-## Phase Transitions
-
-- **Research (Mode 1)**: Strategy rotation keeps research productive. Stops when `total_iterations_research >= research_budget`.
-- **Research -> Planning** (Modes 2+3): Budget-based. Transitions when `total_iterations_research >= research_budget`.
-- **Planning (Mode 2)**: Stops when `total_iterations_planning >= planning_budget`.
-- **Planning -> Implementation** (Mode 3): Budget-based. Transitions when `total_iterations_planning >= planning_budget`.
-- **Implementation** (Modes 3+4): Each iteration implements one feature. Stops when all features have `passes: true` or `failed: true`.
-
-## Artifacts
-
-**State files** (`.claude/`):
-
-| File | Modes | Purpose |
-|------|-------|---------|
-| `autonomous-<topic>-research-state.md` | 1, 2, 3 | Research phase state (YAML frontmatter + markdown) |
-| `autonomous-<topic>-implementation-state.md` | 2, 3, 4 | Implementation phase state (YAML frontmatter + markdown) |
-| `autonomous-<topic>-feature-list.json` | 3, 4 | Implementation tracker (JSON) |
-| `autonomous-stop-hook-debug.log` | All | Stop hook debug log (append-only) |
-
-**Work artifacts** (`docs/autonomous/<topic>/`):
-
-| File | Modes | Purpose |
-|------|-------|---------|
-| `research/<topic>-report.tex` | All | Research report (LaTeX) |
-| `research/<topic>-report.pdf` | All | Compiled report (at phase boundaries) |
-| `research/sources.bib` | All | BibTeX bibliography |
-| `research/transcripts/` | All | Transcript backups (research phase) |
-| `implementation/<topic>-implementation-plan.md` | 2, 3, 4 | Implementation plan (Markdown) |
-| `implementation/progress.txt` | 3, 4 | Human-readable progress log |
-| `implementation/transcripts/` | 2, 3, 4 | Transcript backups (implementation phase) |
+`MISSING_CREDENTIAL`, `SERVICE_UNAVAILABLE`, `MOCK_PREVENTION`, `AMBIGUOUS_REQUIREMENT`, `PLAN_MISMATCH`, `MISSING_DEPENDENCY`, `SCOPE_EXPANSION`
 
 ## Dependencies
 
@@ -116,13 +92,8 @@ Research cycles through 9 strategies to stay productive. When a strategy produce
 | yq + jq | Yes (hooks) | `brew install yq jq` |
 | MacTeX | For PDF output | `brew install --cask mactex-no-gui` |
 | exa MCP server | For deep research | Configure with `EXA_API_KEY` |
+| ralph-loop plugin | For Mode 3 | Install from plugin marketplace |
 
 ## Cost Estimates
 
-Costs scale linearly with `--research-iterations`/`--plan-iterations`. ~$0.50-$3.00 per iteration.
-
-| Iterations | Approx. Cost |
-|-----------|--------------|
-| 50 | $25-$150 |
-| 100 | $50-$300 |
-| 200 | $100-$600 |
+~$0.50-$3.00 per iteration. 50 iterations ≈ $25-$150.

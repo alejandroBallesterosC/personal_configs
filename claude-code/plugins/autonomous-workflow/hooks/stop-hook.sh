@@ -119,6 +119,14 @@ SYNTHESIS_ITERATION=$(yq --front-matter=extract '.synthesis_iteration' "$ACTIVE_
 debug_log "**Fields:** status=$STATUS, iteration=$ITERATION, workflow_type=$WORKFLOW_TYPE, name=$NAME, current_phase=$CURRENT_PHASE, synthesis_iteration=$SYNTHESIS_ITERATION, command=$(echo "$COMMAND" | head -1)"
 
 # ---------------------------------------------------------------
+# STATUS: waiting_for_input — allow stop (human needs to answer questions)
+# ---------------------------------------------------------------
+if [ "$STATUS" = "waiting_for_input" ]; then
+  debug_log "**Allowing stop:** Status is waiting_for_input — pausing for human input."
+  exit 0
+fi
+
+# ---------------------------------------------------------------
 # STATUS: in_progress — increment iteration and block with command
 # ---------------------------------------------------------------
 if [ "$STATUS" = "in_progress" ]; then
@@ -219,37 +227,17 @@ if [ "$STATUS" = "complete" ]; then
       fi
       ;;
 
-    autonomous-full-auto)
-      # Verify: research budget + planning budget + all features resolved
-      if [ -n "$TOTAL_RESEARCH" ] && [ -n "$RESEARCH_BUDGET" ] && \
-         [ "$TOTAL_RESEARCH" != "null" ] && [ "$RESEARCH_BUDGET" != "null" ] && \
-         [ "$TOTAL_RESEARCH" -lt "$RESEARCH_BUDGET" ] 2>/dev/null; then
-        ERRORS="${ERRORS}Research budget not fulfilled: total_iterations_research ($TOTAL_RESEARCH) < research_budget ($RESEARCH_BUDGET). "
-      fi
-      if [ -n "$TOTAL_PLANNING" ] && [ -n "$PLANNING_BUDGET" ] && \
-         [ "$TOTAL_PLANNING" != "null" ] && [ "$PLANNING_BUDGET" != "null" ] && \
-         [ "$TOTAL_PLANNING" -lt "$PLANNING_BUDGET" ] 2>/dev/null; then
-        ERRORS="${ERRORS}Planning budget not fulfilled: total_iterations_planning ($TOTAL_PLANNING) < planning_budget ($PLANNING_BUDGET). "
-      fi
-      # Check feature resolution
-      FEATURE_LIST=".claude/autonomous-${TOPIC_NAME}-feature-list.json"
-      if [ -f "$FEATURE_LIST" ]; then
-        TOTAL_FEATURES=$(jq '.features | length' "$FEATURE_LIST" 2>/dev/null || echo "0")
-        RESOLVED_FEATURES=$(jq '[.features[] | select(.passes == true or .failed == true)] | length' "$FEATURE_LIST" 2>/dev/null || echo "0")
-        if [ "$RESOLVED_FEATURES" -lt "$TOTAL_FEATURES" ] 2>/dev/null; then
-          ERRORS="${ERRORS}Not all features resolved: $RESOLVED_FEATURES/$TOTAL_FEATURES resolved in feature-list.json. "
-        fi
-      fi
-      ;;
-
     autonomous-implement)
-      # Verify: all features resolved (no budget checks)
+      # Mode 3 uses ralph-loop for iteration, so the stop hook should generally allow stop.
+      # Only verify that if status is complete, all features are resolved (passed, failed, or blocked).
       FEATURE_LIST=".claude/autonomous-${TOPIC_NAME}-feature-list.json"
       if [ -f "$FEATURE_LIST" ]; then
         TOTAL_FEATURES=$(jq '.features | length' "$FEATURE_LIST" 2>/dev/null || echo "0")
         RESOLVED_FEATURES=$(jq '[.features[] | select(.passes == true or .failed == true)] | length' "$FEATURE_LIST" 2>/dev/null || echo "0")
-        if [ "$RESOLVED_FEATURES" -lt "$TOTAL_FEATURES" ] 2>/dev/null; then
-          ERRORS="${ERRORS}Not all features resolved: $RESOLVED_FEATURES/$TOTAL_FEATURES resolved in feature-list.json. "
+        BLOCKED_FEATURES=$(jq '[.features[] | select(.blocked == true)] | length' "$FEATURE_LIST" 2>/dev/null || echo "0")
+        TOTAL_RESOLVED=$((RESOLVED_FEATURES + BLOCKED_FEATURES))
+        if [ "$TOTAL_RESOLVED" -lt "$TOTAL_FEATURES" ] 2>/dev/null; then
+          ERRORS="${ERRORS}Not all features resolved: $RESOLVED_FEATURES passed/failed + $BLOCKED_FEATURES blocked out of $TOTAL_FEATURES total. "
         fi
       fi
       ;;

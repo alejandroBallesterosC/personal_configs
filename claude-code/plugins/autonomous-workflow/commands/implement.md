@@ -1,11 +1,12 @@
 ---
-description: "Mode 4: Autonomous TDD implementation from an existing plan"
+description: "Mode 3: TDD implementation from an approved plan with intelligent escalation (no mocks, no slop)"
 model: opus
 argument-hint: <project-name>
 ---
 
-# ABOUTME: Mode 4 command that runs TDD implementation from an existing plan without research.
-# ABOUTME: Detects plan files, generates feature-list.json, and implements via autonomous-coder agent.
+# ABOUTME: Mode 3 command that implements features from an approved plan using ralph-loop driven TDD.
+# ABOUTME: Features that hit external blockers are set to BLOCKED (not FAILED) and escalated to the human via the orchestrator.
+# ABOUTME: Uses ralph-loop for iteration (not stop-hook) to allow human intervention between features.
 
 # Autonomous Implementation
 
@@ -13,7 +14,9 @@ argument-hint: <project-name>
 
 ## Objective
 
-Run ONE ITERATION of TDD implementation from an existing plan. Skips research (Phase A) and planning (Phase B) entirely. If a `feature-list.json` already exists, resumes from where it left off. The Stop hook re-feeds this command for multi-iteration execution.
+Implement features from an approved plan using strict TDD. Each iteration picks the next unblocked feature from `feature-list.json` and spawns an `autonomous-coder` agent. Features that hit external blockers (missing API keys, unavailable services, unclear requirements) are set to BLOCKED and escalated — never mocked or worked around.
+
+**This command is designed to be run inside a ralph-loop.** The ralph-loop drives iteration, which allows the human orchestrator (Mac Goodman / OpenClaw) to inject corrections, provide API keys, and steer the implementation between iterations.
 
 **REQUIRED**: Use the Skill tool to invoke `autonomous-workflow:autonomous-workflow-guide` to load the workflow source of truth.
 
@@ -27,205 +30,102 @@ Check if `.claude/autonomous-$1-implementation-state.md` exists.
 
 #### Plan Detection
 
-Check for an existing plan at the canonical path:
+Check for planning artifacts at these paths:
+- `docs/autonomous/$1/planning/$1-implementation-plan.md` (Mode 2 output)
+- `docs/autonomous/$1/planning/$1-functional-requirements.md`
+- `docs/autonomous/$1/planning/$1-architecture-plan.md`
+- `docs/autonomous/$1/planning/$1-test-plan.md`
+
+Also check legacy path:
 - `docs/autonomous/$1/implementation/$1-implementation-plan.md`
 
-If NOT found, output this error and stop:
-```
-ERROR: No plan found for project '$1'.
-
-Searched:
-- docs/autonomous/$1/implementation/$1-implementation-plan.md
-
-Create a plan first using /autonomous-workflow:research-and-plan, or place a plan at the path above.
-```
+If NO implementation plan found, output error and stop.
 
 #### Initialize State
 
-1. Create directory `docs/autonomous/$1/implementation/` and `docs/autonomous/$1/implementation/transcripts/` (if they don't exist)
-
-2. Create `docs/autonomous/$1/implementation/progress.txt`:
+1. Create `docs/autonomous/$1/implementation/` and `transcripts/` subdirectory
+2. Create escalation file `.claude/autonomous-$1-escalations.json`:
+   ```json
+   { "project": "$1", "escalations": [] }
    ```
-   # Implementation Progress: $1
-   # Plan: docs/autonomous/$1/implementation/$1-implementation-plan.md
-
-   [<timestamp>] Workflow initialized.
-   ```
-
-3. Create state file `.claude/autonomous-$1-implementation-state.md`:
-   ```yaml
-   ---
-   workflow_type: autonomous-implement
-   name: $1
-   status: in_progress
-   current_phase: "Phase C: Implementation"
-   iteration: 1
-   total_iterations_coding: 0
-   features_total: 0
-   features_complete: 0
-   features_failed: 0
-   command: |
-     /autonomous-workflow:implement '$1'
-   ---
-
-   # Autonomous Workflow State: $1
-
-   ## Current Phase
-   Phase C: Implementation
-
-   ## Completed Phases
-   - [x] Phase A: Research (skipped — using existing plan)
-   - [x] Phase B: Planning (skipped — using existing plan)
-   - [ ] Phase C: Implementation
-
-   ## Implementation Progress
-   - Features total: 0
-   - Features complete: 0
-   - Features failed: 0
-
-   ## Context Restoration Files
-   1. .claude/autonomous-$1-implementation-state.md (this file)
-   2. docs/autonomous/$1/implementation/$1-implementation-plan.md
-   3. .claude/autonomous-$1-feature-list.json (after first iteration)
-   4. docs/autonomous/$1/implementation/progress.txt
-   5. CLAUDE.md
-   ```
+3. Create `docs/autonomous/$1/implementation/progress.txt`
+4. Create state file `.claude/autonomous-$1-implementation-state.md` with `workflow_type: autonomous-implement`, `features_blocked: 0`
 
 ### If state file EXISTS:
 
 1. Read state file
-2. Check if `.claude/autonomous-$1-feature-list.json` exists
-3. If feature-list.json exists: skip to STEP 3 (resume implementation)
-4. If feature-list.json does NOT exist: proceed to STEP 2 (validate plan and generate features)
+2. Check `.claude/autonomous-$1-escalations.json` for newly resolved escalations
+3. If `feature-list.json` exists: skip to STEP 3
+4. If not: proceed to STEP 2
 
 ---
 
 ## STEP 2: Validate Plan and Generate Feature List
 
-This step runs on the first iteration when no `feature-list.json` exists yet.
-
 ### Step 2a: Validate Plan
 
-Read the plan at `docs/autonomous/$1/implementation/$1-implementation-plan.md`.
-
-Spawn 2 parallel plan-critic agents:
-```
-Task tool with subagent_type='autonomous-workflow:plan-critic'
-prompt: "Validate whether this plan is implementable.
-
-Plan: docs/autonomous/$1/implementation/$1-implementation-plan.md
-
-Check for:
-1. Are components clearly defined with interfaces?
-2. Is the implementation sequence dependency-ordered?
-3. Are there any obvious blockers or ambiguities?
-
-Output BLOCKER issues for anything that would prevent implementation."
-```
+Spawn 2 parallel plan-critic agents to validate the plan is implementable.
 
 ### Step 2b: Handle Critic Results
 
-**If BLOCKER issues found**:
-1. Log blockers to state file under a `## Plan Validation Issues` section
-2. Log to `progress.txt`: `[<timestamp>] PLAN VALIDATION: N blockers found. See state file.`
-3. Spawn 1-2 researcher agents to investigate resolutions for the blockers
-4. Update state: increment iteration
-5. Exit this iteration — next iteration will re-validate after the main instance addresses the blockers in the plan
-
-**If NO BLOCKER issues** (all critics return `NO_BLOCKER_ISSUES`):
-1. Proceed to feature list generation
+**If BLOCKER issues found**: Write escalations, output `PLAN_BLOCKED`, exit.
+**If NO BLOCKER issues**: Proceed to feature list generation.
 
 ### Step 2c: Generate Feature List
 
-Read the plan and decompose into features:
+Decompose plan into features:
 ```json
 {
-  "features": [
-    {
-      "id": "F001",
-      "name": "<feature name>",
-      "description": "<detailed description with acceptance criteria>",
-      "component": "<component>",
-      "dependencies": [],
-      "passes": false,
-      "failed": false
-    }
-  ]
+  "features": [{
+    "id": "F001", "name": "<name>", "description": "<desc with acceptance criteria>",
+    "component": "<component>", "requirements": ["REQ-001"],
+    "tests": ["T-001"], "dependencies": [],
+    "external_services": [],
+    "passes": false, "failed": false, "blocked": false, "block_reason": null
+  }]
 }
 ```
 
 Write to `.claude/autonomous-$1-feature-list.json`.
 
-**Feature decomposition rules**:
-- Each feature should be independently testable
-- Order by dependencies (features with no deps first)
-- Include infrastructure/project setup as F001 if needed
-- Each feature description must have clear acceptance criteria
-
-Append to `docs/autonomous/$1/implementation/progress.txt`:
-```
-[<timestamp>] Phase C started. Total features: N
-```
-
-Update state: set `features_total`, increment iteration.
-
 ---
 
 ## STEP 3: Implementation Iteration
 
-Same as Phase C in `/autonomous-workflow:full-auto`:
+### Check for Resolved Escalations
+
+Read `.claude/autonomous-$1-escalations.json`. For each `resolved: true` escalation where feature is still `blocked: true`: unblock the feature, log to progress.txt.
 
 ### Find Next Feature
 
-Read `.claude/autonomous-$1-feature-list.json`.
-
-**First**, cascade dependency failures: for each feature where `passes` is `false` and `failed` is `false`, check if ANY feature in its `dependencies` has `failed: true`. If so, immediately mark that feature as `failed: true` in `feature-list.json` and log to `progress.txt`: `[<timestamp>] DEPENDENCY_FAILED: <feature.id> - <feature.name> — dependency <dep.id> failed`. Do NOT stop the workflow — continue scanning remaining features.
-
-**Then**, find the first feature where:
-- `passes` is `false`
-- `failed` is `false`
-- ALL features in `dependencies` have `passes: true`
-
-If no such feature (all passed or failed): go to All Features Resolved.
+1. **Cascade dependency failures**: If a dep has `failed: true`, mark dependent features as `failed: true`
+2. **Find first feature** where: `passes: false`, `failed: false`, `blocked: false`, all deps have `passes: true`
+3. If none: check if all resolved → All Features Resolved. If some blocked → Blocked Features Remaining.
 
 ### Spawn Autonomous Coder
 
 ```
 Task tool with subagent_type='autonomous-workflow:autonomous-coder'
-prompt: "Implement the following feature using TDD:
-
-## Feature Spec
-- ID: <feature.id>
-- Name: <feature.name>
-- Description: <feature.description>
-- Component: <feature.component>
-- Dependencies: <feature.dependencies> (already implemented and passing)
-
-## Context
-- Plan: docs/autonomous/$1/implementation/$1-implementation-plan.md (read the relevant component section)
-- Codebase: Explore existing code for patterns and conventions
-- CLAUDE.md: Read for coding standards
-
-Implement using strict RED-GREEN-REFACTOR. Commit at each phase. Run the full test suite after refactoring."
+prompt: "Implement feature using TDD:
+- Feature spec from feature-list.json
+- Read all 4 planning artifacts
+- Escalation file: .claude/autonomous-$1-escalations.json
+CRITICAL: If you need an API key or hit any external blocker — DO NOT mock it. Escalate."
 ```
 
 ### Process Result
 
-**If PASSING**: Update `feature-list.json` (`passes: true`), log to `progress.txt`, send notification.
-
-**If FEATURE_FAILED**: Update `feature-list.json` (set `"failed": true`), log failure to `progress.txt`, send notification, move on.
-
-### Update State
-
-Increment `iteration`, `total_iterations_coding`, update `features_complete`, `features_failed`.
+**PASSING**: Set `passes: true`, log, notify.
+**FEATURE_BLOCKED**: Set `blocked: true`, log, verify escalation written, notify, continue to next feature.
+**FEATURE_FAILED**: Set `failed: true`, log, notify.
 
 ### All Features Resolved
 
-When all features resolved (all `passes: true` or `failed: true`):
-1. Send notification: `osascript -e 'display notification "All features resolved: N/M passing" with title "Autonomous Workflow" subtitle "$1"'`
-2. Update state: `status: complete`, mark Phase C in checklist
+When all features passed or failed (none blocked): set `status: complete`, output summary.
 
-Note: The Stop hook verifies `status: complete` AND all features resolved before allowing the workflow to end.
+### Blocked Features Remaining
+
+When non-blocked features done but some still blocked: output summary, do NOT set complete. Ralph-loop continues; next iteration checks for resolutions. After 3+ consecutive iterations with same blocked features: output STALLED warning.
 
 ---
 
@@ -235,14 +135,15 @@ Note: The Stop hook verifies `status: complete` AND all features resolved before
 ## Iteration N Complete — Phase C: Implementation
 
 ### Feature: <id> - <name>
-- Status: PASSING | FAILED
+- Status: PASSING | FEATURE_FAILED | FEATURE_BLOCKED
 - Tests added: N
 - Files changed: N
 
 ### Overall Progress
-- Features: N/M passing, F failed
-- Iterations: N
+- Features: N/M passing, F failed, B blocked
 
-### Next:
-- [Next feature to implement, or "All features resolved"]
+### Blocked Features (if any)
+| Feature | Block Reason | What's Needed |
+
+### Next: [next feature | all resolved | waiting for escalation resolution]
 ```
