@@ -14,7 +14,8 @@ claude-code/
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
 │   ├── claude-md-best-practices/ # 1 skill
 │   └── ralph-loop/   # Iterative AI loops (3 commands, 1 hook)
-├── commands/          # 7 shared global commands (symlinked to ~/.claude/commands/)
+├── agents/            # Global subagents (symlinked to ~/.claude/agents/)
+├── commands/          # 8 shared global commands (symlinked to ~/.claude/commands/)
 ├── docs/              # Python, UV, Docker best practices (symlinked to ~/.claude/docs/)
 └── CLAUDE.md          # Global coding standards template (symlinked to ~/.claude/)
 sync-content-scripts/  # Symlink setup script (Claude Code) + 1 copy-based sync script (Cursor)
@@ -106,9 +107,10 @@ Claude Code commands, docs, and CLAUDE.md are symlinked from this repo to `~/.cl
 ./sync-content-scripts/claude-code/setup_symlinks.sh
 ```
 
-This creates three symlinks:
+This creates four symlinks:
 - `~/.claude/CLAUDE.md` → `claude-code/CLAUDE.md`
 - `~/.claude/commands/` → `claude-code/commands/`
+- `~/.claude/agents/` → `claude-code/agents/`
 - `~/.claude/docs/` → `claude-code/docs/`
 
 Cursor configs use copy-based sync (symlinks are unreliable in Cursor):

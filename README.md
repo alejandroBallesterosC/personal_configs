@@ -15,6 +15,7 @@ personal_configs/
 │   │   ├── infrastructure-as-code/ # 1 command, 1 skill
 │   │   ├── claude-md-best-practices/ # 1 skill
 │   │   └── ralph-loop/            # Iterative AI loops (3 commands, 1 hook)
+│   ├── agents/                     # Global subagents (symlinked to ~/.claude/agents/)
 │   ├── commands/                   # Shared global commands (symlinked to ~/.claude/commands/)
 │   ├── docs/                       # Python, UV, Docker best practices (symlinked to ~/.claude/docs/)
 │   ├── CLAUDE.md                   # Global coding standards template (symlinked to ~/.claude/)
@@ -158,15 +159,16 @@ Store in `.env` file (gitignored).
 
 ### Claude Code (symlinks)
 
-Claude Code commands, docs, and CLAUDE.md are symlinked from this repo to `~/.claude/`:
+Claude Code agents, commands, docs, and CLAUDE.md are symlinked from this repo to `~/.claude/`:
 
 ```bash
 # One-time setup (idempotent, backs up existing files)
 ./sync-content-scripts/claude-code/setup_symlinks.sh
 ```
 
-This creates three symlinks:
+This creates four symlinks:
 - `~/.claude/CLAUDE.md` → `claude-code/CLAUDE.md`
+- `~/.claude/agents/` → `claude-code/agents/`
 - `~/.claude/commands/` → `claude-code/commands/`
 - `~/.claude/docs/` → `claude-code/docs/`
 

@@ -43,7 +43,8 @@ personal_configs/
 │   │   ├── claude-session-feedback/ # 4 commands
 │   │   ├── infrastructure-as-code/  # 1 command, 1 skill
 │   │   └── claude-md-best-practices/ # 1 skill
-│   ├── commands/ (7)             # Global commands (symlinked to ~/.claude/commands/)
+│   ├── agents/ (1)               # Global subagents (symlinked to ~/.claude/agents/)
+│   ├── commands/ (8)             # Global commands (symlinked to ~/.claude/commands/)
 │   ├── docs/ (3)                 # Best practice guides (symlinked to ~/.claude/docs/)
 │   ├── CLAUDE.md                 # Template (symlinked to ~/.claude/CLAUDE.md)
 │   └── global_mcp_settings.json  # MCP config
@@ -59,6 +60,7 @@ personal_configs/
 Repository (source of truth)
     │
     ├──[symlinks]──► ~/.claude/ (global config)
+    │   ├── agents/ → claude-code/agents/
     │   ├── commands/ → claude-code/commands/
     │   ├── docs/ → claude-code/docs/
     │   └── CLAUDE.md → claude-code/CLAUDE.md
@@ -116,7 +118,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 - **SessionStart hooks inject context**: Return JSON with `additionalContext` field
 
 ### Sync Interface Contract
-- **Claude Code**: Symlinks from `~/.claude/` to repo (`setup_symlinks.sh`). Changes in repo are immediately live.
+- **Claude Code**: Symlinks from `~/.claude/` to repo (`setup_symlinks.sh`) for CLAUDE.md, agents/, commands/, docs/. Changes in repo are immediately live.
 - **Cursor**: Copy-based sync (`sync_to_cursor.sh`), unidirectional. Symlinks are unreliable in Cursor due to known bugs with skill/agent discovery after restart.
 - **Plugins do NOT sync**: Installed via marketplace (`/plugin marketplace add` + `/plugin install`)
 
@@ -418,12 +420,12 @@ Both dev-workflow and autonomous-workflow register SessionStart hooks with match
 | **Shell Scripts** | 27 | Sync (9), hooks (13), IDE (3), tests (2) |
 | **JSON Configs** | 22 | Plugin (14), IDE (5), MCP (1), hooks (4) |
 | **Plugins** | 7 | dev-workflow, autonomous-workflow, ralph-loop, playwright, claude-session-feedback, infrastructure-as-code, claude-md-best-practices |
-| **Agents** | 18 | 12 dev-workflow, 6 autonomous-workflow |
-| **Commands** | 37 | 18 dev-workflow, 5 autonomous-workflow, 3 ralph-loop, 4 claude-session-feedback, 1 infrastructure-as-code, 6 global |
+| **Agents** | 19 | 12 dev-workflow, 6 autonomous-workflow, 1 global |
+| **Commands** | 38 | 18 dev-workflow, 5 autonomous-workflow, 3 ralph-loop, 4 claude-session-feedback, 1 infrastructure-as-code, 7 global (+ 1 research) |
 | **Skills** | 9 | 6 dev-workflow, 1 autonomous-workflow, 1 playwright, 1 infrastructure-as-code |
 | **VS Code Tasks** | 13 | 9 working, 4 dead/stale |
 | **GitHub Workflows** | 2 | Both disabled/commented out |
-| **Sync Scripts** | 2 | 1 symlink setup (claude-code), 1 copy sync (cursor) |
+| **Sync Scripts** | 2 | 1 symlink setup (claude-code: CLAUDE.md, agents/, commands/, docs/), 1 copy sync (cursor) |
 
 ## 15. Ambiguities
 

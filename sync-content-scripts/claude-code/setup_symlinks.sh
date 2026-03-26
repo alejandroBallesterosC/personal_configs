@@ -10,7 +10,7 @@ CLAUDE_CODE_DIR="$REPO_ROOT/claude-code"
 GLOBAL_CLAUDE_DIR="$HOME/.claude"
 
 # Validate source files exist
-for source in "$CLAUDE_CODE_DIR/CLAUDE.md" "$CLAUDE_CODE_DIR/commands" "$CLAUDE_CODE_DIR/docs"; do
+for source in "$CLAUDE_CODE_DIR/CLAUDE.md" "$CLAUDE_CODE_DIR/commands" "$CLAUDE_CODE_DIR/docs" "$CLAUDE_CODE_DIR/agents"; do
     if [ ! -e "$source" ]; then
         echo "Error: Source not found: $source"
         exit 1
@@ -23,6 +23,7 @@ mkdir -p "$GLOBAL_CLAUDE_DIR"
 LINKS=(
     "$GLOBAL_CLAUDE_DIR/CLAUDE.md|$CLAUDE_CODE_DIR/CLAUDE.md"
     "$GLOBAL_CLAUDE_DIR/commands|$CLAUDE_CODE_DIR/commands"
+    "$GLOBAL_CLAUDE_DIR/agents|$CLAUDE_CODE_DIR/agents"
     "$GLOBAL_CLAUDE_DIR/docs|$CLAUDE_CODE_DIR/docs"
 )
 
