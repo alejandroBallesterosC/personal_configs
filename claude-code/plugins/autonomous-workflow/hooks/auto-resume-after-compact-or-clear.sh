@@ -113,26 +113,31 @@ RESTORE_FILES="- \`${ACTIVE_STATE}\` (state file — already included below)"
 
 # Research report is relevant for modes that have a research phase
 case "$WORKFLOW_TYPE" in
-  autonomous-research|autonomous-research-plan|autonomous-full-auto)
+  autonomous-research|autonomous-research-plan)
     RESTORE_FILES="${RESTORE_FILES}
 - \`${RESEARCH_DIR}/${NAME}-report.tex\` (research report)"
     ;;
 esac
 
-# Implementation plan is relevant for research-plan, full-auto, and implement modes
+# Planning artifacts are relevant for research-plan mode
 case "$WORKFLOW_TYPE" in
-  autonomous-research-plan|autonomous-full-auto|autonomous-implement)
+  autonomous-research-plan)
     RESTORE_FILES="${RESTORE_FILES}
-- \`${IMPL_DIR}/${NAME}-implementation-plan.md\` (implementation plan)"
+- \`docs/autonomous/${NAME}/planning/${NAME}-functional-requirements.md\` (requirements)
+- \`docs/autonomous/${NAME}/planning/${NAME}-architecture-plan.md\` (architecture)
+- \`docs/autonomous/${NAME}/planning/${NAME}-test-plan.md\` (test plan)
+- \`docs/autonomous/${NAME}/planning/${NAME}-implementation-plan.md\` (implementation plan)"
     ;;
 esac
 
-# Feature list and progress are relevant for full-auto and implement modes
+# Feature list, escalations, and progress are relevant for implement mode
 case "$WORKFLOW_TYPE" in
-  autonomous-full-auto|autonomous-implement)
+  autonomous-implement)
     RESTORE_FILES="${RESTORE_FILES}
+- \`docs/autonomous/${NAME}/planning/${NAME}-implementation-plan.md\` (implementation plan)
 - \`.claude/autonomous-${NAME}-feature-list.json\` (implementation tracker)
-- \`${IMPL_DIR}/progress.txt\` (progress log)"
+- \`.claude/autonomous-${NAME}-escalations.json\` (escalation tracker)
+- \`docs/autonomous/${NAME}/implementation/progress.txt\` (progress log)"
     ;;
 esac
 
@@ -172,14 +177,7 @@ ${RESTORE_FILES}
 
 debug_log "**Injecting context.** Workflow: $NAME, type: $WORKFLOW_TYPE, phase: $CURRENT_PHASE, trigger: $TRIGGER_DESC"
 
-# Escape context for JSON and output
-ESCAPED_CONTEXT=$(echo "$CONTEXT" | jq -Rs .)
-
-cat << EOF
-{
-  "hookSpecificOutput": {
-    "hookEventName": "SessionStart",
-    "additionalContext": $ESCAPED_CONTEXT
-  }
-}
-EOF
+# Output context as plain text to stdout.
+# This is more reliable than the additionalContext JSON format,
+# which has a confirmed bug (#28305) with the compact matcher.
+echo "$CONTEXT"

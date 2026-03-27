@@ -130,6 +130,13 @@ fi
 # STATUS: in_progress — increment iteration and block with command
 # ---------------------------------------------------------------
 if [ "$STATUS" = "in_progress" ]; then
+  # Mode 3 (autonomous-implement) uses ralph-loop for iteration, not the stop hook.
+  # Allow stop so ralph-loop can drive the next iteration.
+  if [ "$WORKFLOW_TYPE" = "autonomous-implement" ]; then
+    debug_log "**Allowing stop:** autonomous-implement uses ralph-loop for iteration, not stop hook."
+    exit 0
+  fi
+
   # Validate iteration is numeric
   if ! [[ "$ITERATION" =~ ^[0-9]+$ ]]; then
     debug_log "**WARNING:** iteration is not numeric ('$ITERATION'). Allowing stop."
@@ -151,7 +158,7 @@ if [ "$STATUS" = "in_progress" ]; then
      [ -n "$TOTAL_RESEARCH" ] && [ "$TOTAL_RESEARCH" != "null" ] && \
      [ -n "$RESEARCH_BUDGET" ] && [ "$RESEARCH_BUDGET" != "null" ] && \
      [ "$TOTAL_RESEARCH" -ge "$RESEARCH_BUDGET" ] 2>/dev/null; then
-    TEMP_PHASE=$(mktemp)
+    TEMP_PHASE=$(mktemp "${ACTIVE_STATE}.XXXXXX")
     sed 's/^current_phase: .*/current_phase: "Phase S: Synthesis"/' "$ACTIVE_STATE" > "$TEMP_PHASE"
     if grep -q '^synthesis_iteration:' "$TEMP_PHASE"; then
       sed -i '' 's/^synthesis_iteration: .*/synthesis_iteration: 1/' "$TEMP_PHASE"
@@ -163,9 +170,9 @@ synthesis_iteration: 1' "$TEMP_PHASE"
     debug_log "**Phase transition (safety net):** Phase R → Phase S for $NAME"
   fi
 
-  # Increment iteration via sed + atomic temp file
+  # Increment iteration via sed + atomic temp file (same-directory for atomic rename)
   NEXT_ITERATION=$((ITERATION + 1))
-  TEMP_FILE=$(mktemp)
+  TEMP_FILE=$(mktemp "${ACTIVE_STATE}.XXXXXX")
   sed "s/^iteration: .*/iteration: $NEXT_ITERATION/" "$ACTIVE_STATE" > "$TEMP_FILE"
   mv "$TEMP_FILE" "$ACTIVE_STATE"
 
@@ -238,6 +245,11 @@ if [ "$STATUS" = "complete" ]; then
         TOTAL_RESOLVED=$((RESOLVED_FEATURES + BLOCKED_FEATURES))
         if [ "$TOTAL_RESOLVED" -lt "$TOTAL_FEATURES" ] 2>/dev/null; then
           ERRORS="${ERRORS}Not all features resolved: $RESOLVED_FEATURES passed/failed + $BLOCKED_FEATURES blocked out of $TOTAL_FEATURES total. "
+        fi
+        # Warn if features are blocked but status is complete — this indicates a logic error
+        # in the command (implement.md says status:complete only when no features are blocked)
+        if [ "$BLOCKED_FEATURES" -gt 0 ] 2>/dev/null; then
+          debug_log "**WARNING:** $BLOCKED_FEATURES features are blocked but status is complete. This indicates a command logic error — implement.md should not set complete while features are blocked."
         fi
       fi
       ;;

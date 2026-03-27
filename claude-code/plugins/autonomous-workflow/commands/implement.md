@@ -16,7 +16,7 @@ argument-hint: <project-name>
 
 Implement features from an approved plan using strict TDD. Each iteration picks the next unblocked feature from `feature-list.json` and spawns an `autonomous-coder` agent. Features that hit external blockers (missing API keys, unavailable services, unclear requirements) are set to BLOCKED and escalated — never mocked or worked around.
 
-**This command is designed to be run inside a ralph-loop.** The ralph-loop drives iteration, which allows the human orchestrator (Mac Goodman / OpenClaw) to inject corrections, provide API keys, and steer the implementation between iterations.
+**This command is designed to be run inside a ralph-loop.** The ralph-loop drives iteration, which allows the human orchestrator to inject corrections, provide API keys, and steer the implementation between iterations.
 
 **REQUIRED**: Use the Skill tool to invoke `autonomous-workflow:autonomous-workflow-guide` to load the workflow source of truth.
 

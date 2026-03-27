@@ -91,7 +91,7 @@ Check if `.claude/autonomous-$1-research-state.md` exists.
    - [ ] Phase B0: Scoping Interview
    - [ ] Phase B1: Functional Requirements
    - [ ] Phase B2: Architecture
-   - [ ] Phase B3: Test Plan
+   - [ ] Phase B3: Test Plan + Implementation Plan
    - [ ] Phase B4: Cross-Examination
 
    ## Research Progress
@@ -226,7 +226,7 @@ If `total_iterations_research >= research_budget`:
    - [ ] Phase B0: Scoping Interview
    - [ ] Phase B1: Functional Requirements
    - [ ] Phase B2: Architecture
-   - [ ] Phase B3: Test Plan
+   - [ ] Phase B3: Test Plan + Implementation Plan
    - [ ] Phase B4: Cross-Examination
 
    ## Planning Progress
@@ -714,7 +714,7 @@ See docs/autonomous/$1/planning/$1-architecture-plan.md
 #### B3 → B4 Transition
 
 When `planning_sub_phase_iteration >= b3_budget`:
-1. Mark `Phase B3: Test Plan` as complete in checklist
+1. Mark `Phase B3: Test Plan + Implementation Plan` as complete in checklist
 2. Set `planning_sub_phase: "B4"`
 3. Reset `planning_sub_phase_iteration: 0`
 
