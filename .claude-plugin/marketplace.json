@@ -62,11 +62,29 @@
     },
     {
       "name": "autonomous-workflow",
-      "description": "Long-running autonomous research, planning, and implementation workflows with LaTeX output, parallel subagents, and multi-day execution without human interaction",
+      "description": "DEPRECATED — replaced by research-report and long-horizon-impl plugins",
       "author": {
         "name": "jandro"
       },
       "source": "./claude-code/plugins/autonomous-workflow",
+      "category": "development"
+    },
+    {
+      "name": "research-report",
+      "description": "Autonomous iterative deep research producing a LaTeX report with synthesis, parallel subagents, and strategy rotation",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/research-report",
+      "category": "development"
+    },
+    {
+      "name": "long-horizon-impl",
+      "description": "Long-running autonomous research, planning, and TDD implementation workflows with LaTeX output, parallel subagents, anti-slop escalation, and multi-day execution",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/long-horizon-impl",
       "category": "development"
     }
   ]

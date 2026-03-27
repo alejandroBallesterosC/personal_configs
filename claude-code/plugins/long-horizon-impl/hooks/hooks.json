@@ -1,0 +1,26 @@
+{
+  "description": "Hooks for the long-horizon-impl plugin: Stop hook drives research+planning iteration (passes through for implement/ralph-loop), SessionStart hook restores context after compact/clear",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-resume.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

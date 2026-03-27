@@ -1,0 +1,7 @@
+{
+  "name": "research-report",
+  "version": "1.0.0",
+  "author": { "name": "jandro" },
+  "description": "Autonomous iterative deep research producing a LaTeX report with synthesis, parallel subagents, and strategy rotation",
+  "keywords": ["research", "latex", "autonomous", "report", "subagents", "iterative"]
+}

@@ -1,14 +1,14 @@
-# ABOUTME: Command to conduct thorough research and review of the dev-workflow plugin
+# ABOUTME: Command to conduct thorough research and review of the research-report plugin
 # ABOUTME: Compares plugin against best practices from Anthropic docs and power users
 
 ---
-description: Research best practices and holistically review the dev-workflow plugin
+description: Research best practices and holistically review the research-report plugin
 model: opus
 ---
 
-# Review dev-workflow Plugin
+# Review research-report Plugin
 
-Conduct thorough research and provide holistic feedback on the dev-workflow plugin.
+Conduct thorough research and provide holistic feedback on the research-report plugin in this repo in claude-code/docs/plugins/research-report/
 
 ## Research Phase (Parallel Sonnet Subagents)
 
@@ -22,8 +22,8 @@ Research current best practices for agentic long-horizon coding and research wit
 - Official guides on dev, testing workflows, or iterative development with Claude
 - How to structure long-running coding tasks
 - Best practices for context management
-- How to design effective agent workflows for the highest quality code outputs
-- Recommended patterns for iterative development
+- How to design effective agent workflows for the highest quality code and research outputs
+- Recommended patterns
 - Quality assurance and verification approaches
 
 ### 2. Reputable Power User Insights Research
@@ -39,10 +39,10 @@ Research up to date insights and current best practices from Claude Code power u
 
 ## Explore & Review Plugin Phase (Parallel Sonnet Subagents)
 
-Launch the following in parallel using sonnet subagents to explore the dev-workflow plugin in this repo:
+Launch the following in parallel using sonnet subagents to explore the research-report plugin in this repo:
 
-### 1. dev-workflow Plugin Analysis
-Thoroughly explore the dev-workflow plugin at `claude-code/plugins/dev-workflow/`:
+### 1. research-report Plugin Analysis
+Thoroughly explore the research-report plugin at `claude-code/plugins/research-report/`:
 - Overall plugin structure and architecture
 - All commands - their purpose and implementation
 - All agents - their roles, tools, and configurations
@@ -55,9 +55,9 @@ Thoroughly explore the dev-workflow plugin at `claude-code/plugins/dev-workflow/
 - Internal consistency within plugin (are there inconsistencies across the plugin?)
 
 ### 4. Plugin Dependencies Analysis
-Explore dependencies and related plugins that dev-workflow relies on:
-- ralph-loop plugin (required for Phases 7, 8, 9)
-- Other plugins in `claude-code/plugins/` that interact with dev-workflow
+Explore dependencies and related plugins that research-report relies on:
+- ralph-loop plugin and any mentions of skills, plugins, mcps, agents, or hooks that are external to the plugin but used in the plugin
+- Other plugins in `claude-code/plugins/` that interact with research-report
 - Shared components in `claude-code/commands/`
 - MCP server configurations that support the workflow
 - How plugins interconnect

@@ -1,9 +1,9 @@
 {
   "name": "autonomous-workflow",
-  "description": "Long-running autonomous research, planning, and implementation workflows with LaTeX output, parallel subagents, and multi-day execution without human interaction",
-  "version": "3.0.0",
+  "description": "DEPRECATED — replaced by research-report and long-horizon-impl plugins. Run /autonomous-workflow:help for migration instructions.",
+  "version": "4.0.0",
   "author": {
     "name": "jandro"
   },
-  "keywords": ["autonomous", "research", "planning", "implementation", "latex", "long-running", "subagents", "iterative"]
+  "keywords": ["deprecated"]
 }

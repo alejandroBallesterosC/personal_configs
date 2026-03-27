@@ -1,0 +1,7 @@
+{
+  "name": "long-horizon-impl",
+  "version": "1.0.0",
+  "author": { "name": "jandro" },
+  "description": "Long-running autonomous research, planning, and TDD implementation workflows with LaTeX output, parallel subagents, anti-slop escalation, and multi-day execution",
+  "keywords": ["autonomous", "research", "planning", "implementation", "tdd", "escalation", "long-running", "subagents"]
+}

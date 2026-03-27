@@ -1,6 +1,6 @@
 # Personal Configs
 
-Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 7 plugins (Dev Workflow, Autonomous Workflow, Playwright, Session Feedback, Infrastructure-as-Code, CLAUDE.md Best Practices, Ralph Loop), configuration sync scripts, and IDE integrations.
+Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 8 plugins (Dev Workflow, Research Report, Long Horizon Impl, Playwright, Session Feedback, Infrastructure-as-Code, CLAUDE.md Best Practices, Ralph Loop), configuration sync scripts, and IDE integrations.
 
 ## Architecture
 
@@ -8,7 +8,8 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 claude-code/
 ├── plugins/           # 7 encapsulated plugins (installed via marketplace)
 │   ├── dev-workflow/  # 12 agents, 18 commands, 6 skills, 4 hooks (TDD + Debug)
-│   ├── autonomous-workflow/ # 6 agents, 5 commands, 1 skill, 2 hooks (Research/Plan/Implement)
+│   ├── research-report/   # 4 agents, 3 commands, 1 skill, 2 hooks (Iterative research + LaTeX)
+│   ├── long-horizon-impl/ # 9 agents, 4 commands, 1 skill, 2 hooks (Research/Plan/Implement)
 │   ├── playwright/    # Browser automation (JS + skill)
 │   ├── claude-session-feedback/ # 4 commands
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
@@ -27,9 +28,9 @@ cursor/                # Cursor IDE mirror (42 files, TDD-only, unidirectional s
 - **Plugin structure**: Each plugin has `commands/`, `agents/`, `skills/`, optional `hooks/`
 - **Agent YAML frontmatter**: Defines `name`, `tools`, `model` (sonnet|opus)
 - **Skill activation**: Skills auto-activate when context matches their description
-- **Hooks**: Event-driven automation (Stop, SessionStart across dev-workflow + autonomous-workflow)
-  - `Stop`: Archive completed workflows + run scoped tests + state verification agent (dev-workflow), iteration control (ralph-loop), iteration engine + completion verifier (autonomous-workflow)
-  - `SessionStart`: Auto-restore context after compact/clear (dev-workflow: TDD + debug state, autonomous-workflow: research/planning/impl state)
+- **Hooks**: Event-driven automation (Stop, SessionStart across dev-workflow, research-report, long-horizon-impl)
+  - `Stop`: Archive completed workflows + run scoped tests + state verification agent (dev-workflow), iteration control (ralph-loop), iteration engine + completion verifier (research-report, long-horizon-impl)
+  - `SessionStart`: Auto-restore context after compact/clear (dev-workflow: TDD + debug state, research-report: research state, long-horizon-impl: research/planning/impl state)
 
 ## No Application Code
 
@@ -54,18 +55,19 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - `claude-code/CLAUDE.md`: Global coding standards template
 - `claude-code/global_mcp_settings.json`: MCP server config (context7, fetch, exa, playwright)
 - `claude-code/plugins/dev-workflow/README.md`: Unified dev workflow reference (TDD implementation + Debug)
-- `claude-code/plugins/autonomous-workflow/README.md`: Autonomous workflow reference (4 modes, 8 strategies)
+- `claude-code/plugins/research-report/README.md`: Research report plugin reference (iterative research + LaTeX, 9 strategies)
+- `claude-code/plugins/long-horizon-impl/README.md`: Long-horizon implementation reference (research + planning + TDD implementation)
 - `docs/CODEBASE.md`: Comprehensive codebase analysis (architecture, workflows, open questions)
 
 ## Dependencies
 
-- **yq + jq** (required for dev-workflow and autonomous-workflow hooks — YAML/JSON parsing)
+- **yq + jq** (required for dev-workflow, research-report, and long-horizon-impl hooks — YAML/JSON parsing)
   - Install: `brew install yq jq` (macOS)
   - Hooks fail loudly with install instructions if missing
-- **ralph-loop plugin** (required for TDD implementation phase in dev-workflow)
+- **ralph-loop plugin** (required for TDD implementation phase in dev-workflow and long-horizon-impl implement mode)
   - Install: `/plugin marketplace add alejandroBallesterosC/personal_configs && /plugin install ralph-loop`
   - Safety: ALWAYS set `--max-iterations` (50 iterations = $50-100+ in API costs)
-- **MacTeX** (optional, for autonomous-workflow LaTeX PDF compilation)
+- **MacTeX** (optional, for research-report and long-horizon-impl LaTeX PDF compilation)
 - **Claude Code** (runtime environment)
 
 ## Gotchas
@@ -80,10 +82,12 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - `dev-workflow` plugin contains both TDD implementation and debug workflows
 - Cursor mirror (`cursor/`) is TDD-only — missing entire debug workflow (6 commands, 4 agents, 2 skills)
 - VS Code `tasks.json` has dead tasks referencing removed sync scripts and leftover tasks from previous projects
-- Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 7 plugins
-- Stop hook chain order (per marketplace.json): dev-workflow → ralph-loop → autonomous-workflow. If an earlier hook blocks, later hooks do not run
-- `autonomous-workflow` has its own Stop hook iteration engine (stop-hook.sh) — it does NOT depend on ralph-loop for iteration
-- Running TDD and autonomous workflows simultaneously may cause SessionStart hook context loss (both output independently, no merging)
+- Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 8 plugins
+- Stop hook chain order (per marketplace.json): dev-workflow → ralph-loop → research-report → long-horizon-impl. If an earlier hook blocks, later hooks do not run
+- `research-report` has its own Stop hook iteration engine — it does NOT depend on ralph-loop for iteration
+- `long-horizon-impl` research-and-plan mode uses its own Stop hook for iteration; implement mode uses ralph-loop
+- Running TDD and research/impl workflows simultaneously may cause SessionStart hook context loss (both output independently, no merging)
+- `autonomous-workflow/` directory still exists but is superseded by `research-report/` and `long-horizon-impl/`
 
 ## Plugin Installation
 
