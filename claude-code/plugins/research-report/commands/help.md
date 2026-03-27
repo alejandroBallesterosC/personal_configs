@@ -26,34 +26,34 @@ Start or continue an autonomous iterative deep research session. The plugin mana
 
 - Each iteration deploys the `researcher` agent using one of 9 rotating strategies.
 - After each iteration, the `methodological-critic` agent reviews findings for bias, coverage gaps, and source quality.
-- Continues until `--research-iterations` budget is exhausted or convergence is detected.
+- Continues until the `--research-iterations` budget is exhausted. Strategies rotate when consecutive iterations produce fewer than 2 contributions.
 
-**Phase S — Synthesis (3 iterations)**
+**Phase S — Synthesis (4 iterations)**
 
 - Runs after Phase R completes.
-- Consolidates all findings into the `Synthesis` section of the LaTeX report.
-- The `latex-compiler` agent compiles the final PDF.
+- Iteration 1: Read and Outline. Iteration 2: Write Synthesis. Iteration 3: Edit and Polish. Iteration 4: Compile PDF and verify formatting.
+- The `latex-compiler` agent compiles the final PDF. The orchestrator verifies formatting quality.
 
 ### Research Strategies
 
 | # | Strategy | Focus |
 |---|---|---|
-| 1 | Broad survey | Wide landscape coverage |
-| 2 | Deep dive | Focused subtopic investigation |
-| 3 | Contrarian | Challenge current findings |
-| 4 | Source triangulation | Cross-validate key claims |
-| 5 | Temporal | Topic evolution over time |
-| 6 | Practitioner | Real-world implementations |
-| 7 | Academic | Peer-reviewed literature |
-| 8 | Gap analysis | Under-researched areas |
-| 9 | Quantitative | Datasets, benchmarks, statistics |
+| 1 | `wide-exploration` | Wide landscape coverage |
+| 2 | `source-verification` | Cross-validate key claims |
+| 3 | `methodological-critique` | Evaluate source methodology vs claims |
+| 4 | `contradiction-resolution` | Resolve conflicting information |
+| 5 | `deep-dive` | Focused subtopic investigation |
+| 6 | `adversarial-challenge` | Challenge current findings |
+| 7 | `gaps-and-blind-spots` | Under-researched areas |
+| 8 | `temporal-analysis` | Topic evolution over time |
+| 9 | `cross-domain-synthesis` | Analogous problems from other fields |
 
 ### Agents
 
 | Agent | Model | Role |
 |---|---|---|
 | `researcher` | sonnet | Executes strategies, writes LaTeX sections |
-| `methodological-critic` | sonnet | Reviews bias, gaps, source quality |
+| `methodological-critic` | opus | Reviews bias, gaps, source quality |
 | `repo-analyst` | sonnet | Analyzes code repositories |
 | `latex-compiler` | sonnet | Compiles LaTeX to PDF |
 
@@ -63,7 +63,7 @@ Start or continue an autonomous iterative deep research session. The plugin mana
 /research-report:research --research-iterations 20
 ```
 
-Default: 50 iterations. Cost: ~$0.50–$3.00/iteration.
+Default: 30 iterations. Cost: ~$0.50–$3.00/iteration.
 
 ### Commands
 
@@ -71,6 +71,7 @@ Default: 50 iterations. Cost: ~$0.50–$3.00/iteration.
 |---|---|
 | `research-report:research` | Start or continue a research session |
 | `research-report:help` | Show this reference |
+| `research-report:record-feedback` | Record feedback about a completed report |
 | `research-report:review-learnings` | Synthesize accumulated learnings |
 
 ### Learnings System

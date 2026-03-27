@@ -168,10 +168,10 @@ if [ "$STATUS" = "complete" ]; then
     ERRORS="${ERRORS}Research budget not fulfilled: total_iterations_research ($TOTAL_RESEARCH) < research_budget ($RESEARCH_BUDGET). "
   fi
 
-  # Verify: Phase S synthesis is complete (3 iterations)
+  # Verify: Phase S synthesis is complete (4 iterations: outline, write, polish, compile+verify)
   if [ -n "$SYNTHESIS_ITERATION" ] && [ "$SYNTHESIS_ITERATION" != "null" ]; then
-    if [ "$SYNTHESIS_ITERATION" -lt 3 ] 2>/dev/null; then
-      ERRORS="${ERRORS}Synthesis not complete: synthesis_iteration ($SYNTHESIS_ITERATION) < 3. "
+    if [ "$SYNTHESIS_ITERATION" -lt 4 ] 2>/dev/null; then
+      ERRORS="${ERRORS}Synthesis not complete: synthesis_iteration ($SYNTHESIS_ITERATION) < 4. "
     fi
     if [ "$CURRENT_PHASE" != "Phase S: Synthesis" ]; then
       ERRORS="${ERRORS}Synthesis phase not reached: current_phase is '$CURRENT_PHASE', expected 'Phase S: Synthesis'. "

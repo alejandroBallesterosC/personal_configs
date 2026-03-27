@@ -11,18 +11,20 @@ The plugin operates in two phases:
 
 **Phase R — Research iterations**
 
-Each iteration deploys a `researcher` subagent that executes one of 9 rotating strategies, harvesting findings and appending citations to the LaTeX report. A `methodological-critic` subagent reviews findings after each iteration for bias, coverage gaps, and source quality. Iterations continue until the configured budget is exhausted or the stop hook determines convergence.
+Each iteration deploys a `researcher` subagent that executes one of 9 rotating strategies, harvesting findings and appending citations to the LaTeX report. A `methodological-critic` subagent reviews findings after each iteration for bias, coverage gaps, and source quality. Iterations always run until the configured budget is exhausted — the stop hook re-feeds the command each iteration and verifies completion criteria at the end.
 
-**Phase S — Synthesis (3 iterations)**
+**Strategy rotation (convergence proxy):** Within Phase R, the command tracks `consecutive_low_contributions` — if an iteration adds fewer than 2 contributions, a counter increments. When it hits the `strategy_rotation_threshold` (default: 3), the current strategy is retired and the next one begins. This prevents grinding on a depleted research angle but does not stop the workflow early — all budgeted iterations run.
 
-After Phase R completes, 3 dedicated synthesis iterations consolidate all findings into the `Synthesis` section of the report. A `latex-compiler` subagent compiles the final PDF. The synthesis is self-contained — a reader can understand the core findings without reading the full body sections.
+**Phase S — Synthesis (4 iterations)**
+
+After Phase R completes, 4 dedicated synthesis iterations consolidate all findings into the `Synthesis` section of the report and produce a verified PDF. Iterations: (1) Read and Outline, (2) Write Synthesis section, (3) Edit and Polish, (4) Compile PDF and verify formatting quality. A `latex-compiler` subagent compiles the final PDF and the orchestrator verifies the output is well-formatted and human-readable. The synthesis is self-contained — a reader can understand the core findings without reading the full body sections.
 
 ## Agents
 
 | Agent | Model | Role |
 |---|---|---|
 | `researcher` | sonnet | Executes research strategies, harvests findings, writes LaTeX sections |
-| `methodological-critic` | sonnet | Reviews each iteration for bias, gaps, source credibility |
+| `methodological-critic` | opus | Reviews each iteration for bias, gaps, source credibility |
 | `repo-analyst` | sonnet | Analyzes code repositories when research involves software projects |
 | `latex-compiler` | sonnet | Compiles LaTeX to PDF, fixes compilation errors, validates output |
 
@@ -30,17 +32,17 @@ After Phase R completes, 3 dedicated synthesis iterations consolidate all findin
 
 | # | Strategy | Description |
 |---|---|---|
-| 1 | Broad survey | Wide coverage of the topic landscape, key players, and definitions |
-| 2 | Deep dive | Focused investigation of the highest-priority subtopic from prior iterations |
-| 3 | Contrarian | Actively seek evidence that challenges current findings |
-| 4 | Source triangulation | Cross-validate key claims across independent, high-credibility sources |
-| 5 | Temporal | Track how understanding of the topic has evolved over time |
-| 6 | Practitioner | Focus on real-world implementations, case studies, and practitioner accounts |
-| 7 | Academic | Prioritize peer-reviewed literature, preprints, and systematic reviews |
-| 8 | Gap analysis | Identify what is not known or under-researched |
-| 9 | Quantitative | Seek datasets, statistics, benchmarks, and measurable evidence |
+| 1 | `wide-exploration` | Wide coverage of the topic landscape, key players, and definitions |
+| 2 | `source-verification` | Cross-validate key claims across independent, high-credibility sources |
+| 3 | `methodological-critique` | Evaluate whether cited sources support the claims made from them |
+| 4 | `contradiction-resolution` | Resolve conflicting information with authoritative evidence |
+| 5 | `deep-dive` | Focused investigation of the highest-priority subtopic from prior iterations |
+| 6 | `adversarial-challenge` | Actively seek evidence that challenges current findings |
+| 7 | `gaps-and-blind-spots` | Identify what is not known or under-researched |
+| 8 | `temporal-analysis` | Track how understanding of the topic has evolved over time |
+| 9 | `cross-domain-synthesis` | Seek analogous problems and applicable frameworks from other fields |
 
-Strategies rotate automatically across iterations. The stop hook tracks which strategy was last used.
+Strategies rotate automatically when consecutive iterations produce fewer than 2 contributions. The command manages rotation logic; the stop hook only handles re-feeding and completion verification.
 
 ## Commands
 
@@ -48,6 +50,7 @@ Strategies rotate automatically across iterations. The stop hook tracks which st
 |---|---|
 | `/research-report:research` | Start or continue an autonomous iterative research session |
 | `/research-report:help` | Show plugin reference (invocation, phases, strategies, costs) |
+| `/research-report:record-feedback` | Record user feedback about a completed report as a learning entry |
 | `/research-report:review-learnings` | Review and synthesize accumulated learnings from past research sessions |
 
 ## Budget Flag
@@ -56,9 +59,9 @@ Strategies rotate automatically across iterations. The stop hook tracks which st
 /research-report:research --research-iterations N
 ```
 
-Default: `50` iterations. Each iteration runs one research strategy plus one critic review.
+Default: `30` iterations. Each iteration runs one research strategy plus one critic review.
 
-**Cost estimate:** ~$0.50–$3.00 per iteration depending on source volume and report length. A 50-iteration run costs approximately $25–$150. Always set `--research-iterations` explicitly to control spend.
+**Cost estimate:** ~$0.50–$3.00 per iteration depending on source volume and report length. A 30-iteration run costs approximately $15–$90. Always set `--research-iterations` explicitly to control spend.
 
 ## Learnings System
 

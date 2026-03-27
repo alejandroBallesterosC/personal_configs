@@ -251,7 +251,7 @@ echo ""
 # ==================================================================
 echo "--- Test 5: Complete + budget fulfilled + synthesis done — allow stop ---"
 reset_test_dir
-create_state "research-done" "complete" 50 50 40 "/research-report:research 'research-done' 'test'" "Phase S: Synthesis" 3
+create_state "research-done" "complete" 50 50 40 "/research-report:research 'research-done' 'test'" "Phase S: Synthesis" 4
 EXIT_CODE=0
 run_hook || EXIT_CODE=$?
 assert_exit_code 0 "$EXIT_CODE" "exit code when all checks pass"
@@ -275,7 +275,7 @@ echo ""
 # ==================================================================
 # TEST 7: complete + budget fulfilled but synthesis_iteration < 3 → block
 # ==================================================================
-echo "--- Test 7: Complete + budget fulfilled but synthesis < 3 — block ---"
+echo "--- Test 7: Complete + budget fulfilled but synthesis < 4 — block ---"
 reset_test_dir
 create_state "synth-short" "complete" 50 50 40 "/research-report:research 'synth-short' 'test'" "Phase S: Synthesis" 1
 EXIT_CODE=0
@@ -291,7 +291,7 @@ echo ""
 # ==================================================================
 echo "--- Test 8: Complete + all verified — state file cleaned up ---"
 reset_test_dir
-create_state "cleanup-test" "complete" 50 50 40 "/research-report:research 'cleanup-test' 'test'" "Phase S: Synthesis" 3
+create_state "cleanup-test" "complete" 50 50 40 "/research-report:research 'cleanup-test' 'test'" "Phase S: Synthesis" 4
 EXIT_CODE=0
 run_hook || EXIT_CODE=$?
 assert_exit_code 0 "$EXIT_CODE" "exit code when all checks pass"

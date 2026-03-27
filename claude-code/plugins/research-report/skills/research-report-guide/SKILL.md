@@ -61,12 +61,13 @@ Research Report Workflow
 ## Phase Transitions
 
 ### Phase R: Research -> Phase S: Synthesis
-Phase R transitions to Phase S (3 synthesis iterations) when `total_iterations_research >= research_budget`.
+Phase R transitions to Phase S (4 synthesis iterations) when `total_iterations_research >= research_budget`.
 
-### Phase S: Synthesis (3 iterations)
+### Phase S: Synthesis (4 iterations)
 - **Iteration 1 — Read and Outline**: Absorb full report, produce synthesis outline
 - **Iteration 2 — Write**: Write full Synthesis section into LaTeX report
-- **Iteration 3 — Edit and Polish**: Quality-check, tighten prose, verify citations, set `status: complete`
+- **Iteration 3 — Edit and Polish**: Quality-check, tighten prose, verify citations
+- **Iteration 4 — Compile and Verify PDF**: Spawn latex-compiler, verify formatting quality, set `status: complete`
 
 ## Commands Reference
 
@@ -74,6 +75,7 @@ Phase R transitions to Phase S (3 synthesis iterations) when `total_iterations_r
 |---------|-------------|
 | `/research-report:research` | Deep research producing a LaTeX report |
 | `/research-report:help` | Show help for the research-report plugin |
+| `/research-report:record-feedback` | Record user feedback about a completed report |
 | `/research-report:review-learnings` | Review accumulated learnings from past workflows |
 
 ## Agents Reference

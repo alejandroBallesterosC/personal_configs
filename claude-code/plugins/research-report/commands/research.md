@@ -14,7 +14,7 @@ argument-hint: <topic-name> "Your detailed research prompt..." --research-iterat
 **All Arguments**: $ARGUMENTS
 
 Parse optional flags from **All Arguments**:
-- `--research-iterations N`: total research iteration budget (default: 50)
+- `--research-iterations N`: total research iteration budget (default: 30)
 
 ## Objective
 
@@ -75,7 +75,7 @@ Check if `.claude/research-report-$1-state.md` exists.
    - Begin with wide-exploration to establish baseline understanding
    ```
 
-5. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 50.
+5. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 30.
 
 6. Create state file `.claude/research-report-$1-state.md` with YAML frontmatter:
    ```yaml
@@ -89,7 +89,7 @@ Check if `.claude/research-report-$1-state.md` exists.
    synthesis_iteration: 0
    sources_cited: 0
    findings_count: 0
-   research_budget: <parsed from --research-iterations flag, or 50 if not provided>
+   research_budget: <parsed from --research-iterations flag, or 30 if not provided>
    current_research_strategy: wide-exploration
    research_strategies_completed: []
    strategy_rotation_threshold: 3
@@ -559,7 +559,7 @@ After completing one research iteration, output a brief summary:
 ---
 ---
 
-# Phase S: Synthesis (3 dedicated iterations)
+# Phase S: Synthesis (4 dedicated iterations)
 
 This phase runs AFTER the research budget is exhausted. The Phase Router (after Step 1) sends control here when `current_phase` is "Phase S: Synthesis".
 
@@ -636,11 +636,89 @@ Read `synthesis_iteration` from the state file to determine which synthesis step
 6. After this iteration, set `status: complete` in the state file
 
 **After completing this iteration:**
+- Update `synthesis_iteration` to 4 in the state file
+- Update `iteration` (overall counter) by 1
+
+---
+
+## Phase S — Iteration 4: "Compile and Verify PDF"
+
+**Goal**: Compile the LaTeX report to PDF and verify the output is well-formatted and human-readable.
+
+### Step 1: Spawn the latex-compiler agent
+
+Spawn the `latex-compiler` agent to compile the report:
+
+```
+Task tool with subagent_type='research-report:latex-compiler'
+prompt: "Compile the LaTeX report at docs/research-report/$1/$1-report.tex to PDF.
+
+The bibliography file is docs/research-report/$1/sources.bib.
+
+Run the full pdflatex → bibtex → pdflatex → pdflatex pipeline. Fix any compilation errors."
+```
+
+If the latex-compiler reports pdflatex is not installed, skip to Step 3 (mark complete without PDF verification).
+
+### Step 2: Verify PDF formatting quality
+
+After compilation succeeds, read the `.tex` file and verify the following formatting requirements. Fix any violations directly in the `.tex` file, then re-compile by spawning the latex-compiler agent again.
+
+**Section and subsection structure:**
+- Every `\section{}` and `\subsection{}` has a descriptive title (not empty or placeholder)
+- No section contains only a comment with no content
+- The `\tableofcontents` is present and will render correctly
+
+**Paragraph formatting:**
+- No paragraph exceeds 5 sentences or ~150 words. Search for text blocks between blank lines and verify length.
+- Every paragraph makes one clear point — no run-on paragraphs covering multiple topics
+- Blank lines separate paragraphs in the `.tex` source (LaTeX uses blank lines for paragraph breaks)
+
+**List formatting:**
+- Any enumeration of 3+ related items uses `\begin{itemize}` or `\begin{enumerate}`, NOT inline comma-separated lists in prose
+- List items with a label + explanation pattern use `\textbf{label:}` lead-ins
+- All `\begin{itemize/enumerate}` have matching `\end{itemize/enumerate}`
+- No deeply nested lists (max 2 levels)
+
+**Table formatting:**
+- All tables use `\begin{tabular}` or `\begin{longtable}` with proper column separators
+- Tables have header rows using `\toprule`, `\midrule`, `\bottomrule` (from booktabs package)
+- Column counts match between header and data rows
+- No table has empty cells where data should be present
+
+**Citation formatting:**
+- Every `\cite{key}` reference has a matching entry in `sources.bib`
+- Every entry in `sources.bib` is referenced by at least one `\cite{}` in the report (no orphan references)
+- The `\bibliographystyle{plainnat}` and `\bibliography{sources}` commands are present
+- Citations appear at the end of the claim they support, not floating disconnected from context
+
+**Spacing and readability:**
+- The `parskip` package is loaded (provides inter-paragraph spacing without indentation)
+- The `setstretch{1.35}` line spacing is present
+- `\setlength{\parindent}{0pt}` is set (no paragraph indentation)
+- Section spacing via `\titlespacing*` commands is present
+
+**Common formatting problems to fix:**
+- Walls of text: break into shorter paragraphs with blank lines between them
+- Inline lists masquerading as prose: convert to `\begin{itemize}`
+- Missing `\subsubsection{}` breaks: if a section exceeds ~1 page of content, add subsubsections
+- Unescaped special characters: `%`, `&`, `$`, `#`, `_` must be escaped in text content
+- Raw URLs not wrapped in `\url{}`: wrap them
+- Overfull `\hbox` warnings from long strings: add `\sloppy` locally or use `\url{}` for URLs
+
+If any violations are found:
+1. Fix them in the `.tex` file
+2. Re-spawn the latex-compiler agent to recompile
+3. Verify the fixes resolved the issues
+
+### Step 3: Mark complete
+
+After PDF verification passes (or if pdflatex is not installed):
 - Set `status: complete` in the state file
 - Mark `Phase S: Synthesis` as completed in the `## Completed Phases` section
 - Send macOS notification:
   ```
-  Run via Bash: osascript -e 'display notification "Research complete for $1 — Synthesis written" with title "Research Report" subtitle "Research"'
+  Run via Bash: osascript -e 'display notification "Research complete for $1 — PDF compiled and verified" with title "Research Report" subtitle "Research"'
   ```
 
 ### Completion Retrospective Learning
@@ -667,7 +745,7 @@ After setting `status: complete`, write a completion retrospective learning:
    - **What Produced Lower Quality**: Which strategies underperformed? Where did the report end up thin or repetitive?
    - **Improvement Suggestions**: Specific, actionable suggestions for improving the research-report plugin workflow (e.g., "increase deep-dive budget for technical topics", "add a pre-synthesis consolidation step").
 
-The Stop hook verifies `status: complete`, `synthesis_iteration >= 3`, and `total_iterations_research >= research_budget` before allowing the workflow to end.
+The Stop hook verifies `status: complete`, `synthesis_iteration >= 4`, and `total_iterations_research >= research_budget` before allowing the workflow to end.
 
 ---
 
@@ -676,10 +754,10 @@ The Stop hook verifies `status: complete`, `synthesis_iteration >= 3`, and `tota
 After completing a synthesis iteration, output:
 
 ```
-## Phase S — Iteration [1|2|3] Complete
+## Phase S — Iteration [1|2|3|4] Complete
 
-### Step: [Read and Outline | Write | Edit and Polish]
-### Synthesis Status: [outline produced | section written | polished and final]
-### Word Count: [N/A for iteration 1 | count for iterations 2-3]
-### Issues Found: [list any contradictions, missing findings, etc.]
+### Step: [Read and Outline | Write | Edit and Polish | Compile and Verify PDF]
+### Synthesis Status: [outline produced | section written | polished | PDF compiled and verified]
+### Word Count: [N/A for iteration 1 | count for iterations 2-3 | N/A for iteration 4]
+### Issues Found: [list any contradictions, missing findings, formatting violations, etc.]
 ```
