@@ -24,6 +24,13 @@ Autonomous multi-phase research and planning workflow. Produces a LaTeX research
 
 **Human gate at B0**: The workflow pauses after Phase A and presents research findings. The human reviews and approves before planning proceeds.
 
+**What to do at the B0 pause:**
+
+1. Find the scoping questions file at `docs/long-horizon-impl/<project>/planning/<project>-scoping-questions.md`
+2. Read the questions the workflow generated from Phase A research findings
+3. Write your answers directly into that file, below each question
+4. Resume the workflow — the stop hook will re-feed the command automatically on the next iteration
+
 **Budget allocation across B-phases:**
 
 | Phase | Budget Share |
@@ -44,23 +51,32 @@ TDD feature-by-feature implementation driven by ralph-loop. Each iteration imple
 
 Anti-slop escalation detects low-quality or stalled output and triggers one of 7 escalation types before continuing.
 
+**Resolving BLOCKED features:**
+
+When a feature is set to `BLOCKED`, the workflow writes an entry to `.claude/lhi-<project>-escalations.json` describing what is needed. To resolve:
+
+1. Read `.claude/lhi-<project>-escalations.json` to find escalations where `"resolved": false`
+2. Provide the required resource (API key, clarification, dependency, architecture decision)
+3. Update the escalation entry: set `"resolved": true` and add a `"resolution"` field describing what you provided
+4. The next ralph-loop iteration will detect the resolved escalation, unblock the feature, and re-attempt it
+
 ## Agents
 
 | Agent | Model | Role |
 |-------|-------|------|
-| research-orchestrator | opus | Coordinates Phase A research, dispatches parallel subagents |
-| research-subagent | sonnet | Executes individual research iterations using assigned strategy |
-| synthesis-writer | opus | Writes Phase S synthesis section of the LaTeX report |
-| scoping-interviewer | opus | Conducts Phase B0 human interview, surfaces key decisions |
-| requirements-analyst | opus | Phase B1 — derives requirements from research + scoping |
-| architecture-designer | opus | Phase B2 — produces technical architecture |
-| plan-writer | opus | Phase B3 — writes TDD test plan and implementation sequence |
-| cross-examiner | opus | Phase B4 — adversarial review of the full plan |
-| impl-orchestrator | opus | Mode 2 — drives per-feature TDD loops, detects slop, triggers escalation |
+| long-horizon-impl:researcher | sonnet | Strategy-aware research with evidence gap ratings (Mode 1, Phase A) |
+| long-horizon-impl:methodological-critic | opus | Evaluates source methodology vs claims (Mode 1, Phase A) |
+| long-horizon-impl:repo-analyst | sonnet | Codebase analysis (Mode 1) |
+| long-horizon-impl:latex-compiler | sonnet | LaTeX PDF compilation at phase boundaries |
+| long-horizon-impl:requirements-analyst | opus | Derives functional requirements (Mode 1, Phase B1) |
+| long-horizon-impl:plan-architect | opus | Plan improvement (Mode 1, Phases B2-B3) |
+| long-horizon-impl:plan-critic | opus | Plan scrutiny with evidence-to-decision audit (Modes 1 and 2) |
+| long-horizon-impl:plan-reviewer | opus | Cross-examines all artifacts (Mode 1, Phase B4) |
+| long-horizon-impl:autonomous-coder | opus | TDD with anti-slop escalation (Mode 2) |
 
 ## Research Strategies (Phase A)
 
-Used by research-subagent instances in parallel during Phase A:
+Used by researcher agent instances in parallel during Phase A:
 
 | # | Strategy | Description |
 |---|----------|-------------|
@@ -76,17 +92,17 @@ Used by research-subagent instances in parallel during Phase A:
 
 ## Escalation Types (Mode 2)
 
-When impl-orchestrator detects slop, stall, or ambiguity, it triggers one of:
+When the autonomous-coder agent detects slop, stall, or ambiguity, it triggers one of:
 
-| # | Type | Trigger |
-|---|------|---------|
-| 1 | Plan mismatch | Implementation diverges from the agreed plan |
-| 2 | Test evasion | Tests written to pass trivially rather than validate behavior |
-| 3 | Scope creep | Implementation exceeds or reshapes agreed feature boundary |
-| 4 | Circular failure | Same test failure repeating across 3+ iterations without progress |
-| 5 | Ambiguous requirement | Feature spec is insufficient to implement correctly |
-| 6 | Architecture conflict | Implementation contradicts architectural constraints |
-| 7 | Human decision needed | Blocking decision requires human input to resolve |
+| Type | Trigger |
+|------|---------|
+| `MISSING_CREDENTIAL` | API key or credential not available in environment or config |
+| `SERVICE_UNAVAILABLE` | External service returns errors or is unreachable |
+| `MOCK_PREVENTION` | Plan requires real integration but real service is inaccessible |
+| `AMBIGUOUS_REQUIREMENT` | Requirement can be interpreted multiple ways or contradicts codebase |
+| `PLAN_MISMATCH` | Architecture plan interface differs from actual code |
+| `MISSING_DEPENDENCY` | Package does not exist, is deprecated, or has a breaking change |
+| `SCOPE_EXPANSION` | Implementing feature requires changes outside its declared scope |
 
 ## Commands
 

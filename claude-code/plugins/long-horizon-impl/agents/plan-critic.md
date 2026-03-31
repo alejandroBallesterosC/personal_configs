@@ -96,4 +96,4 @@ Return EXACTLY this structure (400-600 words):
 - Be specific about what research finding contradicts the plan. Vague criticism is not useful.
 - **NEW: Check whether the research findings themselves are strong enough to support the decisions citing them.** A plan decision based on a source with a WIDE evidence gap should be flagged even if the plan correctly cites the source.
 - If you find no issues, output "NO_BLOCKER_ISSUES" explicitly. Do not invent problems to justify your existence.
-- The main instance uses the BLOCKER count during Mode 3 plan validation to decide whether to generate the feature list. Phase transitions in Mode 2 are budget-based, not blocker-based.
+- The main instance uses the BLOCKER count during Mode 2 plan validation to decide whether to generate the feature list. Phase transitions in Mode 1 are budget-based, not blocker-based.

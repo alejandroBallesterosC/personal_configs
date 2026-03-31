@@ -76,15 +76,15 @@ Always set `--max-iterations` to control cost. 50 iterations = $50–100+ in API
 
 | Agent | Model | Role |
 |-------|-------|------|
-| research-orchestrator | opus | Coordinates Phase A, dispatches parallel subagents |
-| research-subagent | sonnet | Executes individual research iterations using assigned strategy |
-| synthesis-writer | opus | Writes Phase S synthesis section of the LaTeX report |
-| scoping-interviewer | opus | Conducts Phase B0 human interview |
-| requirements-analyst | opus | Phase B1 — derives requirements from research + scoping |
-| architecture-designer | opus | Phase B2 — produces technical architecture |
-| plan-writer | opus | Phase B3 — writes TDD test plan and implementation sequence |
-| cross-examiner | opus | Phase B4 — adversarial review of the full plan |
-| impl-orchestrator | opus | Mode 2 — drives per-feature TDD loops, detects slop, triggers escalation |
+| long-horizon-impl:researcher | sonnet | Strategy-aware research with evidence gap ratings (Mode 1, Phase A) |
+| long-horizon-impl:methodological-critic | opus | Evaluates source methodology vs claims (Mode 1, Phase A) |
+| long-horizon-impl:repo-analyst | sonnet | Codebase analysis (Mode 1) |
+| long-horizon-impl:latex-compiler | sonnet | LaTeX PDF compilation at phase boundaries |
+| long-horizon-impl:requirements-analyst | opus | Derives functional requirements (Mode 1, Phase B1) |
+| long-horizon-impl:plan-architect | opus | Plan improvement (Mode 1, Phases B2-B3) |
+| long-horizon-impl:plan-critic | opus | Plan scrutiny with evidence-to-decision audit (Modes 1 and 2) |
+| long-horizon-impl:plan-reviewer | opus | Cross-examines all artifacts (Mode 1, Phase B4) |
+| long-horizon-impl:autonomous-coder | opus | TDD with anti-slop escalation (Mode 2) |
 
 ---
 
@@ -106,15 +106,15 @@ Always set `--max-iterations` to control cost. 50 iterations = $50–100+ in API
 
 ## Escalation Types (Mode 2)
 
-| # | Type | Trigger |
-|---|------|---------|
-| 1 | Plan mismatch | Implementation diverges from the agreed plan |
-| 2 | Test evasion | Tests written to pass trivially rather than validate behavior |
-| 3 | Scope creep | Implementation exceeds or reshapes agreed feature boundary |
-| 4 | Circular failure | Same test failure repeating across 3+ iterations without progress |
-| 5 | Ambiguous requirement | Feature spec is insufficient to implement correctly |
-| 6 | Architecture conflict | Implementation contradicts architectural constraints |
-| 7 | Human decision needed | Blocking decision requires human input to resolve |
+| Type | Trigger |
+|------|---------|
+| `MISSING_CREDENTIAL` | API key or credential not available in environment or config |
+| `SERVICE_UNAVAILABLE` | External service returns errors or is unreachable |
+| `MOCK_PREVENTION` | Plan requires real integration but real service is inaccessible |
+| `AMBIGUOUS_REQUIREMENT` | Requirement can be interpreted multiple ways or contradicts codebase |
+| `PLAN_MISMATCH` | Architecture plan interface differs from actual code |
+| `MISSING_DEPENDENCY` | Package does not exist, is deprecated, or has a breaking change |
+| `SCOPE_EXPANSION` | Implementing feature requires changes outside its declared scope |
 
 ---
 

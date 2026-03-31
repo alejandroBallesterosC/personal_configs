@@ -492,7 +492,7 @@ Based on the current strategy, write 3-5 prioritized research directions for the
 
 **cross-domain-synthesis**: Most structurally similar problems in other fields, frameworks from other domains that map cleanly to this research domain.
 
-**Note: Phase A does NOT have Phase R->S synthesis. It transitions directly to Phase B.**
+**Note: Phase A does NOT have a separate synthesis sub-phase. It transitions directly to Phase B.**
 
 ### Phase Transition Check
 

@@ -1,10 +1,10 @@
 ---
-description: "Mode 3: TDD implementation from an approved plan with intelligent escalation (no mocks, no slop)"
+description: "Mode 2: TDD implementation from an approved plan with intelligent escalation (no mocks, no slop)"
 model: opus
 argument-hint: <project-name>
 ---
 
-# ABOUTME: Mode 3 command for long-horizon-impl plugin that implements features from an approved plan using ralph-loop driven TDD.
+# ABOUTME: Mode 2 command for long-horizon-impl plugin that implements features from an approved plan using ralph-loop driven TDD.
 # ABOUTME: Features that hit external blockers are set to BLOCKED (not FAILED) and escalated to the human via the orchestrator.
 # ABOUTME: Uses ralph-loop for iteration (not stop-hook) to allow human intervention between features.
 

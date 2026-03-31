@@ -105,13 +105,13 @@ Phase B sub-phases with budget allocation:
 
 | Type | Trigger | Action |
 |------|---------|--------|
-| `mock_detected` | Test uses mock when real API available | Stop, request real integration guidance |
-| `test_quality` | Test does not meaningfully verify behavior | Stop, request clearer acceptance criteria |
-| `scope_creep` | Implementation exceeds feature boundary | Stop, request scope clarification |
-| `dependency_missing` | Required package/service unavailable | Stop, request dependency resolution |
-| `api_auth` | Authentication/authorization failure | Stop, request credentials/config |
-| `architecture_conflict` | Implementation contradicts architecture plan | Stop, request architecture decision |
-| `blocked_by_feature` | Feature depends on unimplemented feature | Reorder feature list or request guidance |
+| `MISSING_CREDENTIAL` | API key or credential not available | Stop, request credentials |
+| `SERVICE_UNAVAILABLE` | External service returns errors or is unreachable | Stop, request service access |
+| `MOCK_PREVENTION` | Plan requires real integration but real service is inaccessible | Stop, request real access |
+| `AMBIGUOUS_REQUIREMENT` | Requirement can be interpreted multiple ways or contradicts codebase | Stop, request clarification |
+| `PLAN_MISMATCH` | Architecture plan interface differs from actual code | Stop, request architecture decision |
+| `MISSING_DEPENDENCY` | Package does not exist, is deprecated, or has breaking change | Stop, request dependency resolution |
+| `SCOPE_EXPANSION` | Implementing feature requires changes outside its declared scope | Stop, request scope clarification |
 
 ## Commands Reference
 
@@ -134,7 +134,7 @@ Phase B sub-phases with budget allocation:
 | long-horizon-impl:plan-architect | Opus | Mode 1 (B2-B3) | Plan improvement |
 | long-horizon-impl:plan-critic | Opus | Modes 1, 2 | Plan scrutiny with evidence-to-decision audit |
 | long-horizon-impl:plan-reviewer | Opus | Mode 1 (B4) | Cross-examines all artifacts |
-| long-horizon-impl:coder | Opus | Mode 2 | TDD with anti-slop escalation |
+| long-horizon-impl:autonomous-coder | Opus | Mode 2 | TDD with anti-slop escalation |
 
 ## Artifacts
 
@@ -165,8 +165,8 @@ docs/long-horizon-impl/<topic>/
 
 ## Learnings System
 
-- **Storage**: `.claude/lhi-learnings.md` in the project root
-- **Override config**: Set custom path via `learnings_file` in state file YAML frontmatter
+- **Storage**: `~/.claude/plugin-learnings/long-horizon-impl/` (a directory of Markdown files)
+- **Override config**: Set custom path via `learnings_dir` in `.claude/long-horizon-impl.local.md` YAML frontmatter
 - **Review**: Use `/long-horizon-impl:review-learnings` to inspect accumulated learnings
 - Learnings persist across sessions and are consulted during research and implementation phases
 
