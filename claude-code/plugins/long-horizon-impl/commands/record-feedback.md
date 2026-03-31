@@ -32,7 +32,7 @@ Check which artifacts exist for this project:
 - `docs/long-horizon-impl/$1/planning/$1-implementation-plan.md`
 - `docs/long-horizon-impl/$1/planning/cross-examination-log.md`
 
-**Implementation artifacts** (from Phase C):
+**Implementation artifacts** (from 2-implement):
 - `.claude/lhi-$1-feature-list.json`
 - `.claude/lhi-$1-escalations.json`
 - `docs/long-horizon-impl/$1/implementation/progress.txt`
@@ -47,7 +47,7 @@ If `$2` was provided, use it as the user's feedback.
 
 If `$2` was NOT provided, ask the user. Tailor the prompt based on which phases completed:
 
-**If planning artifacts exist (research-and-plan was run):**
+**If planning artifacts exist (1-research-and-plan was run):**
 > What feedback do you have about the planning output for "$1"? You can comment on:
 > - Quality of the research phase and how well it informed planning
 > - Whether the scoping questions (B0) captured the right concerns
@@ -56,7 +56,7 @@ If `$2` was NOT provided, ask the user. Tailor the prompt based on which phases 
 > - Any requirements that were missed or over-specified
 > - How well the plan would translate to actual implementation
 
-**If implementation artifacts exist (implement was run):**
+**If implementation artifacts exist (2-implement was run):**
 > What feedback do you have about the implementation for "$1"? You can comment on:
 > - Code quality and adherence to the plan
 > - Whether escalations were appropriate or too aggressive/too lenient

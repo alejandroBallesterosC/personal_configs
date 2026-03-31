@@ -1,10 +1,10 @@
 ---
-description: "Mode 2: TDD implementation from an approved plan with intelligent escalation (no mocks, no slop)"
+description: "TDD implementation from an approved plan with intelligent escalation (no mocks, no slop)"
 model: opus
 argument-hint: <project-name>
 ---
 
-# ABOUTME: Mode 2 command for long-horizon-impl plugin that implements features from an approved plan using ralph-loop driven TDD.
+# ABOUTME: Implement command for long-horizon-impl plugin that implements features from an approved plan using ralph-loop driven TDD.
 # ABOUTME: Features that hit external blockers are set to BLOCKED (not FAILED) and escalated to the human via the orchestrator.
 # ABOUTME: Uses ralph-loop for iteration (not stop-hook) to allow human intervention between features.
 
@@ -31,7 +31,7 @@ Check if `.claude/lhi-$1-implementation-state.md` exists.
 #### Plan Detection
 
 Check for planning artifacts at these paths:
-- `docs/long-horizon-impl/$1/planning/$1-implementation-plan.md` (Mode 2 output)
+- `docs/long-horizon-impl/$1/planning/$1-implementation-plan.md` (from 1-research-and-plan)
 - `docs/long-horizon-impl/$1/planning/$1-functional-requirements.md`
 - `docs/long-horizon-impl/$1/planning/$1-architecture-plan.md`
 - `docs/long-horizon-impl/$1/planning/$1-test-plan.md`
@@ -49,7 +49,7 @@ If NO implementation plan found, output error and stop.
    { "project": "$1", "escalations": [] }
    ```
 3. Create `docs/long-horizon-impl/$1/implementation/progress.txt`
-4. Create state file `.claude/lhi-$1-implementation-state.md` with `workflow_type: lhi-implement`, `command: /long-horizon-impl:implement`, `features_blocked: 0`
+4. Create state file `.claude/lhi-$1-implementation-state.md` with `workflow_type: lhi-implement`, `command: /long-horizon-impl:2-implement`, `features_blocked: 0`
 
 ### If state file EXISTS:
 
@@ -139,7 +139,7 @@ Use macOS notifications with subtitle "Long Horizon Impl" for feature completion
 
 To run this command inside a ralph-loop:
 ```
-/ralph-loop:ralph-loop "/long-horizon-impl:implement 'project'" --completion-promise "All features passing or resolved."
+/ralph-loop:ralph-loop "/long-horizon-impl:2-implement 'project'" --completion-promise "All features passing or resolved."
 ```
 
 ---
@@ -147,7 +147,7 @@ To run this command inside a ralph-loop:
 ## OUTPUT
 
 ```
-## Iteration N Complete — Phase C: Implementation
+## Iteration N Complete — Implementation
 
 ### Feature: <id> - <name>
 - Status: PASSING | FEATURE_FAILED | FEATURE_BLOCKED

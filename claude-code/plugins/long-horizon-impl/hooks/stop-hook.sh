@@ -53,11 +53,11 @@ cat > /dev/null
 # Prioritize in_progress over complete to avoid stale complete files killing active workflows
 ACTIVE_STATE=""
 
-# First pass: find in_progress files (implementation state takes priority over research state)
+# First pass: find in_progress or waiting_for_input files (implementation state takes priority over research state)
 for state_file in .claude/lhi-*-implementation-state.md; do
   [ -f "$state_file" ] || continue
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
-  if [ "$status" = "in_progress" ]; then
+  if [ "$status" = "in_progress" ] || [ "$status" = "waiting_for_input" ]; then
     ACTIVE_STATE="$state_file"
     break
   fi

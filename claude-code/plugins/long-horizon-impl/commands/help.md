@@ -1,8 +1,8 @@
 <!-- ABOUTME: Help command for the long-horizon-impl plugin. -->
-<!-- ABOUTME: Displays complete reference for both modes, all agents, strategies, escalation types, dependencies, and usage. -->
+<!-- ABOUTME: Displays complete reference for commands, agents, strategies, escalation types, dependencies, and usage. -->
 
 ---
-description: Show complete reference for the long-horizon-impl plugin (modes, agents, strategies, escalation types, dependencies, learnings system, cost estimates)
+description: Show complete reference for the long-horizon-impl plugin (commands, agents, strategies, escalation types, dependencies, learnings system, cost estimates)
 model: haiku
 ---
 
@@ -16,9 +16,9 @@ Long-horizon implementation plugin for research-driven planning followed by TDD 
 
 ---
 
-## Modes
+## Commands
 
-### Mode 1: research-and-plan
+### 1-research-and-plan
 
 Autonomous multi-phase research and planning workflow. Produces a LaTeX research report and a detailed implementation plan.
 
@@ -53,19 +53,19 @@ Autonomous multi-phase research and planning workflow. Produces a LaTeX research
 
 **Invoke:**
 ```
-/long-horizon-impl:research-and-plan "topic or project description"
-/long-horizon-impl:research-and-plan "topic" --research-iterations 20 --plan-iterations 15
+/long-horizon-impl:1-research-and-plan "topic or project description"
+/long-horizon-impl:1-research-and-plan "topic" --research-iterations 20 --plan-iterations 15
 ```
 
 ---
 
-### Mode 2: implement
+### 2-implement
 
 TDD feature-by-feature implementation driven by ralph-loop. Each iteration implements one feature, runs tests, and escalates if blocked.
 
 **Invoke via ralph-loop:**
 ```
-/ralph-loop:ralph-loop "/long-horizon-impl:implement 'project'" --completion-promise "All features passing or resolved."
+/ralph-loop:ralph-loop "/long-horizon-impl:2-implement 'project'" --completion-promise "All features passing or resolved."
 ```
 
 Always set `--max-iterations` to control cost. 50 iterations = $50–100+ in API costs.
@@ -76,15 +76,15 @@ Always set `--max-iterations` to control cost. 50 iterations = $50–100+ in API
 
 | Agent | Model | Role |
 |-------|-------|------|
-| long-horizon-impl:researcher | sonnet | Strategy-aware research with evidence gap ratings (Mode 1, Phase A) |
-| long-horizon-impl:methodological-critic | opus | Evaluates source methodology vs claims (Mode 1, Phase A) |
-| long-horizon-impl:repo-analyst | sonnet | Codebase analysis (Mode 1) |
+| long-horizon-impl:researcher | sonnet | Strategy-aware research with evidence gap ratings (Phase A) |
+| long-horizon-impl:methodological-critic | opus | Evaluates source methodology vs claims (Phase A) |
+| long-horizon-impl:repo-analyst | sonnet | Codebase analysis (1-research-and-plan) |
 | long-horizon-impl:latex-compiler | sonnet | LaTeX PDF compilation at phase boundaries |
-| long-horizon-impl:requirements-analyst | opus | Derives functional requirements (Mode 1, Phase B1) |
-| long-horizon-impl:plan-architect | opus | Plan improvement (Mode 1, Phases B2-B3) |
-| long-horizon-impl:plan-critic | opus | Plan scrutiny with evidence-to-decision audit (Modes 1 and 2) |
-| long-horizon-impl:plan-reviewer | opus | Cross-examines all artifacts (Mode 1, Phase B4) |
-| long-horizon-impl:autonomous-coder | opus | TDD with anti-slop escalation (Mode 2) |
+| long-horizon-impl:requirements-analyst | opus | Derives functional requirements (Phase B1) |
+| long-horizon-impl:plan-architect | opus | Plan improvement (Phases B2-B3) |
+| long-horizon-impl:plan-critic | opus | Plan scrutiny with evidence-to-decision audit (1-research-and-plan and 2-implement) |
+| long-horizon-impl:plan-reviewer | opus | Cross-examines all artifacts (Phase B4) |
+| long-horizon-impl:autonomous-coder | opus | TDD with anti-slop escalation (2-implement) |
 
 ---
 
@@ -104,7 +104,7 @@ Always set `--max-iterations` to control cost. 50 iterations = $50–100+ in API
 
 ---
 
-## Escalation Types (Mode 2)
+## Escalation Types (2-implement)
 
 | Type | Trigger |
 |------|---------|
@@ -118,14 +118,15 @@ Always set `--max-iterations` to control cost. 50 iterations = $50–100+ in API
 
 ---
 
-## Commands
+## Commands Summary
 
 | Command | Description |
 |---------|-------------|
-| `/long-horizon-impl:research-and-plan` | Start Mode 1: research + planning workflow |
-| `/long-horizon-impl:implement` | Start Mode 2: TDD implementation (use via ralph-loop) |
+| `/long-horizon-impl:1-research-and-plan` | Start research + planning workflow |
+| `/long-horizon-impl:2-implement` | Start TDD implementation (use via ralph-loop) |
 | `/long-horizon-impl:help` | Show this reference |
 | `/long-horizon-impl:review-learnings` | Synthesize accumulated workflow learnings |
+| `/long-horizon-impl:record-feedback` | Record user feedback about a completed workflow |
 
 ---
 
@@ -137,7 +138,7 @@ Always set `--max-iterations` to control cost. 50 iterations = $50–100+ in API
 | jq | Required | `brew install jq` |
 | MacTeX | Optional | For LaTeX PDF compilation |
 | exa MCP | Optional | Web and academic search in Phase A |
-| ralph-loop plugin | Required for Mode 2 | `/plugin install ralph-loop` |
+| ralph-loop plugin | Required for 2-implement | `/plugin install ralph-loop` |
 
 ---
 
@@ -161,7 +162,7 @@ Review and synthesize all learnings:
 
 ## Cost Estimates
 
-| Mode | Iterations | Estimated Cost |
-|------|-----------|----------------|
-| Mode 1 (30 research + 20 plan) | 50 total | $30–80 |
-| Mode 2 (per feature, via ralph-loop) | varies | $1–5 per feature |
+| Command | Iterations | Estimated Cost |
+|---------|-----------|----------------|
+| 1-research-and-plan (30 research + 20 plan) | 50 total | $30–80 |
+| 2-implement (per feature, via ralph-loop) | varies | $1–5 per feature |

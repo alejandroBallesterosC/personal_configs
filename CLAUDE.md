@@ -64,7 +64,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - **yq + jq** (required for dev-workflow, research-report, and long-horizon-impl hooks — YAML/JSON parsing)
   - Install: `brew install yq jq` (macOS)
   - Hooks fail loudly with install instructions if missing
-- **ralph-loop plugin** (required for TDD implementation phase in dev-workflow and long-horizon-impl implement mode)
+- **ralph-loop plugin** (required for TDD implementation phase in dev-workflow and long-horizon-impl 2-implement)
   - Install: `/plugin marketplace add alejandroBallesterosC/personal_configs && /plugin install ralph-loop`
   - Safety: ALWAYS set `--max-iterations` (50 iterations = $50-100+ in API costs)
 - **MacTeX** (optional, for research-report and long-horizon-impl LaTeX PDF compilation)
@@ -85,7 +85,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 8 plugins
 - Stop hook chain order (per marketplace.json): dev-workflow → ralph-loop → research-report → long-horizon-impl. If an earlier hook blocks, later hooks do not run
 - `research-report` has its own Stop hook iteration engine — it does NOT depend on ralph-loop for iteration
-- `long-horizon-impl` research-and-plan mode uses its own Stop hook for iteration; implement mode uses ralph-loop
+- `long-horizon-impl` 1-research-and-plan uses its own Stop hook for iteration; 2-implement uses ralph-loop
 - Running TDD and research/impl workflows simultaneously may cause SessionStart hook context loss (both output independently, no merging)
 - `autonomous-workflow/` directory still exists but is superseded by `research-report/` and `long-horizon-impl/`
 

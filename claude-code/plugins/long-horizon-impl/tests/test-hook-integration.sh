@@ -200,7 +200,7 @@ research_budget: 30
 planning_budget: 20
 current_phase: "Phase A: Research"
 command: |
-  /long-horizon-impl:research-and-plan 'test-project' 'test prompt' --research-iterations 30 --plan-iterations 20
+  /long-horizon-impl:1-research-and-plan 'test-project' 'test prompt' --research-iterations 30 --plan-iterations 20
 ---
 # Test state
 STATE
@@ -222,7 +222,7 @@ name: test-project
 status: in_progress
 iteration: 3
 command: |
-  /long-horizon-impl:implement 'test-project'
+  /long-horizon-impl:2-implement 'test-project'
 ---
 # Test state
 STATE
@@ -250,7 +250,7 @@ planning_budget: 20
 current_phase: "Phase B: Planning"
 planning_sub_phase: "B0"
 command: |
-  /long-horizon-impl:research-and-plan 'test-project' 'test prompt'
+  /long-horizon-impl:1-research-and-plan 'test-project' 'test prompt'
 ---
 # Test state
 STATE

@@ -1,10 +1,10 @@
 ---
-description: "Mode 2: Long-horizon-impl deep research followed by scoping interview + rigorous 4-artifact planning (requirements, architecture, test plan, implementation plan) with cross-examination"
+description: "Long-horizon-impl deep research followed by scoping interview + rigorous 4-artifact planning (requirements, architecture, test plan, implementation plan) with cross-examination"
 model: opus
 argument-hint: <project-name> "Your detailed research and planning prompt..." --research-iterations N --plan-iterations N
 ---
 
-# ABOUTME: Mode 2 command for the long-horizon-impl plugin that runs research (Phase A) then scoping interview (B0) + rigorous 4-phase planning (Phase B).
+# ABOUTME: Research-and-plan command for the long-horizon-impl plugin that runs research (Phase A) then scoping interview (B0) + rigorous 4-phase planning (Phase B).
 # ABOUTME: Phase B0 generates scoping questions from research, pauses for human input, then resumes.
 # ABOUTME: Phase B produces: functional requirements, architecture plan, test plan, implementation plan.
 # ABOUTME: Final sub-phase cross-examines all artifacts against each other before marking complete.
@@ -47,7 +47,7 @@ Check if `.claude/lhi-$1-research-state.md` exists.
 
 3. Create empty bibliography file `docs/long-horizon-impl/$1/research/sources.bib`
 
-4. Create `docs/long-horizon-impl/$1/research/research-progress.md` following the same format as Mode 1 (including the `## Methodological Quality` section for tracking evidence gap counts).
+4. Create `docs/long-horizon-impl/$1/research/research-progress.md` following the research-progress format (including the `## Methodological Quality` section for tracking evidence gap counts).
 
 5. Parse budgets:
    - `research_budget` from `--research-iterations` (default: 30)
@@ -75,7 +75,7 @@ Check if `.claude/lhi-$1-research-state.md` exists.
    planning_sub_phase: null
    planning_sub_phase_iteration: 0
    command: |
-     /long-horizon-impl:research-and-plan <the full invocation command>
+     /long-horizon-impl:1-research-and-plan <the full invocation command>
    ---
 
    # Autonomous Workflow State: $1

@@ -15,8 +15,8 @@ This plugin has been split into two focused plugins:
 | Old | New | What it does |
 |-----|-----|--------------|
 | `/autonomous-workflow:research` | `/research-report:research` | Iterative deep research producing a LaTeX report with 9 strategies and synthesis |
-| `/autonomous-workflow:research-and-plan` | `/long-horizon-impl:research-and-plan` | Research + scoping interview + 4-artifact planning (requirements, architecture, test plan, implementation plan) |
-| `/autonomous-workflow:implement` | `/long-horizon-impl:implement` | TDD feature-by-feature implementation with anti-slop escalation, driven by ralph-loop |
+| `/autonomous-workflow:research-and-plan` | `/long-horizon-impl:1-research-and-plan` | Research + scoping interview + 4-artifact planning (requirements, architecture, test plan, implementation plan) |
+| `/autonomous-workflow:implement` | `/long-horizon-impl:2-implement` | TDD feature-by-feature implementation with anti-slop escalation, driven by ralph-loop |
 
 ## Migration steps
 

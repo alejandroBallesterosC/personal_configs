@@ -3,8 +3,8 @@ name: long-horizon-impl-guide
 description: "Long-horizon implementation workflow guide covering research-driven planning and TDD implementation. ALWAYS invoke this skill when starting, navigating, or continuing a long-horizon-impl workflow, after compaction/clear, or when asking about phases, strategies, state formats, or phase transitions. Do not proceed with long-horizon-impl commands without loading this skill first."
 ---
 
-<!-- ABOUTME: Skill reference for the long-horizon-impl plugin covering research-driven planning (Mode 1) -->
-<!-- ABOUTME: and TDD implementation (Mode 2) workflows with phase transitions, agents, and artifacts. -->
+<!-- ABOUTME: Skill reference for the long-horizon-impl plugin covering research-driven planning (1-research-and-plan) -->
+<!-- ABOUTME: and TDD implementation (2-implement) workflows with phase transitions, agents, and artifacts. -->
 
 # Long-Horizon Implementation Guide
 
@@ -12,16 +12,16 @@ Announce at start: "I'm using the long-horizon-impl-guide skill for reference on
 
 ## When to Activate
 
-- Starting any long-horizon-impl command (research-and-plan, implement)
+- Starting any long-horizon-impl command (1-research-and-plan, 2-implement)
 - Resuming a workflow after interruption
 - After context compaction or clear (SessionStart hook injects this)
-- When asked about long-horizon-impl modes, phases, or artifacts
+- When asked about long-horizon-impl phases or artifacts
 - When checking state file format or phase transition logic
 
-## Mode Overview
+## Workflow Overview
 
 ```
-Mode 1: Research + Plan
+1-research-and-plan
 +---------------------------------+
 |   Phase A: Research             |
 |          |                      |
@@ -39,7 +39,7 @@ Mode 1: Research + Plan
 
       Human reviews & approves plans
 
-Mode 2: Implement (from approved plan)
+2-implement (from approved plan)
 +---------------------------------+
 |   Plan validation               |
 |          |                      |
@@ -58,8 +58,8 @@ Mode 2: Implement (from approved plan)
 2. **Artifact files ARE persistent memory.** Every iteration reads current report/plan.
 3. **Every claim must be cited** with `\cite{key}` and evidence gap rating.
 4. **Internal consistency enforced every iteration.** Deep audit every 5th.
-5. **One iteration per invocation.** Stop hook (Mode 1) or ralph-loop (Mode 2) re-feeds.
-6. **Never mock, never slop.** Mode 2 escalates on external blockers.
+5. **One iteration per invocation.** Stop hook (1-research-and-plan) or ralph-loop (2-implement) re-feeds.
+6. **Never mock, never slop.** 2-implement escalates on external blockers.
 7. **Phase transitions are gated.** Prerequisites must be met before advancing phases.
 
 ## Research Strategies (9 total)
@@ -78,7 +78,7 @@ Mode 2: Implement (from approved plan)
 
 ## Phase Transitions
 
-### Mode 1: Research -> Planning (5 sub-phases)
+### 1-research-and-plan: Research -> Planning (5 sub-phases)
 
 Phase A -> Phase B when `total_iterations_research >= research_budget`.
 
@@ -93,7 +93,7 @@ Phase B sub-phases with budget allocation:
 
 **B0 flow:** Generate questions -> `waiting_for_input` -> stop hook allows exit -> orchestrator relays to human -> human answers -> orchestrator sets `in_progress` + `B1` -> nudge to resume.
 
-### Mode 2: Implementation (ralph-loop)
+### 2-implement: Implementation (ralph-loop)
 
 1. **Plan validation**: Verify approved planning artifacts exist and are consistent.
 2. **Feature list extraction**: Parse implementation plan into ordered feature list (`lhi-<topic>-feature-list.json`).
@@ -101,7 +101,7 @@ Phase B sub-phases with budget allocation:
 
 **Escalation flow:** Coder -> `escalations.json` -> orchestrator -> human -> resolution -> unblock -> re-attempt.
 
-## Anti-Slop Escalation Types (Mode 2)
+## Anti-Slop Escalation Types (2-implement)
 
 | Type | Trigger | Action |
 |------|---------|--------|
@@ -115,26 +115,27 @@ Phase B sub-phases with budget allocation:
 
 ## Commands Reference
 
-| Command | Mode | Description |
-|---------|------|-------------|
-| `/long-horizon-impl:research-and-plan` | 1 | Research -> scoping -> 4 planning artifacts |
-| `/long-horizon-impl:implement` | 2 | TDD implementation with escalation |
-| `/long-horizon-impl:help` | - | Show help |
-| `/long-horizon-impl:review-learnings` | - | Review accumulated workflow learnings |
+| Command | Description |
+|---------|-------------|
+| `/long-horizon-impl:1-research-and-plan` | Research -> scoping -> 4 planning artifacts |
+| `/long-horizon-impl:2-implement` | TDD implementation with escalation |
+| `/long-horizon-impl:help` | Show help |
+| `/long-horizon-impl:review-learnings` | Review accumulated workflow learnings |
+| `/long-horizon-impl:record-feedback` | Record user feedback about a completed workflow |
 
 ## Agents Reference
 
 | Agent | Model | Used In | Purpose |
 |-------|-------|---------|---------|
-| long-horizon-impl:researcher | Sonnet | Mode 1 | Strategy-aware research with evidence gap ratings |
-| long-horizon-impl:methodological-critic | Opus | Mode 1 | Evaluates source methodology vs claims |
-| long-horizon-impl:repo-analyst | Sonnet | Mode 1 | Codebase analysis |
+| long-horizon-impl:researcher | Sonnet | 1-research-and-plan | Strategy-aware research with evidence gap ratings |
+| long-horizon-impl:methodological-critic | Opus | 1-research-and-plan | Evaluates source methodology vs claims |
+| long-horizon-impl:repo-analyst | Sonnet | 1-research-and-plan | Codebase analysis |
 | long-horizon-impl:latex-compiler | Sonnet | Phase boundaries | LaTeX compilation |
-| long-horizon-impl:requirements-analyst | Opus | Mode 1 (B1) | Derives functional requirements |
-| long-horizon-impl:plan-architect | Opus | Mode 1 (B2-B3) | Plan improvement |
-| long-horizon-impl:plan-critic | Opus | Modes 1, 2 | Plan scrutiny with evidence-to-decision audit |
-| long-horizon-impl:plan-reviewer | Opus | Mode 1 (B4) | Cross-examines all artifacts |
-| long-horizon-impl:autonomous-coder | Opus | Mode 2 | TDD with anti-slop escalation |
+| long-horizon-impl:requirements-analyst | Opus | 1-research-and-plan (B1) | Derives functional requirements |
+| long-horizon-impl:plan-architect | Opus | 1-research-and-plan (B2-B3) | Plan improvement |
+| long-horizon-impl:plan-critic | Opus | 1-research-and-plan, 2-implement | Plan scrutiny with evidence-to-decision audit |
+| long-horizon-impl:plan-reviewer | Opus | 1-research-and-plan (B4) | Cross-examines all artifacts |
+| long-horizon-impl:autonomous-coder | Opus | 2-implement | TDD with anti-slop escalation |
 
 ## Artifacts
 
@@ -142,8 +143,8 @@ Phase B sub-phases with budget allocation:
 .claude/
 |-- lhi-<topic>-research-state.md
 |-- lhi-<topic>-implementation-state.md
-|-- lhi-<topic>-feature-list.json         (Mode 2)
-|-- lhi-<topic>-escalations.json          (Mode 2)
+|-- lhi-<topic>-feature-list.json         (2-implement)
+|-- lhi-<topic>-escalations.json          (2-implement)
 +-- lhi-stop-hook-debug.log
 
 docs/long-horizon-impl/<topic>/
@@ -172,12 +173,12 @@ docs/long-horizon-impl/<topic>/
 
 ## Workflow Types
 
-- `lhi-research-plan` -- Mode 1: Research + Planning
-- `lhi-implement` -- Mode 2: TDD Implementation
+- `lhi-research-plan` -- 1-research-and-plan: Research + Planning
+- `lhi-implement` -- 2-implement: TDD Implementation
 
 ## Dependencies
 
 - **yq + jq**: hooks (hard dependency)
 - **MacTeX**: PDF output (optional)
 - **exa MCP server**: deep research (optional)
-- **ralph-loop plugin**: Mode 2 iteration (required for Mode 2)
+- **ralph-loop plugin**: 2-implement iteration (required for 2-implement)

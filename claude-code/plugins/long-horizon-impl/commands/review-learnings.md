@@ -16,7 +16,7 @@ Check for a `learnings_dir` override in `.claude/long-horizon-impl.local.md` (YA
 
 Glob for all `*.md` files in the learnings directory.
 
-If no files are found, report: "No learnings found in [directory]. Run a research-and-plan or implement workflow to accumulate learnings." Then exit.
+If no files are found, report: "No learnings found in [directory]. Run a 1-research-and-plan or 2-implement workflow to accumulate learnings." Then exit.
 
 ## Step 3: Read All Learning Files
 
@@ -36,13 +36,13 @@ Which of the 9 research strategies (web search, academic search, code search, ex
 Which B-phases (B1 Requirements, B2 Architecture, B3 Test + Impl Plan, B4 Cross-Examination) produced the most actionable output? Where did planning tend to stall or produce weak results? Were the budget allocations (20%/30%/25%/25%) appropriate?
 
 ### Escalation Patterns
-Which escalation types (plan mismatch, test evasion, scope creep, circular failure, ambiguous requirement, architecture conflict, human decision needed) occurred most frequently in Mode 2? What conditions tend to trigger each? How were they resolved?
+Which escalation types (plan mismatch, test evasion, scope creep, circular failure, ambiguous requirement, architecture conflict, human decision needed) occurred most frequently during 2-implement? What conditions tend to trigger each? How were they resolved?
 
 ### TDD Observations
-What patterns emerged during Mode 2 implementation? Where did the TDD loop work well? Where did it break down or require human intervention?
+What patterns emerged during 2-implement? Where did the TDD loop work well? Where did it break down or require human intervention?
 
 ### Cross-Phase Insights
-Are there connections between Phase A research quality and B-phase planning quality? Are there connections between planning quality and Mode 2 implementation success?
+Are there connections between Phase A research quality and B-phase planning quality? Are there connections between planning quality and 2-implement success?
 
 ### Plugin Improvement Suggestions
 

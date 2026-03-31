@@ -1,5 +1,5 @@
 <!-- ABOUTME: Documentation for the long-horizon-impl plugin. -->
-<!-- ABOUTME: Covers both modes (research-and-plan, implement), all agents, strategies, escalation types, and usage. -->
+<!-- ABOUTME: Covers both commands (1-research-and-plan, 2-implement), all agents, strategies, escalation types, and usage. -->
 
 # long-horizon-impl Plugin
 
@@ -7,9 +7,9 @@ Long-horizon implementation plugin — research-driven planning followed by TDD 
 
 ## Overview
 
-The plugin operates in two sequential modes:
+The plugin operates in two sequential steps:
 
-### Mode 1: research-and-plan
+### 1-research-and-plan
 
 Autonomous multi-phase research and planning workflow. Produces a LaTeX research report and a detailed implementation plan.
 
@@ -40,13 +40,13 @@ Autonomous multi-phase research and planning workflow. Produces a LaTeX research
 | B3 Test + Impl Plan | 25% |
 | B4 Cross-Examination | 25% |
 
-### Mode 2: implement
+### 2-implement
 
 TDD feature-by-feature implementation driven by ralph-loop. Each iteration implements one feature, runs tests, and escalates if blocked.
 
 **Invocation:**
 ```
-/ralph-loop:ralph-loop "/long-horizon-impl:implement 'project'" --completion-promise "All features passing or resolved."
+/ralph-loop:ralph-loop "/long-horizon-impl:2-implement 'project'" --completion-promise "All features passing or resolved."
 ```
 
 Anti-slop escalation detects low-quality or stalled output and triggers one of 7 escalation types before continuing.
@@ -64,15 +64,15 @@ When a feature is set to `BLOCKED`, the workflow writes an entry to `.claude/lhi
 
 | Agent | Model | Role |
 |-------|-------|------|
-| long-horizon-impl:researcher | sonnet | Strategy-aware research with evidence gap ratings (Mode 1, Phase A) |
-| long-horizon-impl:methodological-critic | opus | Evaluates source methodology vs claims (Mode 1, Phase A) |
-| long-horizon-impl:repo-analyst | sonnet | Codebase analysis (Mode 1) |
+| long-horizon-impl:researcher | sonnet | Strategy-aware research with evidence gap ratings (Phase A) |
+| long-horizon-impl:methodological-critic | opus | Evaluates source methodology vs claims (Phase A) |
+| long-horizon-impl:repo-analyst | sonnet | Codebase analysis (1-research-and-plan) |
 | long-horizon-impl:latex-compiler | sonnet | LaTeX PDF compilation at phase boundaries |
-| long-horizon-impl:requirements-analyst | opus | Derives functional requirements (Mode 1, Phase B1) |
-| long-horizon-impl:plan-architect | opus | Plan improvement (Mode 1, Phases B2-B3) |
-| long-horizon-impl:plan-critic | opus | Plan scrutiny with evidence-to-decision audit (Modes 1 and 2) |
-| long-horizon-impl:plan-reviewer | opus | Cross-examines all artifacts (Mode 1, Phase B4) |
-| long-horizon-impl:autonomous-coder | opus | TDD with anti-slop escalation (Mode 2) |
+| long-horizon-impl:requirements-analyst | opus | Derives functional requirements (Phase B1) |
+| long-horizon-impl:plan-architect | opus | Plan improvement (Phases B2-B3) |
+| long-horizon-impl:plan-critic | opus | Plan scrutiny with evidence-to-decision audit (1-research-and-plan and 2-implement) |
+| long-horizon-impl:plan-reviewer | opus | Cross-examines all artifacts (Phase B4) |
+| long-horizon-impl:autonomous-coder | opus | TDD with anti-slop escalation (2-implement) |
 
 ## Research Strategies (Phase A)
 
@@ -90,7 +90,7 @@ Used by researcher agent instances in parallel during Phase A:
 | 8 | Depth drill | Follow a single thread deep into primary sources |
 | 9 | Gap identification | Explicitly search for what is NOT known or documented |
 
-## Escalation Types (Mode 2)
+## Escalation Types (2-implement)
 
 When the autonomous-coder agent detects slop, stall, or ambiguity, it triggers one of:
 
@@ -108,10 +108,11 @@ When the autonomous-coder agent detects slop, stall, or ambiguity, it triggers o
 
 | Command | Description |
 |---------|-------------|
-| `/long-horizon-impl:research-and-plan` | Start Mode 1: research + planning workflow |
-| `/long-horizon-impl:implement` | Start Mode 2: TDD implementation (use via ralph-loop) |
+| `/long-horizon-impl:1-research-and-plan` | Start research + planning workflow |
+| `/long-horizon-impl:2-implement` | Start TDD implementation (use via ralph-loop) |
 | `/long-horizon-impl:help` | Show full plugin reference |
 | `/long-horizon-impl:review-learnings` | Synthesize accumulated workflow learnings |
+| `/long-horizon-impl:record-feedback` | Record user feedback about a completed workflow |
 
 ### Budget Flags
 
@@ -128,7 +129,7 @@ When the autonomous-coder agent detects slop, stall, or ambiguity, it triggers o
 | jq | Required | JSON parsing in hooks |
 | MacTeX | Optional | LaTeX PDF compilation of research report |
 | exa MCP | Optional | Web and academic search in Phase A |
-| ralph-loop plugin | Required for Mode 2 | Iteration engine for TDD implementation |
+| ralph-loop plugin | Required for 2-implement | Iteration engine for TDD implementation |
 
 Install yq and jq: `brew install yq jq`
 
@@ -161,15 +162,15 @@ Review and synthesize all accumulated learnings:
 
 ## Cost Estimate
 
-| Mode | Iterations | Estimated Cost |
-|------|-----------|----------------|
-| Mode 1 (30 research + 20 plan) | 50 total | $30–80 |
-| Mode 2 (per feature, via ralph-loop) | varies | $1–5 per feature |
+| Command | Iterations | Estimated Cost |
+|---------|-----------|----------------|
+| 1-research-and-plan (30 research + 20 plan) | 50 total | $30–80 |
+| 2-implement (per feature, via ralph-loop) | varies | $1–5 per feature |
 
-Always set `--max-iterations` when invoking ralph-loop for Mode 2. 50 iterations can cost $50–100+ in API costs.
+Always set `--max-iterations` when invoking ralph-loop for 2-implement. 50 iterations can cost $50–100+ in API costs.
 
-## Mode 2 Invocation
+## 2-implement Invocation
 
 ```
-/ralph-loop:ralph-loop "/long-horizon-impl:implement 'project'" --completion-promise "All features passing or resolved."
+/ralph-loop:ralph-loop "/long-horizon-impl:2-implement 'project'" --completion-promise "All features passing or resolved."
 ```

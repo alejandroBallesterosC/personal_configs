@@ -118,7 +118,7 @@ case "$WORKFLOW_TYPE" in
     ;;
 esac
 
-# Planning artifacts are relevant for research-plan mode
+# Planning artifacts are relevant for 1-research-and-plan
 case "$WORKFLOW_TYPE" in
   lhi-research-plan)
     RESTORE_FILES="${RESTORE_FILES}
@@ -129,7 +129,7 @@ case "$WORKFLOW_TYPE" in
     ;;
 esac
 
-# Feature list, escalations, and progress are relevant for implement mode
+# Feature list, escalations, and progress are relevant for 2-implement
 case "$WORKFLOW_TYPE" in
   lhi-implement)
     RESTORE_FILES="${RESTORE_FILES}
