@@ -10,15 +10,15 @@ Tools for exporting conversation history, reading past sessions, and getting fee
 
 | Command | Purpose |
 |---------|---------|
-| `/claude-session-feedback:export-conversation` | Export current conversation to `.claude/history/` as timestamped `.txt` file with summary |
-| `/claude-session-feedback:read-conversation-history` | Browse previously exported conversations in `.claude/history/` |
+| `/claude-session-feedback:export-conversation` | Export current conversation to `.plugin-state/session-feedback/history/` as timestamped `.txt` file with summary |
+| `/claude-session-feedback:read-conversation-history` | Browse previously exported conversations in `.plugin-state/session-feedback/history/` |
 | `/claude-session-feedback:provide-user-feedback` | Get feedback on your Claude Code usage informed by recent best practices from Anthropic engineers |
 | `/claude-session-feedback:research-best-practices <prompt>` | Research Claude Code best practices from official docs and expert sources, then answer a question |
 
 ## Conversation History Format
 
 Exported conversations are stored as plain text files:
-- **Location**: `.claude/history/` (created if it does not exist)
+- **Location**: `.plugin-state/session-feedback/history/` (created if it does not exist)
 - **Filename**: `DD-MM-YY__HH-MM-SS.txt` (ET timezone, 24-hour format)
 - **Content**: Summary at top, followed by conversation transcript
 

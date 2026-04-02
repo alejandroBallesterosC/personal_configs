@@ -74,7 +74,7 @@ After each session the plugin writes a structured learnings file capturing:
 
 **Storage location:** `~/.claude/plugin-learnings/research-report/`
 
-**Per-project override:** Create `.claude/research-report.local.md` in the project root with YAML frontmatter:
+**Per-project override:** Create `.plugin-state/research-report.local.md` in the project root with YAML frontmatter:
 
 ```yaml
 ---

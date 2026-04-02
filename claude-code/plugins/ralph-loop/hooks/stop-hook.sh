@@ -12,13 +12,13 @@ REPO_ROOT="${REPO_ROOT:-.}"
 cd "$REPO_ROOT"
 
 # Debug log file for diagnosing ralph-loop state file removal
-DEBUG_FILE=".claude/ralph-debug.log"
+DEBUG_FILE=".plugin-state/ralph-debug.log"
 
 debug_log() {
   local reason="$1"
   local timestamp
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  mkdir -p .claude
+  mkdir -p .plugin-state
   {
     echo "## $timestamp"
     echo ""
@@ -26,10 +26,10 @@ debug_log() {
     echo ""
     echo "**Working directory:** $(pwd)"
     echo ""
-    if [[ -f ".claude/ralph-loop.local.md" ]]; then
+    if [[ -f ".plugin-state/ralph-loop.local.md" ]]; then
       echo "**State file contents at time of removal:**"
       echo '```'
-      cat ".claude/ralph-loop.local.md"
+      cat ".plugin-state/ralph-loop.local.md"
       echo '```'
     else
       echo "**State file:** did not exist"
@@ -54,7 +54,7 @@ debug_log() {
 HOOK_INPUT=$(cat)
 
 # Check if ralph-loop is active
-RALPH_STATE_FILE=".claude/ralph-loop.local.md"
+RALPH_STATE_FILE=".plugin-state/ralph-loop.local.md"
 
 if [[ ! -f "$RALPH_STATE_FILE" ]]; then
   # No active loop - allow exit

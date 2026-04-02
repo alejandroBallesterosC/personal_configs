@@ -29,7 +29,7 @@ Run ONE ITERATION of research (Phase A) or planning (Phase B) for the given proj
 
 ## STEP 1: Initialize or Resume
 
-Check if `.claude/lhi-$1-research-state.md` exists.
+Check if `.plugin-state/lhi-$1-research-state.md` exists.
 
 ### If state file does NOT exist (first iteration):
 
@@ -53,7 +53,7 @@ Check if `.claude/lhi-$1-research-state.md` exists.
    - `research_budget` from `--research-iterations` (default: 30)
    - `planning_budget` from `--plan-iterations` (default: 20)
 
-6. Create state file `.claude/lhi-$1-research-state.md`:
+6. Create state file `.plugin-state/lhi-$1-research-state.md`:
    ```yaml
    ---
    workflow_type: lhi-research-plan
@@ -113,7 +113,7 @@ Check if `.claude/lhi-$1-research-state.md` exists.
    1. [Derive 5 initial questions focused on technical feasibility, competitive landscape, architecture patterns, defensibility, and technology stack]
 
    ## Context Restoration Files
-   1. .claude/lhi-$1-research-state.md (this file)
+   1. .plugin-state/lhi-$1-research-state.md (this file)
    2. docs/long-horizon-impl/$1/research/$1-report.tex
    3. docs/long-horizon-impl/$1/planning/$1-scoping-questions.md (after B0)
    4. docs/long-horizon-impl/$1/planning/$1-functional-requirements.md (after B1)
@@ -237,7 +237,7 @@ Count changes as contributions: each NARROW/DOWNGRADE/REMOVAL counts as one cont
 
 When a **FLAG_FOR_REMOVAL** verdict is issued, write a learning about the source quality pattern:
 
-1. Resolve the learnings directory: read `.claude/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
+1. Resolve the learnings directory: read `.plugin-state/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Write a learning file named `YYYY-MM-DD-$1-source-quality.md` (using today's date) with:
    ```yaml
@@ -398,7 +398,7 @@ After updating the report, update `docs/long-horizon-impl/$1/research/research-p
 
 ### Step A5: Update State File
 
-Update `.claude/lhi-$1-research-state.md`:
+Update `.plugin-state/lhi-$1-research-state.md`:
 
 1. Increment `iteration` by 1
 2. Update `total_iterations_research`
@@ -453,7 +453,7 @@ If `consecutive_low_contributions >= strategy_rotation_threshold`:
 
 When rotation is triggered due to low contributions, write a learning about which strategy underperformed:
 
-1. Resolve the learnings directory: read `.claude/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
+1. Resolve the learnings directory: read `.plugin-state/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Write a learning file named `YYYY-MM-DD-$1-strategy-rotation.md` (using today's date) with:
    ```yaml
@@ -518,9 +518,9 @@ If `total_iterations_research >= research_budget`:
 
 4. **Update research state**:
    - Mark Phase A as complete in the checklist
-   - Set `status: complete` in `.claude/lhi-$1-research-state.md`
+   - Set `status: complete` in `.plugin-state/lhi-$1-research-state.md`
 
-5. **Create implementation state file** at `.claude/lhi-$1-implementation-state.md`:
+5. **Create implementation state file** at `.plugin-state/lhi-$1-implementation-state.md`:
    ```yaml
    ---
    workflow_type: lhi-research-plan
@@ -568,7 +568,7 @@ If `total_iterations_research >= research_budget`:
    - Blocker issues: 0
 
    ## Context Restoration Files
-   1. .claude/lhi-$1-implementation-state.md (this file)
+   1. .plugin-state/lhi-$1-implementation-state.md (this file)
    2. docs/long-horizon-impl/$1/research/$1-report.tex
    3. docs/long-horizon-impl/$1/planning/$1-scoping-questions.md (after B0)
    4. docs/long-horizon-impl/$1/planning/$1-functional-requirements.md (after B1)
@@ -719,7 +719,7 @@ Aim for **15-30 questions** total. Quality over quantity — each question shoul
 
    To resume:
    1. Answer the questions in the scoping questions file
-   2. Update .claude/lhi-$1-implementation-state.md:
+   2. Update .plugin-state/lhi-$1-implementation-state.md:
       - Set status: in_progress
       - Set planning_sub_phase: "B1"
       - Set planning_sub_phase_iteration: 0
@@ -867,7 +867,7 @@ Focus: Are requirements contradictory? Are external dependency requirements real
 
 When a BLOCKER issue is raised by a plan-critic agent, write a learning about the blocker:
 
-1. Resolve the learnings directory: read `.claude/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
+1. Resolve the learnings directory: read `.plugin-state/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Write a learning file named `YYYY-MM-DD-$1-blocker-B1.md` (using today's date) with:
    ```yaml
@@ -982,7 +982,7 @@ Write to `docs/long-horizon-impl/$1/planning/$1-architecture-plan.md`:
 
 When a BLOCKER issue is raised by a plan-critic agent, write a learning about the blocker:
 
-1. Resolve the learnings directory: read `.claude/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
+1. Resolve the learnings directory: read `.plugin-state/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Write a learning file named `YYYY-MM-DD-$1-blocker-B2.md` (using today's date) with:
    ```yaml
@@ -1110,7 +1110,7 @@ See docs/long-horizon-impl/$1/planning/$1-architecture-plan.md
 
 When a BLOCKER issue is raised by a plan-critic agent, write a learning about the blocker:
 
-1. Resolve the learnings directory: read `.claude/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
+1. Resolve the learnings directory: read `.plugin-state/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Write a learning file named `YYYY-MM-DD-$1-blocker-B3.md` (using today's date) with:
    ```yaml
@@ -1196,7 +1196,7 @@ Focus: test coverage gaps, feasibility concerns, research-plan contradictions, p
 
 When a BLOCKER issue is raised during cross-examination, write a learning about the blocker:
 
-1. Resolve the learnings directory: read `.claude/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
+1. Resolve the learnings directory: read `.plugin-state/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Write a learning file named `YYYY-MM-DD-$1-blocker-B4.md` (using today's date) with:
    ```yaml
@@ -1222,7 +1222,7 @@ When a BLOCKER issue is raised during cross-examination, write a learning about 
 When `planning_sub_phase_iteration >= b4_budget`:
 
 1. Mark `Phase B4: Cross-Examination` as complete in checklist
-2. Set `status: complete` in `.claude/lhi-$1-implementation-state.md`
+2. Set `status: complete` in `.plugin-state/lhi-$1-implementation-state.md`
 3. **Compile research report** (final version):
    Spawn `long-horizon-impl:latex-compiler`
 4. Send macOS notification:
@@ -1234,7 +1234,7 @@ When `planning_sub_phase_iteration >= b4_budget`:
 
 After setting `status: complete`, write a completion retrospective:
 
-1. Resolve the learnings directory: read `.claude/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
+1. Resolve the learnings directory: read `.plugin-state/long-horizon-impl.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/long-horizon-impl/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Read all 4 planning artifacts and the original prompt from the state file.
 4. Write a learning file named `YYYY-MM-DD-$1-completion-review.md` (using today's date) with:

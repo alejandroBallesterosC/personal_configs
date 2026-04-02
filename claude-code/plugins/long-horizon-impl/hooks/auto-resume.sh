@@ -8,13 +8,13 @@ REPO_ROOT="${REPO_ROOT:-.}"
 cd "$REPO_ROOT"
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/lhi-auto-resume-debug.log"
+DEBUG_FILE=".plugin-state/lhi-auto-resume-debug.log"
 
 debug_log() {
   local msg="$1"
   local timestamp
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  mkdir -p .claude
+  mkdir -p .plugin-state
   {
     echo "## $timestamp"
     echo ""
@@ -64,10 +64,10 @@ else
 fi
 
 # Find active long-horizon-impl workflow state file
-# State files live at .claude/lhi-<topic>-{implementation,research}-state.md
+# State files live at .plugin-state/lhi-<topic>-{implementation,research}-state.md
 # Check implementation state files first (later phases take priority)
 ACTIVE_STATE=""
-for state_file in .claude/lhi-*-implementation-state.md; do
+for state_file in .plugin-state/lhi-*-implementation-state.md; do
   [ -f "$state_file" ] || continue
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
   if [ "$status" = "in_progress" ]; then
@@ -78,7 +78,7 @@ done
 
 # If no implementation state, check research state files
 if [ -z "$ACTIVE_STATE" ]; then
-  for state_file in .claude/lhi-*-research-state.md; do
+  for state_file in .plugin-state/lhi-*-research-state.md; do
     [ -f "$state_file" ] || continue
     status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
     if [ "$status" = "in_progress" ]; then
@@ -134,8 +134,8 @@ case "$WORKFLOW_TYPE" in
   lhi-implement)
     RESTORE_FILES="${RESTORE_FILES}
 - \`${PLANNING_DIR}/${NAME}-implementation-plan.md\` (implementation plan)
-- \`.claude/lhi-${NAME}-feature-list.json\` (implementation tracker)
-- \`.claude/lhi-${NAME}-escalations.json\` (escalation tracker)
+- \`.plugin-state/lhi-${NAME}-feature-list.json\` (implementation tracker)
+- \`.plugin-state/lhi-${NAME}-escalations.json\` (escalation tracker)
 - \`${IMPL_DIR}/progress.txt\` (progress log)"
     ;;
 esac

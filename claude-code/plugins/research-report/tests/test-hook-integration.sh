@@ -1,6 +1,6 @@
 #!/bin/bash
 # ABOUTME: Integration tests for research-report plugin hooks.
-# ABOUTME: Verifies hooks create append-only debug logs in .claude/ and produce correct output in a real repo context.
+# ABOUTME: Verifies hooks create append-only debug logs in .plugin-state/ and produce correct output in a real repo context.
 
 set -euo pipefail
 
@@ -17,7 +17,7 @@ TEST_DIR=""
 
 setup() {
   TEST_DIR=$(mktemp -d)
-  mkdir -p "$TEST_DIR/.claude"
+  mkdir -p "$TEST_DIR/.plugin-state"
   # Initialize as a git repo so hooks can find repo root
   git -C "$TEST_DIR" init -q
 }
@@ -89,7 +89,7 @@ echo ""
 # --- Test 1: Stop hook creates debug log on first run ---
 echo "--- Test 1: Stop hook creates debug log on first run ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-stop-hook-debug.log"
+LOG="$TEST_DIR/.plugin-state/research-report-stop-hook-debug.log"
 assert_file_not_exists "$LOG" "log does not exist before first run"
 cd "$TEST_DIR" && echo '{}' | bash "$STOP_HOOK" 2>/dev/null
 assert_file_exists "$LOG" "log created after first run"
@@ -100,7 +100,7 @@ teardown
 echo ""
 echo "--- Test 2: Stop hook log is append-only ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-stop-hook-debug.log"
+LOG="$TEST_DIR/.plugin-state/research-report-stop-hook-debug.log"
 cd "$TEST_DIR"
 echo '{}' | bash "$STOP_HOOK" 2>/dev/null
 SIZE_1=$(wc -c < "$LOG" | tr -d ' ')
@@ -117,7 +117,7 @@ teardown
 echo ""
 echo "--- Test 3: Stop hook log contains timestamps ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-stop-hook-debug.log"
+LOG="$TEST_DIR/.plugin-state/research-report-stop-hook-debug.log"
 cd "$TEST_DIR" && echo '{}' | bash "$STOP_HOOK" 2>/dev/null
 CONTENT=$(cat "$LOG")
 cd - > /dev/null
@@ -129,7 +129,7 @@ teardown
 echo ""
 echo "--- Test 4: Stop hook log contains working directory ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-stop-hook-debug.log"
+LOG="$TEST_DIR/.plugin-state/research-report-stop-hook-debug.log"
 cd "$TEST_DIR" && echo '{}' | bash "$STOP_HOOK" 2>/dev/null
 CONTENT=$(cat "$LOG")
 cd - > /dev/null
@@ -140,7 +140,7 @@ teardown
 echo ""
 echo "--- Test 5: Stop hook log records no-workflow outcome ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-stop-hook-debug.log"
+LOG="$TEST_DIR/.plugin-state/research-report-stop-hook-debug.log"
 cd "$TEST_DIR" && echo '{}' | bash "$STOP_HOOK" 2>/dev/null
 CONTENT=$(cat "$LOG")
 cd - > /dev/null
@@ -151,7 +151,7 @@ teardown
 echo ""
 echo "--- Test 6: Auto-resume creates debug log on first run ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-auto-resume-debug.log"
+LOG="$TEST_DIR/.plugin-state/research-report-auto-resume-debug.log"
 assert_file_not_exists "$LOG" "log does not exist before first run"
 cd "$TEST_DIR" && echo '{"source":"compact"}' | bash "$AUTO_RESUME" 2>/dev/null
 assert_file_exists "$LOG" "log created after first run"
@@ -162,7 +162,7 @@ teardown
 echo ""
 echo "--- Test 7: Auto-resume log is append-only ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-auto-resume-debug.log"
+LOG="$TEST_DIR/.plugin-state/research-report-auto-resume-debug.log"
 cd "$TEST_DIR"
 echo '{"source":"compact"}' | bash "$AUTO_RESUME" 2>/dev/null
 SIZE_1=$(wc -c < "$LOG" | tr -d ' ')
@@ -176,7 +176,7 @@ teardown
 echo ""
 echo "--- Test 8: Auto-resume log contains timestamps ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-auto-resume-debug.log"
+LOG="$TEST_DIR/.plugin-state/research-report-auto-resume-debug.log"
 cd "$TEST_DIR" && echo '{"source":"compact"}' | bash "$AUTO_RESUME" 2>/dev/null
 CONTENT=$(cat "$LOG")
 cd - > /dev/null
@@ -187,7 +187,7 @@ teardown
 echo ""
 echo "--- Test 9: Auto-resume skips non-compact sources but still logs ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-auto-resume-debug.log"
+LOG="$TEST_DIR/.plugin-state/research-report-auto-resume-debug.log"
 cd "$TEST_DIR" && echo '{"source":"init"}' | bash "$AUTO_RESUME" 2>/dev/null
 cd - > /dev/null
 # Log may or may not be created for non-compact sources depending on implementation
@@ -199,8 +199,8 @@ teardown
 echo ""
 echo "--- Test 10: Stop hook with active workflow logs the action taken ---"
 setup
-LOG="$TEST_DIR/.claude/research-report-stop-hook-debug.log"
-cat > "$TEST_DIR/.claude/research-report-test-topic-state.md" << 'STATE'
+LOG="$TEST_DIR/.plugin-state/research-report-stop-hook-debug.log"
+cat > "$TEST_DIR/.plugin-state/research-report-test-topic-state.md" << 'STATE'
 ---
 workflow_type: research-report
 name: test-topic
@@ -225,8 +225,8 @@ teardown
 echo ""
 echo "--- Test 11: Log files do not contain autonomous-workflow references ---"
 setup
-LOG_STOP="$TEST_DIR/.claude/research-report-stop-hook-debug.log"
-LOG_RESUME="$TEST_DIR/.claude/research-report-auto-resume-debug.log"
+LOG_STOP="$TEST_DIR/.plugin-state/research-report-stop-hook-debug.log"
+LOG_RESUME="$TEST_DIR/.plugin-state/research-report-auto-resume-debug.log"
 cd "$TEST_DIR"
 echo '{}' | bash "$STOP_HOOK" 2>/dev/null
 echo '{"source":"compact"}' | bash "$AUTO_RESUME" 2>/dev/null

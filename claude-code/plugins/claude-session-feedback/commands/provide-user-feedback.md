@@ -13,7 +13,7 @@ Review this conversation's history to provide the user feedback informed by cred
 3. Write feedback to the user about what they did well and what they did poorly when using Claude Code to accomplish their goal based on the information you found online.
 s
 ## Guidelines:
-- Write the feedback as a plain text (.txt) file in .claude/feedback (create this directory if it does not yet exist).
+- Write the feedback as a plain text (.txt) file in .plugin-state/session-feedback/feedback (create this directory if it does not yet exist).
 - The file title should be the datetime of the start of the conversation 'DD-MM-YY__HH-MM-SS.txt' (military time standardized to ET time zone)
 
 ## Critical Constraint

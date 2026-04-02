@@ -26,7 +26,7 @@ Run ONE ITERATION of deep research on the given topic. Each iteration: read stat
 
 ## STEP 1: Initialize or Resume
 
-Check if `.claude/research-report-$1-state.md` exists.
+Check if `.plugin-state/research-report-$1-state.md` exists.
 
 ### If state file does NOT exist (first iteration):
 
@@ -77,7 +77,7 @@ Check if `.claude/research-report-$1-state.md` exists.
 
 5. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 30.
 
-6. Create state file `.claude/research-report-$1-state.md` with YAML frontmatter:
+6. Create state file `.plugin-state/research-report-$1-state.md` with YAML frontmatter:
    ```yaml
    ---
    workflow_type: research-report
@@ -126,7 +126,7 @@ Check if `.claude/research-report-$1-state.md` exists.
    2. ...
 
    ## Context Restoration Files
-   1. .claude/research-report-$1-state.md (this file)
+   1. .plugin-state/research-report-$1-state.md (this file)
    2. docs/research-report/$1/$1-report.tex
    3. docs/research-report/$1/research-progress.md
    4. CLAUDE.md
@@ -134,7 +134,7 @@ Check if `.claude/research-report-$1-state.md` exists.
 
 ### If state file EXISTS (resuming):
 
-1. Read `.claude/research-report-$1-state.md` to get current state
+1. Read `.plugin-state/research-report-$1-state.md` to get current state
 2. Read `docs/research-report/$1/$1-report.tex` to understand what research has been done
 3. Read `docs/research-report/$1/research-progress.md` for high-level research progress
 4. Extract open questions and gaps from the state file
@@ -245,7 +245,7 @@ Count changes as contributions: each NARROW/DOWNGRADE/REMOVAL counts as one cont
 
 When a **FLAG_FOR_REMOVAL** verdict is issued, write a learning about the source quality pattern:
 
-1. Resolve the learnings directory: read `.claude/research-report.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`.
+1. Resolve the learnings directory: read `.plugin-state/research-report.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Write a learning file named `YYYY-MM-DD-$1-source-quality.md` (using today's date) with:
    ```yaml
@@ -414,7 +414,7 @@ After updating the report, update `docs/research-report/$1/research-progress.md`
 
 ## STEP 6: Update State File
 
-Update `.claude/research-report-$1-state.md`:
+Update `.plugin-state/research-report-$1-state.md`:
 
 1. Increment `iteration` by 1
 2. Update `total_iterations_research`
@@ -471,7 +471,7 @@ If `consecutive_low_contributions >= strategy_rotation_threshold`:
 
 When rotation is triggered due to low contributions, write a learning about which strategy underperformed:
 
-1. Resolve the learnings directory: read `.claude/research-report.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`.
+1. Resolve the learnings directory: read `.plugin-state/research-report.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Write a learning file named `YYYY-MM-DD-$1-strategy-rotation.md` (using today's date) with:
    ```yaml
@@ -725,7 +725,7 @@ After PDF verification passes (or if pdflatex is not installed):
 
 After setting `status: complete`, write a completion retrospective learning:
 
-1. Resolve the learnings directory: read `.claude/research-report.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`.
+1. Resolve the learnings directory: read `.plugin-state/research-report.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`.
 2. Run `mkdir -p` on the learnings directory.
 3. Read the final report (`docs/research-report/$1/$1-report.tex`) and the original prompt from the state file.
 4. Write a learning file named `YYYY-MM-DD-$1-completion-review.md` (using today's date) with:

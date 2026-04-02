@@ -24,7 +24,7 @@ Implement features from an approved plan using strict TDD. Each iteration picks 
 
 ## STEP 1: Initialize or Resume
 
-Check if `.claude/lhi-$1-implementation-state.md` exists.
+Check if `.plugin-state/lhi-$1-implementation-state.md` exists.
 
 ### If state file does NOT exist (first run):
 
@@ -44,17 +44,17 @@ If NO implementation plan found, output error and stop.
 #### Initialize State
 
 1. Create `docs/long-horizon-impl/$1/implementation/` and `transcripts/` subdirectory
-2. Create escalation file `.claude/lhi-$1-escalations.json`:
+2. Create escalation file `.plugin-state/lhi-$1-escalations.json`:
    ```json
    { "project": "$1", "escalations": [] }
    ```
 3. Create `docs/long-horizon-impl/$1/implementation/progress.txt`
-4. Create state file `.claude/lhi-$1-implementation-state.md` with `workflow_type: lhi-implement`, `command: /long-horizon-impl:2-implement`, `features_blocked: 0`
+4. Create state file `.plugin-state/lhi-$1-implementation-state.md` with `workflow_type: lhi-implement`, `command: /long-horizon-impl:2-implement`, `features_blocked: 0`
 
 ### If state file EXISTS:
 
 1. Read state file
-2. Check `.claude/lhi-$1-escalations.json` for newly resolved escalations
+2. Check `.plugin-state/lhi-$1-escalations.json` for newly resolved escalations
 3. If `feature-list.json` exists: skip to STEP 3
 4. If not: proceed to STEP 2
 
@@ -86,7 +86,7 @@ Decompose plan into features:
 }
 ```
 
-Write to `.claude/lhi-$1-feature-list.json`.
+Write to `.plugin-state/lhi-$1-feature-list.json`.
 
 ---
 
@@ -94,7 +94,7 @@ Write to `.claude/lhi-$1-feature-list.json`.
 
 ### Check for Resolved Escalations
 
-Read `.claude/lhi-$1-escalations.json`. For each `resolved: true` escalation where feature is still `blocked: true`: unblock the feature, log to progress.txt.
+Read `.plugin-state/lhi-$1-escalations.json`. For each `resolved: true` escalation where feature is still `blocked: true`: unblock the feature, log to progress.txt.
 
 ### Find Next Feature
 
@@ -109,19 +109,19 @@ Task tool with subagent_type='long-horizon-impl:autonomous-coder'
 prompt: "Implement feature using TDD:
 - Feature spec from feature-list.json
 - Read all 4 planning artifacts
-- Escalation file: .claude/lhi-$1-escalations.json
+- Escalation file: .plugin-state/lhi-$1-escalations.json
 CRITICAL: If you need an API key or hit any external blocker — DO NOT mock it. Escalate."
 ```
 
 ### Process Result
 
 **PASSING**: Set `passes: true`, log, notify.
-**FEATURE_BLOCKED**: Set `blocked: true`, log, verify escalation written, notify. Write a learning about the blocker type and whether anti-slop rules correctly identified it. Learnings directory from `.claude/long-horizon-impl.local.md` config, default `~/.claude/plugin-learnings/long-horizon-impl/`. File: `YYYY-MM-DD-$1-escalation-<feature_id>.md`. Continue to next feature.
-**FEATURE_FAILED**: Set `failed: true`, log, notify. Write a learning about what caused the failure after 3 attempts. Learnings directory from `.claude/long-horizon-impl.local.md` config, default `~/.claude/plugin-learnings/long-horizon-impl/`. File: `YYYY-MM-DD-$1-failure-<feature_id>.md`.
+**FEATURE_BLOCKED**: Set `blocked: true`, log, verify escalation written, notify. Write a learning about the blocker type and whether anti-slop rules correctly identified it. Learnings directory from `.plugin-state/long-horizon-impl.local.md` config, default `~/.claude/plugin-learnings/long-horizon-impl/`. File: `YYYY-MM-DD-$1-escalation-<feature_id>.md`. Continue to next feature.
+**FEATURE_FAILED**: Set `failed: true`, log, notify. Write a learning about what caused the failure after 3 attempts. Learnings directory from `.plugin-state/long-horizon-impl.local.md` config, default `~/.claude/plugin-learnings/long-horizon-impl/`. File: `YYYY-MM-DD-$1-failure-<feature_id>.md`.
 
 ### All Features Resolved
 
-When all features passed or failed (none blocked): set `status: complete`, output summary. Write a completion retrospective reviewing implementation against the plan and original intent. Learnings directory from `.claude/long-horizon-impl.local.md` config, default `~/.claude/plugin-learnings/long-horizon-impl/`. File: `YYYY-MM-DD-$1-implementation-review.md`.
+When all features passed or failed (none blocked): set `status: complete`, output summary. Write a completion retrospective reviewing implementation against the plan and original intent. Learnings directory from `.plugin-state/long-horizon-impl.local.md` config, default `~/.claude/plugin-learnings/long-horizon-impl/`. File: `YYYY-MM-DD-$1-implementation-review.md`.
 
 ### Blocked Features Remaining
 

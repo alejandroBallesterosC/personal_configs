@@ -9,13 +9,13 @@ REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
 cd "$REPO_ROOT"
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/lhi-stop-hook-debug.log"
+DEBUG_FILE=".plugin-state/lhi-stop-hook-debug.log"
 
 debug_log() {
   local msg="$1"
   local timestamp
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  mkdir -p .claude
+  mkdir -p .plugin-state
   {
     echo "## $timestamp"
     echo ""
@@ -54,7 +54,7 @@ cat > /dev/null
 ACTIVE_STATE=""
 
 # First pass: find in_progress or waiting_for_input files (implementation state takes priority over research state)
-for state_file in .claude/lhi-*-implementation-state.md; do
+for state_file in .plugin-state/lhi-*-implementation-state.md; do
   [ -f "$state_file" ] || continue
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
   if [ "$status" = "in_progress" ] || [ "$status" = "waiting_for_input" ]; then
@@ -63,7 +63,7 @@ for state_file in .claude/lhi-*-implementation-state.md; do
   fi
 done
 if [ -z "$ACTIVE_STATE" ]; then
-  for state_file in .claude/lhi-*-research-state.md; do
+  for state_file in .plugin-state/lhi-*-research-state.md; do
     [ -f "$state_file" ] || continue
     status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
     if [ "$status" = "in_progress" ]; then
@@ -75,7 +75,7 @@ fi
 
 # Second pass: if no in_progress found, check for complete files needing verification
 if [ -z "$ACTIVE_STATE" ]; then
-  for state_file in .claude/lhi-*-implementation-state.md; do
+  for state_file in .plugin-state/lhi-*-implementation-state.md; do
     [ -f "$state_file" ] || continue
     status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
     if [ "$status" = "complete" ]; then
@@ -85,7 +85,7 @@ if [ -z "$ACTIVE_STATE" ]; then
   done
 fi
 if [ -z "$ACTIVE_STATE" ]; then
-  for state_file in .claude/lhi-*-research-state.md; do
+  for state_file in .plugin-state/lhi-*-research-state.md; do
     [ -f "$state_file" ] || continue
     status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
     if [ "$status" = "complete" ]; then
@@ -211,7 +211,7 @@ if [ "$STATUS" = "complete" ]; then
     lhi-implement)
       # lhi-implement uses ralph-loop for iteration, so the stop hook should generally allow stop.
       # Only verify that if status is complete, all features are resolved (passed, failed, or blocked).
-      FEATURE_LIST=".claude/lhi-${TOPIC_NAME}-feature-list.json"
+      FEATURE_LIST=".plugin-state/lhi-${TOPIC_NAME}-feature-list.json"
       if [ -f "$FEATURE_LIST" ]; then
         TOTAL_FEATURES=$(jq '.features | length' "$FEATURE_LIST" 2>/dev/null || echo "0")
         RESOLVED_FEATURES=$(jq '[.features[] | select(.passes == true or .failed == true)] | length' "$FEATURE_LIST" 2>/dev/null || echo "0")
@@ -242,8 +242,8 @@ if [ "$STATUS" = "complete" ]; then
 
   # Clean up state files for completed workflow
   rm -f "$ACTIVE_STATE"
-  rm -f ".claude/lhi-${TOPIC_NAME}-research-state.md"
-  rm -f ".claude/lhi-${TOPIC_NAME}-implementation-state.md"
+  rm -f ".plugin-state/lhi-${TOPIC_NAME}-research-state.md"
+  rm -f ".plugin-state/lhi-${TOPIC_NAME}-implementation-state.md"
   debug_log "**Cleaned up:** Removed state files for topic '${TOPIC_NAME}'"
 
   debug_log "**Allowing stop:** Status is complete and all verification checks passed for $WORKFLOW_TYPE."

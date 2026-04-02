@@ -9,13 +9,13 @@ REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
 cd "$REPO_ROOT"
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/research-report-stop-hook-debug.log"
+DEBUG_FILE=".plugin-state/research-report-stop-hook-debug.log"
 
 debug_log() {
   local msg="$1"
   local timestamp
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  mkdir -p .claude
+  mkdir -p .plugin-state
   {
     echo "## $timestamp"
     echo ""
@@ -53,7 +53,7 @@ cat > /dev/null
 ACTIVE_STATE=""
 
 # Single pass: find in_progress research-report state files
-for state_file in .claude/research-report-*-state.md; do
+for state_file in .plugin-state/research-report-*-state.md; do
   [ -f "$state_file" ] || continue
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
   if [ "$status" = "in_progress" ]; then
@@ -64,7 +64,7 @@ done
 
 # Second pass: check for complete files needing verification
 if [ -z "$ACTIVE_STATE" ]; then
-  for state_file in .claude/research-report-*-state.md; do
+  for state_file in .plugin-state/research-report-*-state.md; do
     [ -f "$state_file" ] || continue
     status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
     if [ "$status" = "complete" ]; then
@@ -186,7 +186,7 @@ if [ "$STATUS" = "complete" ]; then
   fi
 
   # Clean up state file for completed workflow
-  rm -f ".claude/research-report-${TOPIC_NAME}-state.md"
+  rm -f ".plugin-state/research-report-${TOPIC_NAME}-state.md"
   debug_log "**Cleaned up:** Removed state file for topic '${TOPIC_NAME}'"
 
   debug_log "**Allowing stop:** Status is complete and all verification checks passed for $WORKFLOW_TYPE."

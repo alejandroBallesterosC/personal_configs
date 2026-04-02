@@ -76,7 +76,7 @@ Default: 30 iterations. Cost: ~$0.50–$3.00/iteration.
 
 ### Learnings System
 
-Learnings are stored at `~/.claude/plugin-learnings/research-report/` after each session. Override the directory per-project via `.claude/research-report.local.md` with YAML frontmatter field `learnings_dir`.
+Learnings are stored at `~/.claude/plugin-learnings/research-report/` after each session. Override the directory per-project via `.plugin-state/research-report.local.md` with YAML frontmatter field `learnings_dir`.
 
 Use `research-report:review-learnings` to synthesize patterns across past sessions.
 

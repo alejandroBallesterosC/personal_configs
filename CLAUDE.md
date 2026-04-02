@@ -88,6 +88,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - `long-horizon-impl` 1-research-and-plan uses its own Stop hook for iteration; 2-implement uses ralph-loop
 - Running TDD and research/impl workflows simultaneously may cause SessionStart hook context loss (both output independently, no merging)
 - `autonomous-workflow/` directory still exists but is superseded by `research-report/` and `long-horizon-impl/`
+- Plugin state files (debug logs, workflow state, config overrides) are stored in `.plugin-state/` at the project repo root, NOT in `.claude/` — this avoids Claude Code's hardcoded `.claude/` directory write protection (v2.1.78+)
 
 ## Plugin Installation
 

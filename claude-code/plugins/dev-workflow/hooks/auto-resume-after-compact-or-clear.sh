@@ -8,13 +8,13 @@ REPO_ROOT="${REPO_ROOT:-.}"
 cd "$REPO_ROOT"
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/dev-auto-resume-debug.log"
+DEBUG_FILE=".plugin-state/dev-auto-resume-debug.log"
 
 debug_log() {
   local msg="$1"
   local timestamp
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  mkdir -p .claude
+  mkdir -p .plugin-state
   {
     echo "## $timestamp"
     echo ""

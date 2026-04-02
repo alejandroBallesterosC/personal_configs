@@ -96,8 +96,8 @@ create_state() {
   local topic="$1"
   local status="$2"
   local phase="${3:-Phase R: Research}"
-  mkdir -p "$TEST_DIR/.claude"
-  cat > "$TEST_DIR/.claude/research-report-$topic-state.md" << STATEEOF
+  mkdir -p "$TEST_DIR/.plugin-state"
+  cat > "$TEST_DIR/.plugin-state/research-report-$topic-state.md" << STATEEOF
 ---
 workflow_type: research-report
 name: $topic
@@ -135,8 +135,8 @@ STATEEOF
 
 # Reset test directory between tests
 reset_test_dir() {
-  rm -rf "$TEST_DIR/.claude" "$TEST_DIR/docs"
-  mkdir -p "$TEST_DIR/.claude"
+  rm -rf "$TEST_DIR/.plugin-state" "$TEST_DIR/docs"
+  mkdir -p "$TEST_DIR/.plugin-state"
 }
 
 echo "========================================"

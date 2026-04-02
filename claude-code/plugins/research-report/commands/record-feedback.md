@@ -55,7 +55,7 @@ Extract:
 ### Step 4: Write Learning Entry
 
 Resolve the learnings directory:
-1. Check if `.claude/research-report.local.md` exists and has a `learnings_dir` field in YAML frontmatter
+1. Check if `.plugin-state/research-report.local.md` exists and has a `learnings_dir` field in YAML frontmatter
 2. If not, use `~/.claude/plugin-learnings/research-report/`
 3. Create the directory with `mkdir -p` if it doesn't exist
 

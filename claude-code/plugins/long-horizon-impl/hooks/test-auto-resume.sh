@@ -97,8 +97,8 @@ create_research_state() {
   local workflow_type="$2"
   local status="$3"
   local phase="$4"
-  mkdir -p "$TEST_DIR/.claude"
-  cat > "$TEST_DIR/.claude/lhi-$topic-research-state.md" << STATEEOF
+  mkdir -p "$TEST_DIR/.plugin-state"
+  cat > "$TEST_DIR/.plugin-state/lhi-$topic-research-state.md" << STATEEOF
 ---
 workflow_type: $workflow_type
 name: $topic
@@ -139,8 +139,8 @@ create_implementation_state() {
   local workflow_type="$2"
   local status="$3"
   local phase="$4"
-  mkdir -p "$TEST_DIR/.claude"
-  cat > "$TEST_DIR/.claude/lhi-$topic-implementation-state.md" << STATEEOF
+  mkdir -p "$TEST_DIR/.plugin-state"
+  cat > "$TEST_DIR/.plugin-state/lhi-$topic-implementation-state.md" << STATEEOF
 ---
 workflow_type: $workflow_type
 name: $topic
@@ -173,8 +173,8 @@ STATEEOF
 
 # Reset test directory between tests
 reset_test_dir() {
-  rm -rf "$TEST_DIR/.claude" "$TEST_DIR/docs"
-  mkdir -p "$TEST_DIR/.claude"
+  rm -rf "$TEST_DIR/.plugin-state" "$TEST_DIR/docs"
+  mkdir -p "$TEST_DIR/.plugin-state"
 }
 
 echo "========================================"

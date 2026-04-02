@@ -10,7 +10,7 @@ Follow these steps to review and synthesize all accumulated learnings from past 
 
 ## Step 1 — Determine learnings directory
 
-Check for a per-project override by looking for `.claude/research-report.local.md` in the current working directory. If the file exists, read its YAML frontmatter and extract the `learnings_dir` field.
+Check for a per-project override by looking for `.plugin-state/research-report.local.md` in the current working directory. If the file exists, read its YAML frontmatter and extract the `learnings_dir` field.
 
 If no override is found, use the default directory: `~/.claude/plugin-learnings/research-report/`
 

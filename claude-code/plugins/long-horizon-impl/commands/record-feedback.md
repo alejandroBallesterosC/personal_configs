@@ -33,8 +33,8 @@ Check which artifacts exist for this project:
 - `docs/long-horizon-impl/$1/planning/cross-examination-log.md`
 
 **Implementation artifacts** (from 2-implement):
-- `.claude/lhi-$1-feature-list.json`
-- `.claude/lhi-$1-escalations.json`
+- `.plugin-state/lhi-$1-feature-list.json`
+- `.plugin-state/lhi-$1-escalations.json`
 - `docs/long-horizon-impl/$1/implementation/progress.txt`
 
 If the project directory does not exist, tell the user no artifacts were found for project `$1` and ask them to verify the project name.
@@ -84,14 +84,14 @@ Read available artifacts to extract factual metrics (counts, distributions — n
 - Read `cross-examination-log.md` if it exists — count BLOCKERs, CONCERNs, SUGGESTIONs
 
 **From implementation** (if exists):
-- Read `.claude/lhi-$1-feature-list.json` — count passed/failed/blocked features
-- Read `.claude/lhi-$1-escalations.json` — count and categorize escalations by type
+- Read `.plugin-state/lhi-$1-feature-list.json` — count passed/failed/blocked features
+- Read `.plugin-state/lhi-$1-escalations.json` — count and categorize escalations by type
 - Skim `progress.txt` for implementation timeline
 
 ### Step 4: Write Learning Entry
 
 Resolve the learnings directory:
-1. Check if `.claude/long-horizon-impl.local.md` exists and has a `learnings_dir` field in YAML frontmatter
+1. Check if `.plugin-state/long-horizon-impl.local.md` exists and has a `learnings_dir` field in YAML frontmatter
 2. If not, use `~/.claude/plugin-learnings/long-horizon-impl/`
 3. Create the directory with `mkdir -p` if it doesn't exist
 

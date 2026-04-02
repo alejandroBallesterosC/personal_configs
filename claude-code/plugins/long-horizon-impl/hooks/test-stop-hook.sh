@@ -107,7 +107,7 @@ assert_json_field() {
   fi
 }
 
-# Helper: create a research state file at .claude/ path
+# Helper: create a research state file at .plugin-state/ path
 create_research_state() {
   local topic="$1"
   local status="$2"
@@ -116,8 +116,8 @@ create_research_state() {
   local research_budget="$5"
   local iteration="${6:-10}"
   local command="${7:-/long-horizon-impl:1-research-and-plan '$topic' 'test prompt' --research-iterations $research_budget}"
-  mkdir -p "$TEST_DIR/.claude"
-  cat > "$TEST_DIR/.claude/lhi-$topic-research-state.md" << STATEEOF
+  mkdir -p "$TEST_DIR/.plugin-state"
+  cat > "$TEST_DIR/.plugin-state/lhi-$topic-research-state.md" << STATEEOF
 ---
 workflow_type: $workflow_type
 name: $topic
@@ -137,7 +137,7 @@ command: |
 STATEEOF
 }
 
-# Helper: create an implementation state file at .claude/ path
+# Helper: create an implementation state file at .plugin-state/ path
 create_implementation_state() {
   local topic="$1"
   local status="$2"
@@ -148,8 +148,8 @@ create_implementation_state() {
   local planning_budget="$7"
   local iteration="${8:-25}"
   local command="${9:-/long-horizon-impl:1-research-and-plan '$topic' 'test prompt' --research-iterations $research_budget --plan-iterations $planning_budget}"
-  mkdir -p "$TEST_DIR/.claude"
-  cat > "$TEST_DIR/.claude/lhi-$topic-implementation-state.md" << STATEEOF
+  mkdir -p "$TEST_DIR/.plugin-state"
+  cat > "$TEST_DIR/.plugin-state/lhi-$topic-implementation-state.md" << STATEEOF
 ---
 workflow_type: $workflow_type
 name: $topic
@@ -172,17 +172,17 @@ command: |
 STATEEOF
 }
 
-# Helper: create a feature-list.json at .claude/ path
+# Helper: create a feature-list.json at .plugin-state/ path
 create_feature_list() {
   local topic="$1"
   # $2 is the JSON content
-  echo "$2" > "$TEST_DIR/.claude/lhi-$topic-feature-list.json"
+  echo "$2" > "$TEST_DIR/.plugin-state/lhi-$topic-feature-list.json"
 }
 
 # Reset test directory between tests
 reset_test_dir() {
-  rm -rf "$TEST_DIR/.claude"
-  mkdir -p "$TEST_DIR/.claude"
+  rm -rf "$TEST_DIR/.plugin-state"
+  mkdir -p "$TEST_DIR/.plugin-state"
 }
 
 echo "========================================"
@@ -269,7 +269,7 @@ create_research_state "inc-test" "in_progress" "lhi-research-plan" 5 50 10
 EXIT_CODE=0
 run_hook || EXIT_CODE=$?
 # Read back the state file and check iteration was incremented from 10 to 11
-ITERATION_AFTER=$(yq --front-matter=extract '.iteration' "$TEST_DIR/.claude/lhi-inc-test-research-state.md" 2>/dev/null)
+ITERATION_AFTER=$(yq --front-matter=extract '.iteration' "$TEST_DIR/.plugin-state/lhi-inc-test-research-state.md" 2>/dev/null)
 TEST_COUNT=$((TEST_COUNT + 1))
 if [ "$ITERATION_AFTER" = "11" ]; then
   echo -e "  ${GREEN}PASS${NC}: iteration incremented from 10 to 11"
@@ -285,8 +285,8 @@ echo ""
 # ==================================================================
 echo "--- Test 6: Corrupt iteration (non-numeric) — exit 0 with warning ---"
 reset_test_dir
-mkdir -p "$TEST_DIR/.claude"
-cat > "$TEST_DIR/.claude/lhi-corrupt-research-state.md" << 'CORRUPTEOF'
+mkdir -p "$TEST_DIR/.plugin-state"
+cat > "$TEST_DIR/.plugin-state/lhi-corrupt-research-state.md" << 'CORRUPTEOF'
 ---
 workflow_type: lhi-research-plan
 name: corrupt
@@ -415,7 +415,7 @@ assert_exit_code 0 "$EXIT_CODE" "exit code when all checks pass"
 assert_output_empty "$OUTPUT" "no output when all checks pass"
 # Verify state files were deleted
 TEST_COUNT=$((TEST_COUNT + 1))
-if [ ! -f "$TEST_DIR/.claude/lhi-cleanup-test-implementation-state.md" ]; then
+if [ ! -f "$TEST_DIR/.plugin-state/lhi-cleanup-test-implementation-state.md" ]; then
   echo -e "  ${GREEN}PASS${NC}: implementation state file was deleted"
   PASS_COUNT=$((PASS_COUNT + 1))
 else
@@ -423,7 +423,7 @@ else
   FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 TEST_COUNT=$((TEST_COUNT + 1))
-if [ ! -f "$TEST_DIR/.claude/lhi-cleanup-test-research-state.md" ]; then
+if [ ! -f "$TEST_DIR/.plugin-state/lhi-cleanup-test-research-state.md" ]; then
   echo -e "  ${GREEN}PASS${NC}: research state file was deleted"
   PASS_COUNT=$((PASS_COUNT + 1))
 else
@@ -491,7 +491,7 @@ assert_json_field "$OUTPUT" '.decision' "block" "decision is block (should conti
 assert_output_contains "$OUTPUT" "1-research-and-plan" "blocks with research command (not cleanup)"
 # Verify research state file still exists (not cleaned up)
 TEST_COUNT=$((TEST_COUNT + 1))
-if [ -f "$TEST_DIR/.claude/lhi-edge-case-research-state.md" ]; then
+if [ -f "$TEST_DIR/.plugin-state/lhi-edge-case-research-state.md" ]; then
   echo -e "  ${GREEN}PASS${NC}: research state file preserved (not deleted by stale impl cleanup)"
   PASS_COUNT=$((PASS_COUNT + 1))
 else
@@ -515,7 +515,7 @@ assert_exit_code 0 "$EXIT_CODE" "exit code 0 (B0 pause allows stop)"
 assert_output_empty "$OUTPUT" "no output when paused at B0"
 # Verify state files are preserved (not cleaned up)
 TEST_COUNT=$((TEST_COUNT + 1))
-if [ -f "$TEST_DIR/.claude/lhi-b0-test-implementation-state.md" ]; then
+if [ -f "$TEST_DIR/.plugin-state/lhi-b0-test-implementation-state.md" ]; then
   echo -e "  ${GREEN}PASS${NC}: implementation state file preserved during B0 pause"
   PASS_COUNT=$((PASS_COUNT + 1))
 else
@@ -523,7 +523,7 @@ else
   FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 TEST_COUNT=$((TEST_COUNT + 1))
-if [ -f "$TEST_DIR/.claude/lhi-b0-test-research-state.md" ]; then
+if [ -f "$TEST_DIR/.plugin-state/lhi-b0-test-research-state.md" ]; then
   echo -e "  ${GREEN}PASS${NC}: research state file preserved during B0 pause"
   PASS_COUNT=$((PASS_COUNT + 1))
 else

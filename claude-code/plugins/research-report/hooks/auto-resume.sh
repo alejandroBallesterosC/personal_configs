@@ -8,13 +8,13 @@ REPO_ROOT="${REPO_ROOT:-.}"
 cd "$REPO_ROOT"
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/research-report-auto-resume-debug.log"
+DEBUG_FILE=".plugin-state/research-report-auto-resume-debug.log"
 
 debug_log() {
   local msg="$1"
   local timestamp
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  mkdir -p .claude
+  mkdir -p .plugin-state
   {
     echo "## $timestamp"
     echo ""
@@ -64,9 +64,9 @@ else
 fi
 
 # Find active research-report workflow state file
-# State files live at .claude/research-report-<topic>-state.md
+# State files live at .plugin-state/research-report-<topic>-state.md
 ACTIVE_STATE=""
-for state_file in .claude/research-report-*-state.md; do
+for state_file in .plugin-state/research-report-*-state.md; do
   [ -f "$state_file" ] || continue
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
   if [ "$status" = "in_progress" ]; then

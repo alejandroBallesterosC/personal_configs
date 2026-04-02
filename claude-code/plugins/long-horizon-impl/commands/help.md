@@ -146,7 +146,7 @@ Always set `--max-iterations` to control cost. 50 iterations = $50–100+ in API
 
 Learnings are stored as Markdown files at `~/.claude/plugin-learnings/long-horizon-impl/`.
 
-Override per-project by adding to `.claude/long-horizon-impl.local.md`:
+Override per-project by adding to `.plugin-state/long-horizon-impl.local.md`:
 ```yaml
 ---
 learnings_dir: /path/to/custom/learnings/dir

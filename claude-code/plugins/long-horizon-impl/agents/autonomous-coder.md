@@ -38,7 +38,7 @@ $ARGUMENTS
 
 ### How to Escalate
 
-Write a structured escalation entry to the escalation file path provided in your task (or `.claude/lhi-<project>-escalations.json` by default):
+Write a structured escalation entry to the escalation file path provided in your task (or `.plugin-state/lhi-<project>-escalations.json` by default):
 
 ```json
 {

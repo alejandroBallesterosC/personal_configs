@@ -140,7 +140,7 @@ Phase B sub-phases with budget allocation:
 ## Artifacts
 
 ```
-.claude/
+.plugin-state/
 |-- lhi-<topic>-research-state.md
 |-- lhi-<topic>-implementation-state.md
 |-- lhi-<topic>-feature-list.json         (2-implement)
@@ -167,7 +167,7 @@ docs/long-horizon-impl/<topic>/
 ## Learnings System
 
 - **Storage**: `~/.claude/plugin-learnings/long-horizon-impl/` (a directory of Markdown files)
-- **Override config**: Set custom path via `learnings_dir` in `.claude/long-horizon-impl.local.md` YAML frontmatter
+- **Override config**: Set custom path via `learnings_dir` in `.plugin-state/long-horizon-impl.local.md` YAML frontmatter
 - **Review**: Use `/long-horizon-impl:review-learnings` to inspect accumulated learnings
 - Learnings persist across sessions and are consulted during research and implementation phases
 

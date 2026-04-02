@@ -90,7 +90,7 @@ Phase R transitions to Phase S (4 synthesis iterations) when `total_iterations_r
 ## Artifact Directory Tree
 
 ```
-.claude/
+.plugin-state/
 ├── research-report-<topic>-state.md
 └── research-report.local.md          (plugin settings)
 
@@ -108,7 +108,7 @@ docs/research-report/<topic>/
 The research-report plugin writes learnings at key workflow points to help improve future research runs.
 
 ### Learnings Directory Resolution
-1. Read `.claude/research-report.local.md` for a `learnings_dir` YAML field
+1. Read `.plugin-state/research-report.local.md` for a `learnings_dir` YAML field
 2. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`
 3. Run `mkdir -p` on first write
 

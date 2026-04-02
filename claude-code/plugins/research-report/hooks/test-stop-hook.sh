@@ -107,7 +107,7 @@ assert_json_field() {
   fi
 }
 
-# Helper: create a research-report state file at .claude/ path
+# Helper: create a research-report state file at .plugin-state/ path
 create_state() {
   local topic="$1"
   local status="$2"
@@ -117,7 +117,7 @@ create_state() {
   local command="${6:-/research-report:research '$topic' 'test prompt' --research-iterations $research_budget}"
   local current_phase="${7:-Phase R: Research}"
   local synthesis_iteration="${8:-}"
-  mkdir -p "$TEST_DIR/.claude"
+  mkdir -p "$TEST_DIR/.plugin-state"
   {
     echo "---"
     echo "workflow_type: research-report"
@@ -138,13 +138,13 @@ create_state() {
     echo "---"
     echo ""
     echo "# Research Report Workflow State: $topic"
-  } > "$TEST_DIR/.claude/research-report-$topic-state.md"
+  } > "$TEST_DIR/.plugin-state/research-report-$topic-state.md"
 }
 
 # Reset test directory between tests
 reset_test_dir() {
-  rm -rf "$TEST_DIR/.claude"
-  mkdir -p "$TEST_DIR/.claude"
+  rm -rf "$TEST_DIR/.plugin-state"
+  mkdir -p "$TEST_DIR/.plugin-state"
 }
 
 echo "========================================"
@@ -207,7 +207,7 @@ create_state "inc-test" "in_progress" 5 50 10
 EXIT_CODE=0
 run_hook || EXIT_CODE=$?
 # Read back the state file and check iteration was incremented from 10 to 11
-ITERATION_AFTER=$(yq --front-matter=extract '.iteration' "$TEST_DIR/.claude/research-report-inc-test-state.md" 2>/dev/null)
+ITERATION_AFTER=$(yq --front-matter=extract '.iteration' "$TEST_DIR/.plugin-state/research-report-inc-test-state.md" 2>/dev/null)
 TEST_COUNT=$((TEST_COUNT + 1))
 if [ "$ITERATION_AFTER" = "11" ]; then
   echo -e "  ${GREEN}PASS${NC}: iteration incremented from 10 to 11"
@@ -223,8 +223,8 @@ echo ""
 # ==================================================================
 echo "--- Test 4: Corrupt iteration (non-numeric) — exit 0 with warning ---"
 reset_test_dir
-mkdir -p "$TEST_DIR/.claude"
-cat > "$TEST_DIR/.claude/research-report-corrupt-state.md" << 'CORRUPTEOF'
+mkdir -p "$TEST_DIR/.plugin-state"
+cat > "$TEST_DIR/.plugin-state/research-report-corrupt-state.md" << 'CORRUPTEOF'
 ---
 workflow_type: research-report
 name: corrupt
@@ -298,7 +298,7 @@ assert_exit_code 0 "$EXIT_CODE" "exit code when all checks pass"
 assert_output_empty "$OUTPUT" "no output when all checks pass"
 # Verify state file was deleted
 TEST_COUNT=$((TEST_COUNT + 1))
-if [ ! -f "$TEST_DIR/.claude/research-report-cleanup-test-state.md" ]; then
+if [ ! -f "$TEST_DIR/.plugin-state/research-report-cleanup-test-state.md" ]; then
   echo -e "  ${GREEN}PASS${NC}: state file was deleted"
   PASS_COUNT=$((PASS_COUNT + 1))
 else
@@ -316,8 +316,8 @@ create_state "phase-transition" "in_progress" 50 50 40 "/research-report:researc
 EXIT_CODE=0
 run_hook || EXIT_CODE=$?
 # After the hook runs, the phase should have been changed to Phase S
-PHASE_AFTER=$(yq --front-matter=extract '.current_phase' "$TEST_DIR/.claude/research-report-phase-transition-state.md" 2>/dev/null)
-SYNTH_AFTER=$(yq --front-matter=extract '.synthesis_iteration' "$TEST_DIR/.claude/research-report-phase-transition-state.md" 2>/dev/null)
+PHASE_AFTER=$(yq --front-matter=extract '.current_phase' "$TEST_DIR/.plugin-state/research-report-phase-transition-state.md" 2>/dev/null)
+SYNTH_AFTER=$(yq --front-matter=extract '.synthesis_iteration' "$TEST_DIR/.plugin-state/research-report-phase-transition-state.md" 2>/dev/null)
 TEST_COUNT=$((TEST_COUNT + 1))
 if [ "$PHASE_AFTER" = "Phase S: Synthesis" ]; then
   echo -e "  ${GREEN}PASS${NC}: phase transitioned to Phase S: Synthesis"

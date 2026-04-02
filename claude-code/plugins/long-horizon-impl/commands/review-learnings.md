@@ -10,7 +10,7 @@ Review and synthesize all accumulated learnings from long-horizon-impl workflows
 
 ## Step 1: Locate Learnings Directory
 
-Check for a `learnings_dir` override in `.claude/long-horizon-impl.local.md` (YAML frontmatter field). If found, use that path. If not found or the file does not exist, use the default: `~/.claude/plugin-learnings/long-horizon-impl/`.
+Check for a `learnings_dir` override in `.plugin-state/long-horizon-impl.local.md` (YAML frontmatter field). If found, use that path. If not found or the file does not exist, use the default: `~/.claude/plugin-learnings/long-horizon-impl/`.
 
 ## Step 2: Find Learning Files
 

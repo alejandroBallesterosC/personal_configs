@@ -3,13 +3,13 @@
 # ABOUTME: Ensures archival happens deterministically even if Claude skipped it during completion
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/archive-workflows-debug.log"
+DEBUG_FILE=".plugin-state/archive-workflows-debug.log"
 
 debug_log() {
   local msg="$1"
   local timestamp
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  mkdir -p .claude
+  mkdir -p .plugin-state
   {
     echo "## $timestamp"
     echo ""

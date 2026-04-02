@@ -3,13 +3,13 @@
 # ABOUTME: Uses exit 0 + JSON decision:block pattern per Claude Code hooks spec.
 
 # Debug log file for diagnosing hook behavior
-DEBUG_FILE=".claude/run-scoped-tests-debug.log"
+DEBUG_FILE=".plugin-state/run-scoped-tests-debug.log"
 
 debug_log() {
   local msg="$1"
   local timestamp
   timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  mkdir -p .claude
+  mkdir -p .plugin-state
   {
     echo "## $timestamp"
     echo ""

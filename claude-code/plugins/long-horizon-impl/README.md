@@ -53,9 +53,9 @@ Anti-slop escalation detects low-quality or stalled output and triggers one of 7
 
 **Resolving BLOCKED features:**
 
-When a feature is set to `BLOCKED`, the workflow writes an entry to `.claude/lhi-<project>-escalations.json` describing what is needed. To resolve:
+When a feature is set to `BLOCKED`, the workflow writes an entry to `.plugin-state/lhi-<project>-escalations.json` describing what is needed. To resolve:
 
-1. Read `.claude/lhi-<project>-escalations.json` to find escalations where `"resolved": false`
+1. Read `.plugin-state/lhi-<project>-escalations.json` to find escalations where `"resolved": false`
 2. Provide the required resource (API key, clarification, dependency, architecture decision)
 3. Update the escalation entry: set `"resolved": true` and add a `"resolution"` field describing what you provided
 4. The next ralph-loop iteration will detect the resolved escalation, unblock the feature, and re-attempt it
@@ -147,7 +147,7 @@ The plugin persists learnings after each workflow run. Learnings are stored as M
 ~/.claude/plugin-learnings/long-horizon-impl/
 ```
 
-Override the directory per-project by adding to `.claude/long-horizon-impl.local.md`:
+Override the directory per-project by adding to `.plugin-state/long-horizon-impl.local.md`:
 
 ```yaml
 ---
