@@ -25,7 +25,7 @@
         {
             "label": "Run App Start Script",
             "type": "shell",
-            "command": "${workspaceFolder}/.vscode/scripts/start.sh",
+            "command": "${workspaceFolder}/.vscode/scripts/start-local.sh --aws",
             "group": {
                 "kind": "build",
                 "isDefault": true

@@ -1,0 +1,135 @@
+# ABOUTME: Declares environment variables, their sources, and target processes.
+# ABOUTME: Read by _resolve_env.py to resolve values from AWS Secrets Manager or .env files.
+
+# =============================================================================
+#  AWS Secrets Manager Configuration
+# =============================================================================
+# Secret IDs are built as: project_name/env_prefix/secret_name
+
+[aws]
+profile = "oleum-demos"
+project_name = "obsidian-bi"
+env_prefix = "dev-staging"
+
+
+# =============================================================================
+#  Environment Variable Source Definitions
+# =============================================================================
+# Define a .env file or AWS secret as the source for an environment variable.
+# secret_name (for start-local.sh --aws) and env_file (for start-local.sh --env) are both optional.
+
+[sources.mongodb]
+secret_name = "mongodb"
+env_file = "backend/.env"
+
+[sources.auth0]
+secret_name = "auth0"
+env_file = "backend/.env"
+
+[sources.databricks]
+secret_name = "databricks"
+env_file = "backend/.env"
+
+
+# =============================================================================
+#  Environment Variable Definitions
+# =============================================================================
+#  Source:   source definition (see source definitions above)
+#  Template: string template that interpolates {VAR_NAME} references
+#
+#  All vars require: target = "backend" | "frontend" | "both"
+# =============================================================================
+
+# --- MongoDB ---
+
+[vars.MONGODB_URI]
+source = "mongodb"
+aws_secret_key = "uri"
+target = "backend"
+
+[vars.MONGODB_DB_NAME]
+source = "mongodb"
+aws_secret_key = "db_name"
+target = "backend"
+
+# --- Auth0 ---
+
+[vars.AUTH0_DOMAIN]
+source = "auth0"
+aws_secret_key = "domain"
+target = "both"
+
+[vars.AUTH0_CLIENT_ID]
+source = "auth0"
+aws_secret_key = "client_id"
+target = "both"
+
+[vars.AUTH0_CLIENT_SECRET]
+source = "auth0"
+aws_secret_key = "client_secret"
+target = "backend"
+
+[vars.AUTH0_AUDIENCE]
+source = "auth0"
+aws_secret_key = "audience"
+target = "both"
+
+[vars.AUTH0_MANAGEMENT_CLIENT_ID]
+source = "auth0"
+aws_secret_key = "management_client_id"
+target = "backend"
+
+[vars.AUTH0_MANAGEMENT_CLIENT_SECRET]
+source = "auth0"
+aws_secret_key = "management_client_secret"
+target = "backend"
+
+[vars.AUTH0_ISSUER]
+template = "https://{AUTH0_DOMAIN}/"
+target = "backend"
+
+# --- Databricks ---
+
+[vars.DATABRICKS_HOST]
+source = "databricks"
+aws_secret_key = "workspace_url"
+target = "backend"
+
+[vars.DATABRICKS_WORKSPACE_URL]
+source = "databricks"
+aws_secret_key = "workspace_url"
+target = "backend"
+
+[vars.DATABRICKS_HTTP_PATH]
+source = "databricks"
+aws_secret_key = "http_path"
+target = "backend"
+
+[vars.DATABRICKS_ADMIN_SP_CLIENT_ID]
+source = "databricks"
+aws_secret_key = "admin_sp_client_id"
+target = "backend"
+
+[vars.DATABRICKS_ADMIN_SP_CLIENT_SECRET]
+source = "databricks"
+aws_secret_key = "admin_sp_client_secret"
+target = "backend"
+
+[vars.DATABRICKS_ACCOUNT_ID]
+source = "databricks"
+aws_secret_key = "account_id"
+target = "backend"
+
+# --- Frontend derived vars ---
+
+[vars.VITE_AUTH0_DOMAIN]
+template = "{AUTH0_DOMAIN}"
+target = "frontend"
+
+[vars.VITE_AUTH0_CLIENT_ID]
+template = "{AUTH0_CLIENT_ID}"
+target = "frontend"
+
+[vars.VITE_AUTH0_AUDIENCE]
+template = "{AUTH0_AUDIENCE}"
+target = "frontend"
