@@ -80,6 +80,14 @@ When focused on spec compliance:
 - Non-functional requirements met
 - API contracts correct
 
+### Visual/UI Quality Focus
+When focused on visual/UI quality (only for features that involve building or changing a frontend/UI):
+- CSS/style patterns: consistent spacing system, proper use of design tokens/variables
+- Responsive design: media queries, flexible layouts, no fixed pixel widths for containers
+- Accessibility: semantic HTML, ARIA attributes, color contrast, keyboard navigation
+- Component structure: logical composition, prop interfaces, separation of concerns
+- Layout approach: flexbox/grid usage, avoiding absolute positioning hacks
+
 ### General Review (All Areas)
 When no specific focus, review all areas with equal weight.
 

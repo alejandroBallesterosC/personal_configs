@@ -1,7 +1,7 @@
 {
   "name": "playwright",
-  "description": "Browser automation with Playwright - test pages, fill forms, take screenshots, validate UX, and automate any browser task",
-  "version": "4.1.0",
+  "description": "Browser automation with @playwright/cli for token-efficient visual verification, screenshots, accessibility snapshots, and interactive testing. Uses @playwright/test for formal CI test files.",
+  "version": "5.0.0",
   "author": {
     "name": "jandro"
   },

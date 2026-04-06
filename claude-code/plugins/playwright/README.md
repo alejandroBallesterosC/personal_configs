@@ -1,49 +1,48 @@
 # Playwright Plugin
 
-Browser automation with Playwright for testing websites, web apps, and UIs. Write custom Playwright scripts for any browser automation task and execute them via a universal executor.
+Browser automation for testing websites, web apps, and UIs. Uses `@playwright/cli` for token-efficient interactive browser automation and `@playwright/test` for formal CI test files.
 
 ## Components
 
 - **1 skill** (`playwright`): Auto-activates when browser testing, screenshots, form filling, responsive design, or E2E frontend testing is needed
 
-## Quick Start
+## Prerequisites
 
-```bash
-# First-time setup (installs Playwright + Chromium)
-cd ${CLAUDE_PLUGIN_ROOT}/skills/playwright && npm run setup
-```
-
-Then ask Claude to test a page, take screenshots, fill forms, or automate any browser interaction. The skill handles everything automatically.
+- **Node.js >= 18**
+- **@playwright/cli**: `npm install -g @playwright/cli@latest`
 
 ## How It Works
 
-1. Auto-detects running dev servers on localhost
-2. Writes custom Playwright scripts to `/tmp/playwright-test-*.js`
-3. Executes via `cd ${CLAUDE_PLUGIN_ROOT}/skills/playwright && node run.js /tmp/playwright-test-*.js`
-4. Browser window visible by default (`headless: false`) for debugging
-5. Scripts auto-cleaned from `/tmp` by OS
+This plugin provides skill guidance for two complementary Playwright tools:
 
-## Features
+### `playwright-cli` (interactive, token-efficient)
 
-- **Auto server detection**: Finds running dev servers before writing test code
-- **Visible browser**: `headless: false` by default for easy debugging
-- **Parameterized URLs**: All scripts use a `TARGET_URL` constant
-- **Custom HTTP headers**: Configure via `PW_HEADER_NAME`/`PW_HEADER_VALUE` env vars
-- **Helper utilities**: `lib/helpers.js` provides safe clicks, typed input, screenshot helpers, cookie banner handling, table extraction
-- **Inline execution**: Quick one-off tasks without creating files
-- **Multi-viewport testing**: Desktop, tablet, and mobile viewport presets
+Shell commands for interactive browser automation. Saves screenshots and accessibility snapshots to disk (`.playwright-cli/` directory) — the agent reads them selectively via the Read tool, avoiding context bloat.
 
-## Dependencies
+~4x fewer tokens than MCP-based approaches (27K vs 114K per task), officially recommended by Microsoft for coding agents.
 
-- **Node.js >= 18.0.0**
-- **Playwright** (v1.57.0, installed via `npm run setup`)
-- **Chromium** (installed via `npx playwright install chromium`)
+### `@playwright/test` (formal CI tests)
+
+Standard Playwright test framework for writing test files committed to the repo. See `API_REFERENCE.md` for the full API reference.
+
+## Key Commands
+
+| Command | Description |
+|---------|-------------|
+| `playwright-cli open [url]` | Launch browser and navigate |
+| `playwright-cli screenshot` | Save screenshot as PNG |
+| `playwright-cli snapshot` | Save accessibility snapshot as YAML |
+| `playwright-cli click <ref>` | Click element by snapshot reference |
+| `playwright-cli fill <ref> <text>` | Fill form field |
+| `playwright-cli console` | Show browser console messages |
+| `playwright-cli network` | List network requests |
+| `playwright-cli close-all` | Close all browser sessions |
 
 ## Documentation
 
-- `skills/playwright/SKILL.md`: Full usage guide with code patterns
-- `skills/playwright/API_REFERENCE.md`: Playwright API reference (selectors, network interception, auth, visual regression, mobile emulation)
+- `skills/playwright/SKILL.md`: Full usage guide with visual verification workflow, visual quality criteria, evaluation scoring rubric, test integrity rules, and multi-viewport testing
+- `skills/playwright/API_REFERENCE.md`: `@playwright/test` API reference (selectors, network interception, auth, visual regression, mobile emulation, CI/CD)
 
 ## Version
 
-4.1.0
+5.0.0

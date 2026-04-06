@@ -12,7 +12,7 @@ This document contains the comprehensive Playwright API reference and advanced p
 - [Assertions](#assertions)
 - [Page Object Model](#page-object-model-pom)
 - [Network & API Testing](#network--api-testing)
-- [Authentication & Session Management](#authentication--session-management)
+- [Authentication & Session Management](#authentication--session-management) 
 - [Visual Testing](#visual-testing)
 - [Mobile Testing](#mobile-testing)
 - [Debugging](#debugging)
@@ -32,12 +32,11 @@ This document contains the comprehensive Playwright API reference and advanced p
 Before using this skill, ensure Playwright is available:
 
 ```bash
-# Check if Playwright is installed
-npm list playwright 2>/dev/null || echo "Playwright not installed"
+# Check if playwright-cli is installed
+playwright-cli --version 2>/dev/null || echo "playwright-cli not installed"
 
 # Install (if needed)
-cd ~/.claude/skills/playwright-skill
-npm run setup
+npm install -g @playwright/cli@latest
 ```
 
 ### Basic Configuration (Optional)
@@ -74,7 +73,7 @@ module.exports = defineConfig({
 });
 ```
 
-> **Note:** This skill uses vanilla Playwright (not `@playwright/test`). The config above is only needed if you're integrating with `@playwright/test` framework in your project.
+> **Note:** The config above is only needed when writing formal `@playwright/test` test files for CI. For interactive verification during development, use `playwright-cli` commands (see [SKILL.md](SKILL.md)).
 
 ## Core Patterns
 
@@ -110,7 +109,7 @@ const { chromium } = require('playwright');
 
 ### Test Structure (with @playwright/test)
 
-> **Note:** This section shows `@playwright/test` framework patterns. This skill uses vanilla Playwright, but you can integrate with the test framework in your project if needed.
+> **Note:** This section and all subsequent sections show `@playwright/test` framework patterns for formal test files committed to the repo and run in CI.
 
 ```javascript
 const { test, expect } = require('@playwright/test');
@@ -412,7 +411,42 @@ await page.route('**/api/**', route => {
 await page.route('**/*.{png,jpg,jpeg,gif}', route => route.abort());
 ```
 
-> **Note:** For custom HTTP headers via environment variables, see the "Custom HTTP Headers" section in SKILL.md.
+## Authentication & Session Management
+
+```javascript
+// Save authentication state after login
+const context = await browser.newContext();
+const page = await context.newPage();
+await page.goto('/login');
+await page.fill('#username', 'user@example.com');
+await page.fill('#password', 'password');
+await page.click('button[type="submit"]');
+await page.waitForURL('/dashboard');
+// Save signed-in state
+await context.storageState({ path: 'auth-state.json' });
+
+// Reuse authentication state in subsequent tests
+const authenticatedContext = await browser.newContext({
+  storageState: 'auth-state.json'
+});
+```
+
+```javascript
+// In playwright.config.js - global setup for auth
+module.exports = defineConfig({
+  projects: [
+    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'auth-state.json',
+      },
+      dependencies: ['setup'],
+    },
+  ],
+});
+```
 
 ## Visual Testing
 

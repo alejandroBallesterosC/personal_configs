@@ -10,7 +10,7 @@ claude-code/
 │   ├── dev-workflow/  # 12 agents, 18 commands, 6 skills, 4 hooks (TDD + Debug)
 │   ├── research-report/   # 4 agents, 3 commands, 1 skill, 2 hooks (Iterative research + LaTeX)
 │   ├── long-horizon-impl/ # 9 agents, 4 commands, 1 skill, 2 hooks (Research/Plan/Implement)
-│   ├── playwright/    # Browser automation (JS + skill)
+│   ├── playwright/    # Browser automation (1 skill, token-efficient CLI)
 │   ├── claude-session-feedback/ # 4 commands
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
 │   ├── claude-md-best-practices/ # 1 skill

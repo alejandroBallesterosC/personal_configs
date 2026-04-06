@@ -413,25 +413,36 @@ If no `.tdd-test-scope` file exists in the repo root, no tests run (Claude must 
 
 ## Visual and Frontend Testing
 
-When working on applications with frontends or UIs, you must load the playwright:playwright skill and use **Playwright** to verify:
-- **Functional correctness**: UI interactions work as expected
-- **Visual appearance**: The UI looks correct and matches design expectations
-- **Integration**: Frontend and backend work together properly
-  
-Specifically, you must load the playwright:playwright skill and use Playwright tests when:
-- Building or modifying frontend/UI components
-- Implementing user-facing features
-- Verifying visual design matches expectations
-- Testing end-to-end user flows
-- Ensuring responsive design works across viewports
+**Only applicable when the feature involves building or changing a frontend/UI.** Skip this entire section for backend-only work (API endpoints, database changes, CLI tools, libraries, infrastructure).
 
-**the `playwright:playwright` skill** contains detailed guidance on:
-- Writing Playwright tests
-- Taking screenshots for visual verification
-- Visual regression testing
-- Responsive design testing across viewports
-- TDD with frontend components
+### When to Use Which Tool
 
+- **`playwright-cli`** (default for interactive verification): Token-efficient — saves screenshots/snapshots to disk, read selectively via Read tool. Use during TDD for visual verification between GREEN and REFACTOR phases. Prerequisite: `npm install -g @playwright/cli@latest`
+- **`@playwright/test`** (formal test files): For test files committed to the repo and run in CI. Use for E2E test suites.
+
+### Visual Quality Criteria
+
+When evaluating screenshots via the Read tool, check for:
+
+- **Layout**: consistent spacing, proper alignment, no overlapping elements, logical visual hierarchy
+- **Typography**: readable font sizes (min 14px body), proper heading hierarchy, adequate line height (1.4-1.6)
+- **Responsiveness**: no horizontal scroll, no truncated content, touch targets >= 44px on mobile, content reflows appropriately
+- **Functionality**: buttons/links respond, forms submit, navigation works, no dead interactive elements
+- **Console**: no uncaught exceptions, no failed network requests (`playwright-cli console`)
+
+### Responsive Viewport Set
+
+| Viewport | Width x Height | Use for |
+|----------|---------------|---------|
+| Desktop | 1280 x 800 | Default layout verification |
+| Tablet | 768 x 1024 | Responsive breakpoint verification |
+| Mobile | 375 x 812 | Mobile layout, touch targets, content reflow |
+
+### Visual Review Loop
+
+```
+playwright-cli screenshot → Read PNG via Read tool → evaluate against criteria → fix issues → re-screenshot → confirm fix (max 5 iterations per issue)
+```
 
 ### Playwright Test Scope
 
@@ -446,9 +457,6 @@ playwright:--grep "checkout"
 
 # Run specific project (browser)
 playwright:--project chromium
-
-# Exclude slow visual tests during rapid iteration
-playwright:--grep-invert "visual regression"
 ```
 
 ### TDD with Playwright
@@ -456,7 +464,5 @@ playwright:--grep-invert "visual regression"
 Apply TDD principles to frontend development:
 
 1. **RED phase**: Write failing Playwright test for expected UI behavior
-2. **GREEN phase**: Implement the UI to make test pass
-3. **REFACTOR phase**: Clean up implementation while keeping tests green
-
-Take screenshots after each change to verify the UI looks correct visually.
+2. **GREEN phase**: Implement the UI to make test pass, then visually verify with `playwright-cli screenshot` → Read PNG → evaluate
+3. **REFACTOR phase**: Clean up implementation while keeping tests green and visual quality acceptable

@@ -133,6 +133,32 @@ After subagent returns:
 - If test still fails, spawn implementer again with error context
 - Commit: git commit -m 'green: [$1][Component] [requirement]'
 
+### VISUAL VERIFICATION (Frontend/UI Changes Only — Skip for Backend-Only Work)
+
+Skip this entire section if the feature being implemented does not involve any frontend/UI work (e.g., API endpoints, database changes, CLI tools, libraries, infrastructure). Only perform visual verification when the implementation requires building a new frontend/UI or changing an existing one.
+
+If this iteration modified UI code (templates, components, styles, layouts):
+
+1. Ensure the dev server is running (check with `lsof -i :<port> | grep LISTEN`)
+2. Use playwright-cli to verify the visual result:
+   - `playwright-cli open http://localhost:<port>/affected-page` (or `goto` if session already open)
+   - `playwright-cli screenshot` → Read the saved PNG via Read tool to evaluate visually
+   - Evaluate against visual quality criteria:
+     - Layout: consistent spacing, proper alignment, no overlapping elements
+     - Typography: readable sizes, proper hierarchy, adequate line height
+     - Functionality: interactive elements respond, no console errors
+   - Resize to mobile (375x812): `playwright-cli run-code "await page.setViewportSize({width: 375, height: 812})"` → `playwright-cli screenshot` → Read and evaluate
+   - `playwright-cli console` to check for JS errors
+3. If visual issues found:
+   - Fix the code (this counts as part of the current GREEN cycle)
+   - Re-run tests to confirm they still pass
+   - Re-screenshot to confirm the visual fix
+   - Repeat until visually acceptable (max 5 fix iterations per visual issue)
+4. Only proceed to REFACTOR when both tests pass AND visual quality is acceptable
+5. `playwright-cli close-all` when done with visual verification for this iteration
+
+If `playwright-cli` is not installed, skip visual verification and log a warning: "playwright-cli not installed — skipping visual verification. Install with: npm install -g @playwright/cli@latest"
+
 ### 3. REFACTOR PHASE - Spawn refactorer subagent (if needed)
 Use Task tool with subagent_type='dev-workflow:refactorer':
 

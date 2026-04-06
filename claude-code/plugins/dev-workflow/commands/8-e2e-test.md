@@ -52,11 +52,9 @@ Write END-TO-END integration tests covering:
 - Edge cases (boundary conditions across components)
 - External integration scenarios (full paths involving external services)
 
-Read the playwright skill in the playwright plugin to understand how to use Playwright to test the application end-to-end if the application has a frontend/UI that needs to be tested, otherwise stick to other testing frameworks more suitable for end-to-end backend-only testing.
+If the application has a frontend/UI, read the playwright skill in the playwright plugin and use @playwright/test to write formal E2E test files that verify end-to-end functionality across the frontend/UI and the backend. For backend-only applications, use testing frameworks more suitable for end-to-end backend testing.
 
-If the application does have a frontend/UI that needs to be tested, use Playwright to ensure end-to-end functionality as expected across the frontend/UI and the backend. Take screen shots with playwright and iterate until the frontend/UI looks as expected and functions as expected.
-
-Be sure to also follow the test patterns established in the codebase.
+Be sure to follow the test patterns established in the codebase.
 Return list of E2E test files created.
 ```
 
@@ -183,6 +181,36 @@ When E2E testing is complete:
 ### Full Test Suite Status
 All [N] tests passing
 ```
+
+---
+
+## Visual Verification (Frontend/UI Changes Only — Skip for Backend-Only Work)
+
+Skip this entire section if the feature does not involve any frontend/UI work (e.g., API endpoints, database changes, CLI tools, libraries, infrastructure). Only perform visual verification when the implementation required building a new frontend/UI or changing an existing one.
+
+After E2E tests pass, perform visual verification using playwright-cli:
+
+1. Navigate to each page/route affected by the feature:
+   - `playwright-cli open http://localhost:<port>/page`
+2. At each page, test three viewports:
+   - Desktop (1280x800): `playwright-cli screenshot` → Read PNG via Read tool → evaluate
+   - Tablet (768x1024): `playwright-cli run-code "await page.setViewportSize({width: 768, height: 1024})"` → `playwright-cli screenshot` → Read PNG → evaluate
+   - Mobile (375x812): `playwright-cli run-code "await page.setViewportSize({width: 375, height: 812})"` → `playwright-cli screenshot` → Read PNG → evaluate
+3. At each viewport, evaluate against visual quality criteria:
+   - Layout: consistent spacing, proper alignment, no overlapping elements
+   - Typography: readable sizes, proper hierarchy, adequate line height
+   - Responsiveness: no horizontal scroll, no truncated content, touch targets >= 44px on mobile
+   - Functionality: interactive elements respond, forms submit, navigation works
+4. Check `playwright-cli console` for JS errors at each viewport
+5. Test critical user flows end-to-end:
+   - Use `playwright-cli snapshot` to get element refs
+   - `playwright-cli click`, `fill`, `type` to interact
+   - `playwright-cli screenshot` after each significant action to verify result
+6. If issues found → fix → re-test → re-screenshot (max 5 iterations per page)
+7. If visual quality fails after 5 iterations on same issue, stop and report to user with screenshot file paths
+8. `playwright-cli close-all` when done
+
+If `playwright-cli` is not installed, skip visual verification and log a warning: "playwright-cli not installed — skipping visual verification. Install with: npm install -g @playwright/cli@latest"
 
 ---
 

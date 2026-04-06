@@ -23,7 +23,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 | Content | Markdown (117 files) | YAML frontmatter conventions |
 | Scripts | Bash (27 files) | POSIX-compatible |
 | Config | JSON (22 files) | Plugin manifests, hooks, MCP |
-| Browser automation | Playwright (JS) | package.json in skill |
+| Browser automation | Playwright (`playwright-cli` + `@playwright/test`) | npm global install |
 | IDE mirror | Cursor IDE | Unidirectional sync |
 | MCP servers | context7 (HTTP), fetch (stdio), exa (npx), playwright (npx) | global_mcp_settings.json |
 | Dependencies | yq, jq (hooks), ralph-loop plugin (TDD/autonomous), MacTeX (optional, LaTeX PDF) | brew install |
@@ -39,7 +39,7 @@ personal_configs/
 │   │   ├── dev-workflow/          # 12 agents, 18 commands, 6 skills, 4 hooks
 │   │   ├── autonomous-workflow/   # 6 agents, 5 commands, 1 skill, 2 hooks
 │   │   ├── ralph-loop/           # 3 commands, 1 hook (iterative loops)
-│   │   ├── playwright/           # 1 skill (browser automation, JS)
+│   │   ├── playwright/           # 1 skill (browser automation, CLI-based)
 │   │   ├── claude-session-feedback/ # 4 commands
 │   │   ├── infrastructure-as-code/  # 1 command, 1 skill
 │   │   └── claude-md-best-practices/ # 1 skill
@@ -262,7 +262,7 @@ wide-exploration -> source-verification -> contradiction-resolution -> deep-dive
 
 ### Other Plugins
 
-- **playwright** (skill v4.1.0): Browser automation via Playwright JS skill
+- **playwright** (v5.0.0): Browser automation via `playwright-cli` (interactive) and `@playwright/test` (CI). Skill-only plugin — no commands, agents, or hooks
 - **claude-session-feedback** (v1.0.0): 4 commands for conversation export/feedback
 - **infrastructure-as-code** (v1.0.0): 1 command + 1 skill for Terraform/AWS
 - **claude-md-best-practices** (v1.0.0): 1 skill for CLAUDE.md writing guidance

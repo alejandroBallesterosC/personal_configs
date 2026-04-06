@@ -10,15 +10,15 @@ argument-hint: <feature-name>
 
 ## Objective
 
-Perform comprehensive code review using **5 parallel reviewer agents**, each focusing on a different aspect. Consolidate findings and address critical issues.
+Perform comprehensive code review using **parallel reviewer agents** (5 for backend-only features, 6 when frontend/UI is involved), each focusing on a different aspect. Consolidate findings and address critical issues.
 
 ---
 
 ## LAUNCHING 5 PARALLEL REVIEW AGENTS
 
-Launch all 5 agents **IN PARALLEL** using a single message with 5 Task tool calls.
+Launch review agents **IN PARALLEL** using a single message with multiple Task tool calls. Use 5 agents for backend-only features, 6 agents when the feature involves frontend/UI changes (adds Visual/UI Quality reviewer).
 
-Use `subagent_type: "dev-workflow:code-reviewer"` for all 5 agents, each with a different focus:
+Use `subagent_type: "dev-workflow:code-reviewer"` for all agents, each with a different focus:
 
 ### Agent 1: Security Review
 
@@ -160,7 +160,50 @@ Report findings:
 - 🔵 SUGGESTION: Additional test opportunity
 ```
 
-### Agent 5: Spec Compliance Review
+### Agent 5: Visual/UI Quality Review (Frontend/UI Changes Only)
+
+**Only spawn this agent if the feature involves building or changing a frontend/UI.** Skip entirely for backend-only work.
+
+```
+Feature: $ARGUMENTS
+
+REVIEW FOCUS: Visual/UI Quality
+
+Review the implementation for visual and UI quality:
+
+1. **CSS/Style Patterns**
+   - Is there a consistent spacing system?
+   - Are design tokens or CSS variables used properly?
+   - Are styles scoped appropriately (no unintended global leaks)?
+
+2. **Responsive Design**
+   - Are media queries used for breakpoints?
+   - Are layouts flexible (flexbox/grid, not fixed pixel widths for containers)?
+   - Do touch targets meet minimum size (44px) on mobile?
+
+3. **Accessibility**
+   - Is semantic HTML used (proper heading levels, landmarks)?
+   - Are ARIA attributes present where needed?
+   - Is color contrast sufficient?
+   - Is keyboard navigation supported?
+
+4. **Component Structure**
+   - Is composition logical (no deeply nested components)?
+   - Are prop interfaces clean?
+   - Is there proper separation of concerns (logic vs presentation)?
+
+5. **Layout Approach**
+   - Is flexbox/grid used appropriately?
+   - Are there absolute positioning hacks that will break at other viewports?
+   - Is the layout approach maintainable?
+
+Report findings:
+- 🔴 CRITICAL: Significant UI/visual issue
+- 🟡 WARNING: UI quality concern
+- 🔵 SUGGESTION: UI improvement opportunity
+```
+
+### Agent 6: Spec Compliance Review
 
 ```
 Feature: $ARGUMENTS
@@ -197,9 +240,30 @@ Report findings:
 
 ---
 
+## LIVE VISUAL VERIFICATION (Frontend/UI Changes Only — Skip for Backend-Only Work)
+
+Skip this entire section if the feature does not involve any frontend/UI work.
+
+After all review agents complete, perform live visual verification:
+
+1. Start the dev server if not running
+2. Use playwright-cli to navigate to affected pages:
+   - `playwright-cli open http://localhost:<port>/page`
+3. Screenshot at desktop (1280x800) and mobile (375x812):
+   - `playwright-cli screenshot` → Read PNG via Read tool
+   - `playwright-cli run-code "await page.setViewportSize({width: 375, height: 812})"` → `playwright-cli screenshot` → Read PNG
+4. Verify that the implementation matches the spec/requirements visually
+5. Check for visual regressions on adjacent pages/components
+6. Document any visual issues as part of the review output
+7. `playwright-cli close-all` when done
+
+If `playwright-cli` is not installed, skip visual verification and note it in the review output.
+
+---
+
 ## CONSOLIDATION
 
-After all 5 agents complete, consolidate findings:
+After all agents complete (including visual verification if applicable), consolidate findings:
 
 ### Categorize All Findings
 
@@ -209,6 +273,9 @@ After all 5 agents complete, consolidate findings:
 ### 🔴 CRITICAL Issues (Must Fix)
 
 #### Security
+- [Finding]: [Details]
+
+#### Visual/UI Quality (if applicable)
 - [Finding]: [Details]
 
 #### Performance
@@ -248,6 +315,7 @@ Show the consolidated review findings to the user.
 
 ### Review Agents
 - ✅ Security Review: [N findings]
+- ✅ Visual/UI Quality Review: [N findings] (if applicable)
 - ✅ Performance Review: [N findings]
 - ✅ Code Quality Review: [N findings]
 - ✅ Test Coverage Review: [N findings]
