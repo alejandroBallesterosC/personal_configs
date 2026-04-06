@@ -61,6 +61,7 @@ Announce at start: "I'm using the long-horizon-impl-guide skill for reference on
 5. **One iteration per invocation.** Stop hook (1-research-and-plan) or ralph-loop (2-implement) re-feeds.
 6. **Never mock, never slop.** 2-implement escalates on external blockers.
 7. **Phase transitions are gated.** Prerequisites must be met before advancing phases.
+8. **Visual verification for UI features.** 2-implement performs playwright-cli screenshot verification after GREEN phase when frontend/UI code is modified. Backend-only features skip this.
 
 ## Research Strategies (9 total)
 

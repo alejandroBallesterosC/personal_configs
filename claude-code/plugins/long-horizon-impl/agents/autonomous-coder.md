@@ -110,6 +110,35 @@ If any check fails → Escalate (see rules above).
 5. If still failing after 3 code-bug attempts: output `FEATURE_FAILED: <detailed reason>`
 6. Commit: `git commit -m "green: [FeatureID] <what was implemented>"`
 
+## Step 4b: Visual Verification (Frontend/UI Changes Only)
+
+Skip this step entirely if the feature does not involve any frontend/UI work (e.g., API endpoints, database changes, CLI tools, libraries, infrastructure). Only perform visual verification when the implementation builds or changes a frontend/UI.
+
+**NEVER claim a visual or layout fix is correct without taking a fresh screenshot and reading the PNG.** You cannot mentally render CSS — visual verification requires actual rendered output.
+
+If this feature modified UI code (templates, components, styles, layouts):
+
+1. Ensure the dev server is running: `lsof -i :3000 -i :5173 -i :8080 -i :4200 -i :3001 | grep LISTEN`
+2. Verify with playwright-cli:
+   - `playwright-cli open http://localhost:<port>/affected-page` (or `goto` if session already open)
+   - `playwright-cli screenshot` → Read the saved PNG via Read tool
+   - Evaluate against these criteria (rate each 1-5, fix if any score below 3):
+     - **Layout**: elements aligned, spacing consistent, no overlap or overflow
+     - **Typography**: text hierarchy clear, sizes appropriate, line heights readable
+     - **Responsiveness**: layout adapts at this viewport, no horizontal scroll
+     - **Functionality**: interactive elements visible and accessible, forms work
+     - **Polish**: no visual artifacts, clipping, unexpected gaps
+   - Mobile check (if app/ui is designed to be compatible with mobile) (375x812): `playwright-cli run-code "await page.setViewportSize({width: 375, height: 812})"` → `playwright-cli screenshot` → Read and evaluate
+   - `playwright-cli console` to check for JS errors
+3. If visual issues found:
+   - Fix the code
+   - Re-run tests to confirm they still pass
+   - Re-screenshot and re-evaluate (max 5 fix iterations per visual issue)
+4. Only proceed to REFACTOR when both tests pass AND visual quality is acceptable
+5. `playwright-cli close-all` when done with visual verification
+
+If `playwright-cli` is not installed, skip visual verification and log a warning: "playwright-cli not installed — skipping visual verification. Install with: npm install -g @playwright/cli@latest"
+
 ## Step 5: REFACTOR Phase
 
 1. Review the implementation for code quality
@@ -164,6 +193,8 @@ Return EXACTLY this structure:
 - **NEVER mock an external service that the plan says should be real.**
 - **NEVER hardcode API keys, passwords, or secrets.**
 - **NEVER silently work around a blocker — ALWAYS escalate.**
+- **NEVER claim a visual fix is correct without a fresh screenshot.** Apply fix → screenshot → Read PNG → evaluate. Always.
+- **When writing tests: tests MUST fail when the feature they test is broken.** Never inject JavaScript that modifies app behavior inside tests. Never modify the DOM or override API responses in test code to make assertions pass.
 - ALWAYS commit at each TDD phase transition.
 - ALWAYS run the full test suite after refactoring.
 - Follow ALL conventions in CLAUDE.md.

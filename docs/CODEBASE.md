@@ -108,7 +108,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 - **Skills**: YAML frontmatter (`name`, `description` for activation) + SKILL.md content
 - **Hooks**: `hooks.json` registering event handlers (command scripts or agent prompts)
 
-**Coupling**: Plugins are loosely coupled. dev-workflow depends on ralph-loop (hard, Phases 7-9) and optionally playwright (E2E). autonomous-workflow depends on ralph-loop (hard, iteration loop) and optionally exa MCP (deep research) and MacTeX (PDF output). claude-md-best-practices is a soft dependency (skill invocation).
+**Coupling**: Plugins are loosely coupled. dev-workflow depends on ralph-loop (hard, Phases 7-9) and optionally playwright (E2E, visual verification). long-horizon-impl depends on ralph-loop (hard, 2-implement iteration) and optionally exa MCP (deep research), MacTeX (PDF output), and playwright-cli (visual verification of UI features). claude-md-best-practices is a soft dependency (skill invocation).
 
 ### Hook Interface Contract
 - **Command hooks**: Shell scripts returning exit code 0 (allow) or JSON `{"decision": "block", ...}` (block)

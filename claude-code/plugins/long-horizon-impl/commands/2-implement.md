@@ -110,7 +110,8 @@ prompt: "Implement feature using TDD:
 - Feature spec from feature-list.json
 - Read all 4 planning artifacts
 - Escalation file: .plugin-state/lhi-$1-escalations.json
-CRITICAL: If you need an API key or hit any external blocker — DO NOT mock it. Escalate."
+CRITICAL: If you need an API key or hit any external blocker — DO NOT mock it. Escalate.
+VISUAL: If this feature involves frontend/UI changes, perform visual verification (Step 4b) after GREEN phase using playwright-cli screenshots before proceeding to REFACTOR."
 ```
 
 ### Process Result

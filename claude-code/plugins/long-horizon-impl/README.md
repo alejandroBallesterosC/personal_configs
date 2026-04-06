@@ -72,7 +72,7 @@ When a feature is set to `BLOCKED`, the workflow writes an entry to `.plugin-sta
 | long-horizon-impl:plan-architect | opus | Plan improvement (Phases B2-B3) |
 | long-horizon-impl:plan-critic | opus | Plan scrutiny with evidence-to-decision audit (1-research-and-plan and 2-implement) |
 | long-horizon-impl:plan-reviewer | opus | Cross-examines all artifacts (Phase B4) |
-| long-horizon-impl:autonomous-coder | opus | TDD with anti-slop escalation (2-implement) |
+| long-horizon-impl:autonomous-coder | opus | TDD with anti-slop escalation and visual verification for UI features (2-implement) |
 
 ## Research Strategies (Phase A)
 
@@ -130,6 +130,7 @@ When the autonomous-coder agent detects slop, stall, or ambiguity, it triggers o
 | MacTeX | Optional | LaTeX PDF compilation of research report |
 | exa MCP | Optional | Web and academic search in Phase A |
 | ralph-loop plugin | Required for 2-implement | Iteration engine for TDD implementation |
+| playwright-cli | Optional | Visual verification of frontend/UI features during 2-implement |
 
 Install yq and jq: `brew install yq jq`
 
