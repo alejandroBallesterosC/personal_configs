@@ -352,6 +352,35 @@ Distill any durable project knowledge discovered during this workflow into the p
 - Update the **Testing** section if test infrastructure changed (markers added, config updated, etc.)
 - Do NOT add workflow-specific or ephemeral information - only durable project knowledge
 
+### 4b. Write holistic completion retrospective
+
+Write a workflow-level learning file capturing observations about the full TDD run.
+
+1. Resolve learnings directory: check `.plugin-state/dev-workflow.local.md` for `learnings_dir` frontmatter field, else use `~/.claude/plugin-learnings/dev-workflow/`
+2. Create the directory with `mkdir -p` if it doesn't exist
+3. Read all workflow artifacts (exploration, specs, architecture plan, implementation plan, review findings)
+4. Write `YYYY-MM-DD-$1-tdd-completion.md` with this structure:
+
+```markdown
+---
+type: learning
+plugin: dev-workflow
+workflow_type: tdd
+workflow_topic: $1
+phase: tdd-completion
+date: YYYY-MM-DD
+---
+
+## Observation
+<Overall outcome: was the implementation correct, complete, well-tested? Factual summary of what happened.>
+
+## Learning
+<What worked well across the full workflow. What produced friction or lower quality output — noted as hypotheses, not assertions. Specific observations about plan quality, implementation surprises, review findings patterns, visual verification results (if applicable).>
+
+## Suggestion
+<Actionable suggestions for future TDD workflow runs based on this experience.>
+```
+
 ### 5. Archive workflow directory
 
 Move the workflow directory to the archive:

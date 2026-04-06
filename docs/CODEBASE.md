@@ -36,7 +36,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 personal_configs/
 ├── claude-code/                    # Primary source of truth
 │   ├── plugins/ (7 plugins)       # Encapsulated workflow packages
-│   │   ├── dev-workflow/          # 12 agents, 18 commands, 6 skills, 4 hooks
+│   │   ├── dev-workflow/          # 12 agents, 20 commands, 6 skills, 4 hooks
 │   │   ├── autonomous-workflow/   # 6 agents, 5 commands, 1 skill, 2 hooks
 │   │   ├── ralph-loop/           # 3 commands, 1 hook (iterative loops)
 │   │   ├── playwright/           # 1 skill (browser automation, CLI-based)
@@ -183,9 +183,9 @@ By design — repo contains only Markdown, JSON, and Bash (no application code t
 
 ## 7. Plugin Details
 
-### dev-workflow (v1.4.0) — TDD Implementation + Debug
+### dev-workflow (v2.1.0) — TDD Implementation + Debug
 
-**Components**: 12 agents, 18 commands, 6 skills, 4 hooks (Stop x3, SessionStart x1)
+**Components**: 12 agents, 20 commands, 6 skills, 4 hooks (Stop x3, SessionStart x1)
 
 **TDD Phases** (8):
 | Phase | Command | Agents | Gate |
@@ -421,7 +421,7 @@ Both dev-workflow and autonomous-workflow register SessionStart hooks with match
 | **JSON Configs** | 22 | Plugin (14), IDE (5), MCP (1), hooks (4) |
 | **Plugins** | 7 | dev-workflow, autonomous-workflow, ralph-loop, playwright, claude-session-feedback, infrastructure-as-code, claude-md-best-practices |
 | **Agents** | 19 | 12 dev-workflow, 6 autonomous-workflow, 1 global |
-| **Commands** | 38 | 18 dev-workflow, 5 autonomous-workflow, 3 ralph-loop, 4 claude-session-feedback, 1 infrastructure-as-code, 7 global (+ 1 research) |
+| **Commands** | 40 | 20 dev-workflow, 5 autonomous-workflow, 3 ralph-loop, 4 claude-session-feedback, 1 infrastructure-as-code, 7 global (+ 1 research) |
 | **Skills** | 9 | 6 dev-workflow, 1 autonomous-workflow, 1 playwright, 1 infrastructure-as-code |
 | **VS Code Tasks** | 13 | 9 working, 4 dead/stale |
 | **GitHub Workflows** | 2 | Both disabled/commented out |

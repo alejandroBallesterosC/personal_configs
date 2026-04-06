@@ -489,6 +489,35 @@ Distill any durable project knowledge discovered during this debug session into 
 - Update the **Testing** section if test infrastructure changed
 - Do NOT add debug-session-specific or ephemeral information - only durable project knowledge
 
+### 11.5b Write holistic debug completion retrospective
+
+Write a workflow-level learning file capturing observations about the full debug session.
+
+1. Resolve learnings directory: check `.plugin-state/dev-workflow.local.md` for `learnings_dir` frontmatter field, else use `~/.claude/plugin-learnings/dev-workflow/`
+2. Create the directory with `mkdir -p` if it doesn't exist
+3. Read the resolution document and state file
+4. Write `YYYY-MM-DD-$ARGUMENTS-debug-completion.md` with this structure:
+
+```markdown
+---
+type: learning
+plugin: dev-workflow
+workflow_type: debug
+workflow_topic: $ARGUMENTS
+phase: debug-completion
+date: YYYY-MM-DD
+---
+
+## Observation
+<Overall outcome: was the bug correctly identified and fixed? Did the fix hold? Factual summary.>
+
+## Learning
+<What worked well across the full debug session. What produced friction or misdirection — noted as hypotheses. Specific observations: hypothesis accuracy, whether initial framing was correct, instrumentation effectiveness, fix attempt count and what that signals.>
+
+## Suggestion
+<Actionable suggestions for future debug sessions based on this experience.>
+```
+
 ### 11.6 Update state file
 
 Update the YAML frontmatter at the top of `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:

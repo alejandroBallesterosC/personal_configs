@@ -454,6 +454,15 @@ Completed sessions are archived to `docs/archive/debug-<bug-name>/`.
 
 ---
 
+## Learnings System
+
+- **Storage**: `~/.claude/plugin-learnings/dev-workflow/` (standalone Markdown files)
+- **Override**: Set custom path via `learnings_dir` in `.plugin-state/dev-workflow.local.md` YAML frontmatter
+- **Automatic write**: A holistic completion retrospective (`debug-completion`) is written when the debug session completes (after CLAUDE.md Gotchas update, step 11.5b)
+- **Manual feedback**: `/dev-workflow:record-feedback <workflow-name>` records user feedback with artifact metrics
+- **Review**: `/dev-workflow:review-learnings` synthesizes all accumulated learnings across TDD and debug sessions
+- Learnings persist across sessions and projects. Only `review-learnings` reads them — they are write-only during workflow execution.
+
 ## Integration with TDD Workflow
 
 If a debug session is initiated from a TDD implementation workflow:

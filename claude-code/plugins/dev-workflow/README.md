@@ -83,6 +83,8 @@ EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX 
 |---------|---------|
 | `/dev-workflow:continue-workflow <name>` | **Continue any in-progress workflow** (detects TDD vs debug) |
 | `/dev-workflow:compare-branches <target-branch>` | Parallel branch comparison using 5 subagents (structural, behavioral, testing, quality, risk) |
+| `/dev-workflow:review-learnings` | Synthesize accumulated learnings from TDD and debug sessions |
+| `/dev-workflow:record-feedback <name>` | Record user feedback about a completed workflow |
 | `/dev-workflow:help` | Show help |
 
 ## Context Management
@@ -159,6 +161,24 @@ For fresh sessions (not triggered by compaction/clear):
   ```
   **Warning:** Always set `--max-iterations` (50 iterations = $50-100+)
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test, etc.)
+
+## Learnings System
+
+The plugin accumulates workflow observations into standalone Markdown files for cross-session learning.
+
+- **Storage**: `~/.claude/plugin-learnings/dev-workflow/` (override via `learnings_dir` in `.plugin-state/dev-workflow.local.md` YAML frontmatter)
+- **File format**: YAML frontmatter (`type`, `plugin`, `workflow_type`, `workflow_topic`, `phase`, `date`) + Observation/Learning/Suggestion body
+- **Write-only during runs**: Only `review-learnings` reads accumulated learnings. Active workflows write but never read.
+
+| Trigger | When | File |
+|---------|------|------|
+| TDD completion retrospective | After Phase 9 review, step 4b | `YYYY-MM-DD-<feature>-tdd-completion.md` |
+| Debug completion retrospective | After Phase 10 clean, step 11.5b | `YYYY-MM-DD-<bug>-debug-completion.md` |
+
+| Command | Purpose |
+|---------|---------|
+| `/dev-workflow:review-learnings` | Synthesize all accumulated learnings |
+| `/dev-workflow:record-feedback <name>` | Record user feedback with artifact metrics |
 
 ## Artifacts
 

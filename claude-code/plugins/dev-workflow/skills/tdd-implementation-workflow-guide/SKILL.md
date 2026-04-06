@@ -475,6 +475,15 @@ docs/workflow-<feature>/
 - **Required agents**: `code-explorer`, `researcher`, `code-architect`, `plan-reviewer`, `test-designer`, `implementer`, `refactorer`, `code-reviewer`
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test)
 
+## Learnings System
+
+- **Storage**: `~/.claude/plugin-learnings/dev-workflow/` (standalone Markdown files)
+- **Override**: Set custom path via `learnings_dir` in `.plugin-state/dev-workflow.local.md` YAML frontmatter
+- **Automatic write**: A holistic completion retrospective (`tdd-completion`) is written when the workflow completes (after CLAUDE.md Gotchas update, step 4b)
+- **Manual feedback**: `/dev-workflow:record-feedback <workflow-name>` records user feedback with artifact metrics
+- **Review**: `/dev-workflow:review-learnings` synthesizes all accumulated learnings across TDD and debug sessions
+- Learnings persist across sessions and projects. Only `review-learnings` reads them — they are write-only during workflow execution.
+
 ## Integration with Debug Workflow
 
 If bugs are discovered during implementation or review:
