@@ -347,10 +347,21 @@ Summarize:
 
 ### 4. Update CLAUDE.md with workflow learnings
 
-Distill any durable project knowledge discovered during this workflow into the project's CLAUDE.md:
-- Add new entries to the **Gotchas** section for patterns, pitfalls, or constraints discovered
-- Update the **Testing** section if test infrastructure changed (markers added, config updated, etc.)
-- Do NOT add workflow-specific or ephemeral information - only durable project knowledge
+Use the `/revise-claude-md` command (from `claude-md-management` plugin) to capture session learnings:
+
+```
+/revise-claude-md
+```
+
+This will analyze the current session and propose updates to CLAUDE.md based on:
+- Patterns, pitfalls, or constraints discovered during implementation
+- Test infrastructure changes (markers, config)
+- New gotchas or conventions learned
+
+**Fallback** (if plugin not installed): Manually distill durable project knowledge:
+- Add new entries to the **Gotchas** section for patterns discovered
+- Update the **Testing** section if test infrastructure changed
+- Do NOT add workflow-specific or ephemeral information
 
 ### 5. Archive workflow directory
 

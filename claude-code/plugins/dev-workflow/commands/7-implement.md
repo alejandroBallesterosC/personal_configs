@@ -155,7 +155,34 @@ After subagent returns:
 - If tests fail, revert and try smaller refactor
 - Commit: git commit -m 'refactor: [$1][Component] [description]'
 
-### 4. Move to Next Requirement
+### 4. SIMPLIFY PHASE - Spawn code-simplifier subagent (optional)
+After completing the RED-GREEN-REFACTOR cycle for a component, optionally spawn a code-simplifier agent for a final polish:
+
+Use Task tool with subagent_type='code-simplifier:code-simplifier':
+
+'''
+Component: [Component Name]
+Feature: $1
+Files: [implementation files from this component]
+
+Apply final code simplification pass:
+- Reduce unnecessary complexity
+- Eliminate redundant abstractions
+- Improve readability
+- Follow CLAUDE.md conventions
+
+Preserve ALL functionality and keep tests green.
+Return list of simplifications made.
+'''
+
+After subagent returns:
+- RUN THE TESTS YOURSELF to confirm still GREEN
+- If tests fail, revert simplifications
+- Commit if changes were made: git commit -m 'simplify: [$1][Component] code clarity improvements'
+
+**Note**: Skip this phase for trivial components or when the refactor phase already achieved good clarity.
+
+### 5. Move to Next Requirement
 Continue TDD cycle for next requirement.
 
 ## Completion

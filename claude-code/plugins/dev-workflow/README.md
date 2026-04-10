@@ -160,6 +160,23 @@ For fresh sessions (not triggered by compaction/clear):
   **Warning:** Always set `--max-iterations` (50 iterations = $50-100+)
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test, etc.)
 
+### Optional Plugin Integrations
+
+These plugins enhance the workflow when installed:
+
+| Plugin | Integration Point | How to Use |
+|--------|------------------|------------|
+| `code-simplifier` | Phase 7 REFACTOR | Auto-spawned after refactor for final code polish |
+| `claude-md-management` | Workflow completion | `/revise-claude-md` captures session learnings |
+
+Install via:
+```bash
+/plugin install code-simplifier
+/plugin install claude-md-management
+```
+
+**Note**: The `code-review` plugin (`/code-review:code-review`) is useful for ad-hoc PR reviews but is not integrated into the TDD workflow since Phase 9 already provides comprehensive spec-aware review.
+
 ## Artifacts
 
 ### TDD Artifacts
