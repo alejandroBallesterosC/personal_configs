@@ -50,9 +50,9 @@ EXPLORE -> INTERVIEW -> ARCHITECTURE -> PLAN -> REVIEW -> IMPLEMENT -> E2E TEST 
 - **Parallel Exploration** (Phase 2): 5 code-explorer agents run simultaneously with Sonnet (1M context)
 - **Internet Research** (Phases 3-6): 4-5 parallel researcher agents per phase gather domain knowledge, architecture patterns, implementation insights, and validation data from credible sources
 - **Exhaustive Planning** (Phases 3-6): 40+ interview questions informed by research, plan designed for parallel implementation, user approval before coding
-- **Orchestrated TDD** (Phase 7): Main instance runs ralph-loop, subagents do discrete tasks, main runs tests between
-- **Orchestrated E2E** (Phase 8): Main instance runs ralph-loop for E2E test iteration
-- **Parallel Review** (Phase 9): 5 code-reviewer agents simultaneously, only >=80% confidence findings reported
+- **Orchestrated TDD** (Phase 7): Main instance owns the feedback loop directly, subagents do discrete tasks, main runs tests between. TDD implementation gate Stop hook keeps session alive until completion.
+- **Orchestrated E2E** (Phase 8): Main instance owns the feedback loop directly for E2E test iteration
+- **Parallel Review** (Phase 9): Up to 6 code-reviewer agents simultaneously (5 backend + visual/UI when applicable), only >=80% confidence findings reported
 
 ## Debug Workflow (9 Phases)
 
@@ -95,6 +95,7 @@ Long workflows degrade in quality as context fills. This plugin uses **automatic
 
 | Hook | Event | Type | Purpose |
 |------|-------|------|---------|
+| tdd-implementation-gate.sh | Stop | command | Blocks stop during Phases 7-9, re-feeds command after compaction |
 | archive-completed-workflows.sh | Stop | command | Auto-archives completed workflows to `docs/archive/` |
 | run-scoped-tests.sh | Stop | command | Runs tests after code changes |
 | State verification | Stop | agent | Verifies state files are up to date; blocks stopping if outdated |
@@ -124,8 +125,8 @@ For fresh sessions (not triggered by compaction/clear):
 | code-architect | Opus | Technical design from spec + exploration |
 | plan-reviewer | Opus | Challenge assumptions, find gaps |
 | test-designer | Opus | Write failing tests (RED phase) |
-| implementer | Opus | Minimal code to pass tests (GREEN phase) |
-| refactorer | Opus | Improve while keeping tests green |
+| implementer | Sonnet | Minimal code to pass tests (GREEN phase) |
+| refactorer | Sonnet | Improve while keeping tests green |
 | code-reviewer | Sonnet (1M) | Multi-aspect review with focus areas |
 
 ### Debug Agents
@@ -155,12 +156,9 @@ For fresh sessions (not triggered by compaction/clear):
   brew install yq jq  # macOS
   ```
   Hooks fail loudly with install instructions if these are missing.
-- **Required for TDD**: `ralph-loop` plugin for implementation loops
-  ```bash
-  /plugin marketplace add alejandroBallesterosC/personal_configs && /plugin install ralph-loop
-  ```
-  **Warning:** Always set `--max-iterations` (50 iterations = $50-100+)
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test, etc.)
+- **Optional**: Playwright plugin (used by Phase 8 e2e-test and Phase 9 review for live visual verification of frontend/UI features)
+  - Install: `/plugin marketplace add alejandroBallesterosC/personal_configs && /plugin install playwright`
 
 ## Learnings System
 
@@ -218,7 +216,7 @@ docs/debug/<bug-name>/
 ## Philosophy
 
 ### Orchestrator Owns the Feedback Loop
-- **Main instance runs ralph-loop** for TDD cycles
+- **Main instance orchestrates the feedback loop directly** for TDD cycles (TDD implementation gate Stop hook keeps session alive during Phases 7-9)
 - Subagents are **stateless workers** that do one task and return
 - Main instance **runs tests and validates** results
 - Context managed at orchestrator level, not buried in subagents

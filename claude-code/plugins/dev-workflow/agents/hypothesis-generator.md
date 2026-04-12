@@ -1,7 +1,7 @@
 ---
 name: hypothesis-generator
 description: Generate ranked hypotheses for bug root cause based on exploration findings. Includes meta-reasoning about framing and architectural causes.
-tools: Read, Grep, Glob
+tools: [Read, Grep, Glob]
 model: opus
 ---
 

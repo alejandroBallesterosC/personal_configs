@@ -25,6 +25,9 @@ debug_log() {
 # Log hook invocation
 debug_log "**Hook invoked.**"
 
+# Read and discard hook input from stdin (prevents EPIPE errors)
+cat > /dev/null
+
 # Check for yq dependency (required for YAML frontmatter parsing)
 if ! command -v yq &>/dev/null; then
   debug_log "**DEPENDENCY MISSING:** yq not found in PATH ($PATH)"

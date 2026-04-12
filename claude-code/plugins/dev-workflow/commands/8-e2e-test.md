@@ -11,7 +11,7 @@ argument-hint: <feature-name> "<feature description>"
 
 ## Objective
 
-Verify that all implemented components work together correctly. The **main instance runs ralph-loop** and owns the feedback loop, spawning subagents to fix specific issues.
+Verify that all implemented components work together correctly. The **main instance owns the feedback loop directly**, spawning subagents to fix specific issues. The TDD implementation gate Stop hook keeps this session alive until the workflow completes. If context is compacted, the hook re-feeds this command.
 
 **REQUIRED**: Use the Skill tool to invoke `dev-workflow:testing` to load TDD testing guidance and `.tdd-test-scope` usage.
 
@@ -62,29 +62,20 @@ Return list of E2E test files created.
 
 Execute the full E2E test suite and capture results.
 
-### Step 4: Fix Failures with Orchestrated Ralph-Loop
+### Step 4: Fix Failures
 
-If E2E tests fail, the **main instance runs ralph-loop** to fix:
+If E2E tests fail, the **main instance owns the fix loop** directly:
+
+**Context Files** (read for diagnosis):
+- `docs/workflow-$1/specs/$1-specs.md` (expected behavior)
+- `docs/workflow-$1/plans/$1-implementation-plan.md` (architecture)
+
+**Fix Loop** (repeat until ALL E2E tests pass):
+
+1. **Run E2E Tests** — Execute the E2E test suite and observe results
+2. **For Each Failure** — Diagnose and spawn an **implementer subagent**:
 
 ```
-/ralph-loop:ralph-loop "Fix E2E test failures for $1 using orchestrated approach.
-
-## Your Role
-You are the E2E test orchestrator. You run tests and spawn subagents to fix issues.
-
-## Context Files
-- docs/workflow-$1/specs/$1-specs.md (expected behavior)
-- docs/workflow-$1/plans/$1-implementation-plan.md (architecture)
-
-## Process
-
-### 1. Run E2E Tests Yourself
-Execute the E2E test suite and observe results.
-
-### 2. For Each Failure - Diagnose and Spawn Subagent
-Use Task tool with subagent_type='dev-workflow:implementer':
-
-'''
 E2E Test Failure: [test name]
 Error: [error message]
 Stack trace: [relevant trace]
@@ -94,26 +85,16 @@ Diagnose and fix this failure:
 - Identify which component interaction is failing
 - Fix the root cause (data flow, interface mismatch, etc.)
 Return the fix and files modified.
-'''
-
-### 3. Validate Fix
-After subagent returns:
-- Write a `.tdd-test-scope` file to the repository root with `all` to run the full test suite
-- RUN THE E2E TESTS YOURSELF
-- RUN ALL UNIT TESTS (regression check)
-- If still failing, provide more context to subagent
-- If passing, commit: git commit -m 'fix: e2e [test name]'
-
-### 4. Repeat
-Continue until ALL E2E tests pass.
-
-## Completion
-When ALL E2E tests pass:
-1. Run full test suite (unit + integration + E2E)
-2. Verify everything passes
-3. Output: E2E_$1_COMPLETE
-" --max-iterations 30 --completion-promise "E2E_$1_COMPLETE"
 ```
+
+3. **Validate Fix** — After subagent returns:
+   - Write a `.tdd-test-scope` file to the repository root with `all` to run the full test suite
+   - RUN THE E2E TESTS YOURSELF
+   - RUN ALL UNIT TESTS (regression check)
+   - If still failing, provide more context to subagent
+   - If passing, commit: git commit -m 'fix: e2e [test name]'
+4. **Repeat** until ALL E2E tests pass
+5. **Final verification** — Run full test suite (unit + integration + E2E), verify everything passes
 
 ### Key Points
 
@@ -126,10 +107,11 @@ When ALL E2E tests pass:
 ## E2E TEST GUIDELINES
 
 ### Orchestrator Pattern
-- **Main instance runs tests** - Observes actual failures
+- **Main instance owns the feedback loop directly** - runs tests and observes actual failures
 - **Subagents fix specific issues** - Do one fix and return
 - **Main validates after each fix** - Catches regressions immediately
 - **Context managed at orchestrator level** - hooks handle state preservation automatically
+- **TDD implementation gate Stop hook** - blocks stop during Phases 7-9 and re-feeds the command after context compaction
 
 ### Test Real Integrations
 - E2E tests should use real external services where possible

@@ -120,6 +120,8 @@ Run relevant tests for the affected area:
 
 **IMPORTANT**: Write a test that would have caught this bug.
 
+**Note:** Sanitize `$ARGUMENTS` to a valid Python identifier (replace spaces, hyphens, and special characters with underscores) before using in function names.
+
 ```python
 def test_regression_bug_$ARGUMENTS():
     """Regression test for [bug description].

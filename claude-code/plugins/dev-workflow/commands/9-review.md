@@ -1,5 +1,5 @@
 ---
-description: Parallel multi-aspect code review with 5 specialized reviewers
+description: Parallel multi-aspect code review with up to 6 specialized reviewers
 model: opus
 argument-hint: <feature-name>
 ---

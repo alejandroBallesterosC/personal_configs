@@ -1,7 +1,6 @@
 {
   "enabledPlugins": {
     "plugin-dev@claude-plugins-official": true,
-    "hookify@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true
   }
 }

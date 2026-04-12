@@ -50,7 +50,7 @@ Activate when:
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ PHASE 7: ORCHESTRATED TDD - /7-implement                                    │
-│   ralph-loop → test-designer → RUN TESTS → implementer → RUN TESTS → ...   │
+│   orchestrator → test-designer → RUN TESTS → implementer → RUN TESTS → ... │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -216,10 +216,10 @@ Specifically, before asking the user questions informed by research:
 ---
 
 ### Phase 7: ORCHESTRATED TDD IMPLEMENTATION
-**Purpose**: Implement components using TDD with main instance owning feedback loop
+**Purpose**: Implement components using TDD with main instance owning feedback loop directly
 
 **What happens**:
-- Main instance runs ralph-loop
+- Main instance orchestrates the feedback loop directly (TDD implementation gate Stop hook blocks stop during Phases 7-9)
 - Spawns subagents for discrete tasks:
   - `test-designer`: Write ONE failing test (RED)
   - `implementer`: Write minimal code to pass (GREEN)
@@ -238,7 +238,7 @@ Specifically, before asking the user questions informed by research:
 **Purpose**: Verify all components work together
 
 **What happens**:
-- Main instance runs ralph-loop for E2E iteration
+- Main instance owns the feedback loop directly for E2E iteration
 - test-designer writes E2E tests
 - Subagents fix failures until all pass
 
@@ -255,7 +255,7 @@ Specifically, before asking the user questions informed by research:
 - **Part A - Parallel Review**: 5 code-reviewer agents run in parallel
   - Reviews: Security, Performance, Quality, Coverage, Spec Compliance
   - Only ≥80% confidence findings reported
-- **Part B - Orchestrated Fixes**: Main instance runs ralph-loop
+- **Part B - Orchestrated Fixes**: Main instance spawns subagents directly
   - Subagents fix Critical and High severity issues
   - Tests verified after each fix
 - **Part C - Completion Summary**: Final state file updated, completion report generated
@@ -368,8 +368,8 @@ Context management is handled automatically by hooks - no special action require
 | Phase 4: Architecture | `researcher` (5x parallel), then `code-architect` (optional) | `Task tool with subagent_type: "dev-workflow:researcher"`, then `"dev-workflow:code-architect"` |
 | Phase 5: Plan | `researcher` (4x parallel), then main instance | `Task tool with subagent_type: "dev-workflow:researcher"`, then main instance creates plan |
 | Phase 6: Review | `researcher` (5x parallel), then `plan-reviewer` | `Task tool with subagent_type: "dev-workflow:researcher"`, then `"dev-workflow:plan-reviewer"` |
-| Phase 7: Implement | `test-designer`, `implementer`, `refactorer` | Via ralph-loop orchestration |
-| Phase 8: E2E Test | `test-designer`, `implementer` | Via ralph-loop orchestration |
+| Phase 7: Implement | `test-designer`, `implementer`, `refactorer` | Via direct orchestrator spawning |
+| Phase 8: E2E Test | `test-designer`, `implementer` | Via direct orchestrator spawning |
 | Phase 9: Review | `code-reviewer` (5x parallel) | `Task tool with subagent_type: "dev-workflow:code-reviewer"` |
 
 ---
@@ -378,7 +378,7 @@ Context management is handled automatically by hooks - no special action require
 
 These principles guide all phases of the workflow:
 
-1. **Orchestrator owns the feedback loop** - Main instance runs ralph-loop and tests, subagents do discrete tasks
+1. **Orchestrator owns the feedback loop** - Main instance orchestrates the feedback loop directly and runs tests, subagents do discrete tasks
 2. **Strategic parallelization** - Parallel for read-only work (exploration, review), sequential for implementation
 3. **Real integrations first** - Only mock when real integration is truly impossible
 4. **Verify continuously** - Main instance runs tests after every subagent task
@@ -397,8 +397,10 @@ All progress is tracked in `docs/workflow-<feature>/<feature>-state.md`:
 ---
 workflow_type: tdd-implementation
 name: <feature>
+description: <description>
 status: in_progress
 current_phase: "[Phase number and name]"
+command: "[current phase command string for Stop hook re-feeding]"
 ---
 
 # Workflow State: <feature>
@@ -470,9 +472,9 @@ docs/workflow-<feature>/
 
 ## Dependencies
 
-- **Required**: `ralph-loop` plugin for Phases 7, 8, 9 from Anthropic Official Plugins Marketplace
-  **Warning:** Always set `--max-iterations` (50 iterations = $50-100+ in API costs)
+- **Required**: `yq` and `jq` (YAML/JSON parsing for hooks)
 - **Required agents**: `code-explorer`, `researcher`, `code-architect`, `plan-reviewer`, `test-designer`, `implementer`, `refactorer`, `code-reviewer`
+- **Built-in**: TDD implementation gate Stop hook blocks stop during Phases 7-9 and re-feeds the command after context compaction
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test)
 
 ## Learnings System

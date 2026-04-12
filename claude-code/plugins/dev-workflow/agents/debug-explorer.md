@@ -1,7 +1,7 @@
 ---
 name: debug-explorer
 description: Explore codebase to understand systems relevant to a bug. Maps execution flow, dependencies, and recent changes.
-tools: Read, Grep, Glob, Bash
+tools: [Read, Grep, Glob, Bash]
 model: sonnet
 ---
 

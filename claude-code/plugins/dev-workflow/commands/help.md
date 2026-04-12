@@ -50,8 +50,8 @@ EXPLORE -> INTERVIEW -> ARCHITECTURE -> PLAN -> REVIEW -> IMPLEMENT -> E2E TEST 
 | code-architect | Opus | Technical design from spec + exploration |
 | plan-reviewer | Opus | Challenge assumptions, find gaps |
 | test-designer | Opus | Write failing tests (RED phase) |
-| implementer | Opus | Minimal code to pass tests (GREEN phase) |
-| refactorer | Opus | Improve while keeping tests green |
+| implementer | Sonnet | Minimal code to pass tests (GREEN phase) |
+| refactorer | Sonnet | Improve while keeping tests green |
 | code-reviewer | Sonnet (1M) | Multi-aspect review with focus areas |
 
 ### TDD Skills
@@ -122,6 +122,9 @@ EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX 
 | Command | Purpose |
 |---------|---------|
 | `/dev-workflow:continue-workflow <name>` | **Continue any in-progress workflow** (detects TDD vs debug) |
+| `/dev-workflow:compare-branches <target-branch>` | Parallel branch comparison using 5 subagents |
+| `/dev-workflow:review-learnings` | Synthesize accumulated learnings from TDD and debug sessions |
+| `/dev-workflow:record-feedback <name>` | Record user feedback about a completed workflow |
 | `/dev-workflow:help` | Show this help |
 
 ## Context Management
@@ -130,6 +133,7 @@ Context is managed **automatically via hooks** - no manual intervention needed.
 
 | Hook | Event | Type | Purpose |
 |------|-------|------|---------|
+| tdd-implementation-gate.sh | Stop | command | Blocks stop during Phases 7-9, re-feeds command after compaction |
 | archive-completed-workflows.sh | Stop | command | Auto-archives completed workflows to `docs/archive/` |
 | run-scoped-tests.sh | Stop | command | Run tests after code changes |
 | State verification | Stop | agent | Verify state file is up to date; blocks stopping if outdated |
@@ -145,11 +149,10 @@ For fresh sessions (not triggered by compaction/clear):
 
 ## Dependencies
 
-- **Required for TDD**: `ralph-loop` plugin for implementation loops
+- **Required**: `yq` and `jq` (YAML/JSON parsing for hooks)
   ```bash
-  /plugin marketplace add anthropics/claude-code && /plugin install ralph-wiggum
+  brew install yq jq  # macOS
   ```
-  **Warning:** Always set `--max-iterations` (50 iterations = $50-100+)
 - **Optional**: Test framework (pytest, jest, vitest, go test, cargo test, etc.)
 
 ## Artifacts

@@ -96,4 +96,4 @@ After saving the plan, offer to start executing it:
 
 **"Plan complete and saved to `docs/workflow-<feature>/plans/<feature>-implementation-plan.md`. Execute with /implement?**
 
-if the user approves, invoke the /implement <feature> --max-iterations <N> command
+if the user approves, invoke the `/dev-workflow:7-implement <feature> "<description>"` command

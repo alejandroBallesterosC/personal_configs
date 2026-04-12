@@ -7,7 +7,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 ```
 claude-code/
 ├── plugins/           # 7 encapsulated plugins (installed via marketplace)
-│   ├── dev-workflow/  # 12 agents, 20 commands, 6 skills, 4 hooks (TDD + Debug)
+│   ├── dev-workflow/  # 12 agents, 20 commands, 6 skills, 5 hooks (TDD + Debug)
 │   ├── research-report/   # 4 agents, 3 commands, 1 skill, 2 hooks (Iterative research + LaTeX)
 │   ├── long-horizon-impl/ # 9 agents, 4 commands, 1 skill, 2 hooks (Research/Plan/Implement)
 │   ├── playwright/    # Browser automation (1 skill, token-efficient CLI)
@@ -29,7 +29,7 @@ cursor/                # Cursor IDE mirror (42 files, TDD-only, unidirectional s
 - **Agent YAML frontmatter**: Defines `name`, `tools`, `model` (sonnet|opus)
 - **Skill activation**: Skills auto-activate when context matches their description
 - **Hooks**: Event-driven automation (Stop, SessionStart across dev-workflow, research-report, long-horizon-impl)
-  - `Stop`: Archive completed workflows + run scoped tests + state verification agent (dev-workflow), iteration control (ralph-loop), iteration engine + completion verifier (research-report, long-horizon-impl)
+  - `Stop`: TDD implementation gate + archive completed workflows + run scoped tests + state verification agent (dev-workflow), iteration control (ralph-loop), iteration engine + completion verifier (research-report, long-horizon-impl)
   - `SessionStart`: Auto-restore context after compact/clear (dev-workflow: TDD + debug state, research-report: research state, long-horizon-impl: research/planning/impl state)
 
 ## No Application Code
@@ -64,7 +64,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - **yq + jq** (required for dev-workflow, research-report, and long-horizon-impl hooks — YAML/JSON parsing)
   - Install: `brew install yq jq` (macOS)
   - Hooks fail loudly with install instructions if missing
-- **ralph-loop plugin** (required for TDD implementation phase in dev-workflow and long-horizon-impl 2-implement)
+- **ralph-loop plugin** (required for long-horizon-impl 2-implement only; dev-workflow uses its own built-in Stop hook)
   - Install: `/plugin marketplace add alejandroBallesterosC/personal_configs && /plugin install ralph-loop`
   - Safety: ALWAYS set `--max-iterations` (50 iterations = $50-100+ in API costs)
 - **MacTeX** (optional, for research-report and long-horizon-impl LaTeX PDF compilation)
@@ -72,7 +72,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 
 ## Gotchas
 
-- `ralph-loop` is external dependency for dev-workflow - install via plugin marketplace (see Dependencies)
+- `dev-workflow` uses a built-in TDD implementation gate Stop hook for Phases 7-9 (no external ralph-loop dependency)
 - `claude-code/CLAUDE.md` is a TEMPLATE (symlinked to ~/.claude/CLAUDE.md), not this repo's CLAUDE.md
 - Test auto-detection exits 0 when no framework found (non-fatal for repos without tests)
 - **Context is preserved automatically** via Stop/SessionStart hooks - no manual action needed
@@ -83,7 +83,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - Cursor mirror (`cursor/`) is TDD-only — missing entire debug workflow (6 commands, 4 agents, 2 skills)
 - VS Code `tasks.json` has dead tasks referencing removed sync scripts and leftover tasks from previous projects
 - Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 8 plugins
-- Stop hook chain order (per marketplace.json): dev-workflow → ralph-loop → research-report → long-horizon-impl. If an earlier hook blocks, later hooks do not run
+- All matching Stop hooks across all plugins run in **parallel** (official Claude Code behavior). If any hook returns `decision: "block"`, Claude continues — the most restrictive decision wins after all hooks complete. There is no sequential ordering or short-circuit between plugins
 - `research-report` has its own Stop hook iteration engine — it does NOT depend on ralph-loop for iteration
 - `long-horizon-impl` 1-research-and-plan uses its own Stop hook for iteration; 2-implement uses ralph-loop
 - Running TDD and research/impl workflows simultaneously may cause SessionStart hook context loss (both output independently, no merging)

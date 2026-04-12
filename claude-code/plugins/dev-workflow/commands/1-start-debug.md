@@ -81,17 +81,26 @@ Before creating debug artifacts, ensure the project has a CLAUDE.md at the repos
 
 **If CLAUDE.md already exists**, read it and append any missing sections (Development Workflows with guide skill references, Testing with `dev-workflow:testing` skill reference and `.tdd-test-scope` mention, Gotchas) without overwriting existing content.
 
-### 2.1 Create artifact directory
+### 2.1 Derive filesystem-safe bug name
+
+Create a short, filesystem-safe slug from the bug description for all directory and file paths:
+- Take 3-5 meaningful words from the description
+- Lowercase, join with hyphens, remove special characters
+- Example: "API returns 500 error when user has emoji in name" → `api-500-emoji-name`
+
+Store this slug as `$BUG_NAME`. Use `$BUG_NAME` for all directory/file paths throughout the workflow. Use the full `$ARGUMENTS` for display text (titles, descriptions, YAML `name` field).
+
+### 2.2 Create artifact directory
 
 Create the directory structure for this debug session:
 
 ```
-docs/debug/$ARGUMENTS/
+docs/debug/$BUG_NAME/
 ```
 
-### 2.2 Create state file
+### 2.3 Create state file
 
-Write the initial state file to `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+Write the initial state file to `docs/debug/$BUG_NAME/$BUG_NAME-state.md`:
 
 ```markdown
 ---
@@ -140,17 +149,17 @@ Count: 0/3
 ## Context Restoration Files
 Read these files to restore context:
 1. Use the debug-workflow-guide skill if needed
-2. docs/debug/$ARGUMENTS/$ARGUMENTS-state.md (this file)
-3. docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md
-4. docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md
-5. docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md
-6. docs/debug/$ARGUMENTS/$ARGUMENTS-analysis.md
+2. docs/debug/$BUG_NAME/$BUG_NAME-state.md (this file)
+3. docs/debug/$BUG_NAME/$BUG_NAME-bug.md
+4. docs/debug/$BUG_NAME/$BUG_NAME-exploration.md
+5. docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md
+6. docs/debug/$BUG_NAME/$BUG_NAME-analysis.md
 7. CLAUDE.md
 ```
 
-### 2.3 Save original prompt
+### 2.4 Save original prompt
 
-Write the user's bug description to `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md` with what is known so far. This file will be enriched in Phase 3.
+Write the user's bug description to `docs/debug/$BUG_NAME/$BUG_NAME-bug.md` with what is known so far. This file will be enriched in Phase 3.
 
 ---
 
@@ -169,7 +178,7 @@ Provide the agent with:
 
 ### 3.2 Save exploration findings
 
-Write exploration output to: `docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md`
+Write exploration output to: `docs/debug/$BUG_NAME/$BUG_NAME-exploration.md`
 
 ### 3.3 Update state file
 
@@ -195,7 +204,7 @@ Skip questions where the answer is already known from the bug description.
 
 ### 4.2 Update bug description
 
-Enrich `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md` with the user's answers:
+Enrich `docs/debug/$BUG_NAME/$BUG_NAME-bug.md` with the user's answers:
 
 ```markdown
 # Bug Report: $ARGUMENTS
@@ -233,8 +242,8 @@ Mark Phase 3 complete. Update current phase to Phase 4.
 Use the Task tool with `subagent_type: "dev-workflow:hypothesis-generator"` to generate 3-5 ranked hypotheses.
 
 Provide the agent with:
-- Bug description from `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md`
-- Exploration findings from `docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md`
+- Bug description from `docs/debug/$BUG_NAME/$BUG_NAME-bug.md`
+- Exploration findings from `docs/debug/$BUG_NAME/$BUG_NAME-exploration.md`
 
 ### 5.2 Review hypotheses
 
@@ -244,7 +253,7 @@ Present the hypotheses to the user. Ask via AskUserQuestionTool:
 
 ### 5.3 Save hypotheses
 
-Write to: `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
+Write to: `docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md`
 
 ### 5.4 Update state file
 
@@ -259,7 +268,7 @@ Mark Phase 4 complete. Update hypotheses status (all PENDING). Update current ph
 Use the Task tool with `subagent_type: "dev-workflow:instrumenter"` to add targeted logging.
 
 Provide the agent with:
-- Hypotheses from `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
+- Hypotheses from `docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md`
 - Relevant file paths from exploration
 
 ### 6.2 Verify instrumentation
@@ -326,11 +335,11 @@ Read `logs/debug-output.log` from the repository root. Then use the Task tool wi
 
 Provide the agent with:
 - The contents of `logs/debug-output.log`
-- Hypotheses from `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
+- Hypotheses from `docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md`
 
 ### 8.2 Save analysis
 
-Write to: `docs/debug/$ARGUMENTS/$ARGUMENTS-analysis.md`
+Write to: `docs/debug/$BUG_NAME/$BUG_NAME-analysis.md`
 
 ### 8.3 Handle analysis results
 
@@ -458,7 +467,7 @@ Added regression test to prevent recurrence."
 
 ### 11.4 Archive debug session
 
-Write resolution summary to `docs/debug/$ARGUMENTS/$ARGUMENTS-resolution.md`:
+Write resolution summary to `docs/debug/$BUG_NAME/$BUG_NAME-resolution.md`:
 
 ```markdown
 # Debug Resolution: $ARGUMENTS
@@ -496,7 +505,7 @@ Write a workflow-level learning file capturing observations about the full debug
 1. Resolve learnings directory: check `.plugin-state/dev-workflow.local.md` for `learnings_dir` frontmatter field, else use `~/.claude/plugin-learnings/dev-workflow/`
 2. Create the directory with `mkdir -p` if it doesn't exist
 3. Read the resolution document and state file
-4. Write `YYYY-MM-DD-$ARGUMENTS-debug-completion.md` with this structure:
+4. Write `YYYY-MM-DD-$BUG_NAME-debug-completion.md` with this structure:
 
 ```markdown
 ---
@@ -520,7 +529,7 @@ date: YYYY-MM-DD
 
 ### 11.6 Update state file
 
-Update the YAML frontmatter at the top of `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+Update the YAML frontmatter at the top of `docs/debug/$BUG_NAME/$BUG_NAME-state.md`:
 
 ```yaml
 ---
@@ -539,7 +548,7 @@ Move the debug session directory to the archive:
 
 ```bash
 mkdir -p docs/archive
-mv docs/debug/$ARGUMENTS docs/archive/debug-$ARGUMENTS
+mv docs/debug/$BUG_NAME docs/archive/debug-$BUG_NAME
 ```
 
 ---

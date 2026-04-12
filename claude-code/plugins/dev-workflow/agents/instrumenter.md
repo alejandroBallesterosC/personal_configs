@@ -1,7 +1,7 @@
 ---
 name: instrumenter
 description: Add surgical debug instrumentation to test specific hypotheses.
-tools: Read, Write, Edit, Grep, Glob
+tools: [Read, Write, Edit, Grep, Glob]
 model: sonnet
 ---
 

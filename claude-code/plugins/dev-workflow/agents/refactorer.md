@@ -139,11 +139,7 @@ git checkout -- .
 ```
 
 ### If Tests Pass
-```bash
-# Commit the improvement
-git add .
-git commit -m "refactor: [description of improvement]"
-```
+Report the improvement back to the orchestrator. Do NOT commit — the orchestrating instance manages commits.
 
 ## Output Format
 
@@ -169,11 +165,6 @@ git commit -m "refactor: [description of improvement]"
 ```
 pytest -v
 All tests PASSED
-```
-
-### Commit
-```
-git commit -m "refactor: [description]"
 ```
 ```
 

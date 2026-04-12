@@ -74,7 +74,7 @@ for state_file in docs/workflow-*/*-state.md; do
     TDD_STATE_FILE="$state_file"
     TDD_ACTIVE=true
     break
-  elif [ -z "$status" ] && ! grep -qi "Current Phase.*COMPLETE\|^COMPLETE$" "$state_file" 2>/dev/null; then
+  elif [ -z "$status" ] && ! grep -Eqi "Current Phase.*COMPLETE|^COMPLETE$" "$state_file" 2>/dev/null; then
     # Fallback: no YAML status field, check markdown body
     TDD_STATE_FILE="$state_file"
     TDD_ACTIVE=true
@@ -95,7 +95,7 @@ for state_file in docs/debug/*/*-state.md; do
     DEBUG_STATE_FILE="$state_file"
     DEBUG_ACTIVE=true
     break
-  elif [ -z "$status" ] && ! grep -qi "Current Phase.*COMPLETE\|^COMPLETE$" "$state_file" 2>/dev/null; then
+  elif [ -z "$status" ] && ! grep -Eqi "Current Phase.*COMPLETE|^COMPLETE$" "$state_file" 2>/dev/null; then
     # Fallback: no YAML status field, check markdown body
     DEBUG_STATE_FILE="$state_file"
     DEBUG_ACTIVE=true
@@ -204,17 +204,8 @@ Context was $TRIGGER_DESC during an active debug session. To continue:
 **Continue the debug session now.** Read any additional files needed and proceed with the next action indicated in the state."
 fi
 
-# Escape the context for JSON
-ESCAPED_CONTEXT=$(echo "$CONTEXT" | jq -Rs .)
-
 debug_log "**Injecting context.** TDD=$TDD_ACTIVE, Debug=$DEBUG_ACTIVE, trigger=$TRIGGER_DESC"
 
-# Output JSON with additionalContext
-cat << EOF
-{
-  "hookSpecificOutput": {
-    "hookEventName": "SessionStart",
-    "additionalContext": $ESCAPED_CONTEXT
-  }
-}
-EOF
+# Output plain text context directly to stdout
+# (avoids compact-matcher bug with JSON hookSpecificOutput format, see GitHub #28305)
+echo "$CONTEXT"

@@ -221,5 +221,5 @@ You may optionally run /clear to reset context before implementation - hooks wil
 /dev-workflow:7-implement $ARGUMENTS "[description]"
 
 Or continue the full workflow:
-/dev-workflow:1-start-tdd-implementation $ARGUMENTS "[description]"
+/dev-workflow:continue-workflow $ARGUMENTS
 ```

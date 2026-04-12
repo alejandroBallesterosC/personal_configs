@@ -26,7 +26,7 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 | Browser automation | Playwright (`playwright-cli` + `@playwright/test`) | npm global install |
 | IDE mirror | Cursor IDE | Unidirectional sync |
 | MCP servers | context7 (HTTP), fetch (stdio), exa (npx), playwright (npx) | global_mcp_settings.json |
-| Dependencies | yq, jq (hooks), ralph-loop plugin (TDD/autonomous), MacTeX (optional, LaTeX PDF) | brew install |
+| Dependencies | yq, jq (hooks), ralph-loop plugin (long-horizon-impl 2-implement), MacTeX (optional, LaTeX PDF) | brew install |
 
 ## 3. Architecture
 
@@ -108,7 +108,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 - **Skills**: YAML frontmatter (`name`, `description` for activation) + SKILL.md content
 - **Hooks**: `hooks.json` registering event handlers (command scripts or agent prompts)
 
-**Coupling**: Plugins are loosely coupled. dev-workflow depends on ralph-loop (hard, Phases 7-9) and optionally playwright (E2E, visual verification). long-horizon-impl depends on ralph-loop (hard, 2-implement iteration) and optionally exa MCP (deep research), MacTeX (PDF output), and playwright-cli (visual verification of UI features). claude-md-best-practices is a soft dependency (skill invocation).
+**Coupling**: Plugins are loosely coupled. dev-workflow has no hard plugin dependencies (uses built-in TDD implementation gate Stop hook for Phases 7-9) and optionally playwright (E2E, visual verification). long-horizon-impl depends on ralph-loop (hard, 2-implement iteration) and optionally exa MCP (deep research), MacTeX (PDF output), and playwright-cli (visual verification of UI features). claude-md-best-practices is a soft dependency (skill invocation).
 
 ### Hook Interface Contract
 - **Command hooks**: Shell scripts returning exit code 0 (allow) or JSON `{"decision": "block", ...}` (block)
@@ -140,7 +140,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 | Hook-based verification | Stop hook agent verifies state | Trust Claude to update state | Deterministic correctness vs. 120s timeout on every exit |
 | Symlinks for Claude Code | Symlinks to repo dirs | Copy-based sync scripts | Instant sync, single source of truth vs. breaks if repo moves |
 | Cursor mirror | Separate adapted copy | Shared source with adapters | Simpler sync script vs. files to maintain in parallel |
-| ralph-loop as external dep | Plugin marketplace install | Built-in to dev-workflow | Separation of concerns vs. extra install step |
+| Built-in TDD gate hook | Stop hook blocks during Phases 7-9, re-feeds command | External ralph-loop plugin | No external dependency vs. shared iteration engine |
 | yq for YAML parsing | Shell + yq | Python yaml module | Simpler scripts vs. hard dependency on yq binary |
 | Subagent data isolation | Sonnet absorbs raw web data, Opus gets summaries | Main instance does all research | Prevents context bloat in long-running workflows |
 | Budget-based phase transitions | Iteration count triggers transition | Contribution-based / quality heuristics | Predictable timing vs. may transition when still productive |
@@ -183,21 +183,21 @@ By design — repo contains only Markdown, JSON, and Bash (no application code t
 
 ## 7. Plugin Details
 
-### dev-workflow (v2.1.0) — TDD Implementation + Debug
+### dev-workflow (v2.2.0) — TDD Implementation + Debug
 
-**Components**: 12 agents, 20 commands, 6 skills, 4 hooks (Stop x3, SessionStart x1)
+**Components**: 12 agents, 20 commands, 6 skills, 5 hooks (Stop x4, SessionStart x1)
 
 **TDD Phases** (8):
 | Phase | Command | Agents | Gate |
 |-------|---------|--------|------|
-| Init | `1-start-tdd-implementation` | None | ralph-loop check |
+| Init | `1-start-tdd-implementation` | None | None |
 | 2: Explore | `2-explore` | 5x code-explorer (Sonnet, parallel) | User confirmation |
 | 3: Interview | `3-user-specification-interview` | None (Opus) | 40+ questions |
 | 4: Architecture | `4-plan-architecture` | code-architect (Opus) | None |
 | 5: Plan | `5-plan-implementation` | None (Opus) | None |
 | 6: Review | `6-review-plan` | plan-reviewer (Opus) | User approval |
-| 7: Implement | `7-implement` | ralph-loop -> test-designer, implementer, refactorer | Per-component |
-| 8: E2E | `8-e2e-test` | ralph-loop -> test-designer, implementer | All tests green |
+| 7: Implement | `7-implement` | orchestrator -> test-designer, implementer, refactorer | Per-component |
+| 8: E2E | `8-e2e-test` | orchestrator -> test-designer, implementer | All tests green |
 | 9: Review | `9-review` | 5x code-reviewer (Sonnet, parallel) | Fix criticals |
 
 **Debug Phases** (9): Hypothesis-driven with loopback flows. 3-fix rule (after 3 failed fixes, question architecture).
@@ -254,7 +254,7 @@ wide-exploration -> source-verification -> contradiction-resolution -> deep-dive
 
 **Components**: 3 commands, 1 hook (Stop)
 
-**Role**: Provides iteration loop for dev-workflow (Phases 7-9). Uses `.claude/ralph-loop.local.md` state file with YAML frontmatter tracking iteration count and completion promise.
+**Role**: Provides iteration loop for long-horizon-impl 2-implement. Uses `.claude/ralph-loop.local.md` state file with YAML frontmatter tracking iteration count and completion promise.
 
 **Mechanism**: Stop hook checks for `<promise>TEXT</promise>` XML tags in Claude's output via Perl regex. If found -> allows stop. If not -> increments iteration counter atomically (PID-based temp file + mv) -> blocks stop with JSON `{decision: "block"}` containing prompt for next iteration.
 
@@ -308,18 +308,20 @@ Also has leftover tasks: "Compile Frontend Typescript" and "HoPF config file" in
 ### Stop Hook Chain (corrected order per marketplace.json)
 
 ```
-1. dev-workflow: archive-completed-workflows.sh   -> always exits 0
-2. dev-workflow: run-scoped-tests.sh              -> exits 0 or blocks with JSON
+1. dev-workflow: tdd-implementation-gate.sh       -> blocks during Phases 7-9, re-feeds command
+   IF blocks: CHAIN HALTS (subsequent hooks do not run during active implementation)
+2. dev-workflow: archive-completed-workflows.sh   -> always exits 0
+3. dev-workflow: run-scoped-tests.sh              -> exits 0 or blocks with JSON
    IF blocks: CHAIN MAY HALT (subsequent hooks may not run)
-3. dev-workflow: State verification agent          -> {ok:true/false}, 120s timeout
-4. ralph-loop: stop-hook.sh                       -> exits 0 or blocks with JSON
-   IF active loop: blocks stop, feeds prompt back -> steps 5+ never run
-5. autonomous-workflow: stop-hook.sh              -> iteration engine + completion verifier
+4. dev-workflow: State verification agent          -> {ok:true/false}, 120s timeout
+5. ralph-loop: stop-hook.sh                       -> exits 0 or blocks with JSON
+   IF active loop: blocks stop, feeds prompt back -> steps 6+ never run
+6. autonomous-workflow: stop-hook.sh              -> iteration engine + completion verifier
 ```
 
-**Risk 1**: If tests fail (step 2 blocks), steps 3-5 may never execute.
-**Risk 2**: If ralph-loop blocks (step 4 feeds prompt back), autonomous-workflow stop-hook never runs. State file consistency is not verified between ralph-loop iterations.
-**Risk 3**: On final ralph-loop iteration (WORKFLOW_COMPLETE detected or max reached), ralph-loop allows stop (exit 0) and autonomous-workflow stop-hook finally runs.
+**Risk 1**: During dev-workflow Phases 7-9, the TDD gate (step 1) blocks and re-feeds the command. Steps 2-6 never run — this is intentional since the orchestrator handles testing directly.
+**Risk 2**: If tests fail (step 3 blocks), steps 4-6 may never execute.
+**Risk 3**: If ralph-loop blocks (step 5 feeds prompt back), autonomous-workflow stop-hook never runs. State file consistency is not verified between ralph-loop iterations.
 
 ### Autonomous-Workflow Stop Hook Mechanism
 
@@ -362,6 +364,7 @@ All blocking hooks use the same format:
 ```
 
 **Plugin-specific behavior**:
+- **dev-workflow gate**: `reason` = current phase command to re-feed; `systemMessage` = phase + state file path
 - **ralph-loop**: `reason` = the prompt to re-execute; `systemMessage` = iteration count + promise reminder
 - **autonomous-workflow**: `reason` = re-feed command; `systemMessage` = iteration progress
 - **dev-workflow agent**: Returns `{ok: true/false, reason: "..."}` (different format)
@@ -370,6 +373,7 @@ All blocking hooks use the same format:
 
 | Script | Hard Deps | Failure Mode |
 |--------|-----------|--------------|
+| tdd-implementation-gate.sh | yq, jq | Exit 2 if missing |
 | archive-completed-workflows.sh | yq | Exit 2 if yq missing |
 | run-scoped-tests.sh | jq | Exit 2 if jq missing |
 | auto-resume-after-compact-or-clear.sh (dev) | yq, jq | Exit 2 if missing |

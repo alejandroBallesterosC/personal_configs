@@ -102,17 +102,17 @@ Output a summary of current state, loaded artifacts, and continue from the curre
 | Phase 4: Architecture | Continue architecture design, then Phase 5 |
 | Phase 5: Implementation Plan | Continue plan creation, then Phase 6 |
 | Phase 6: Plan Review | Continue review process until approval |
-| Phase 7: Implementation | Resume ralph-loop TDD implementation |
-| Phase 8: E2E Testing | Resume ralph-loop E2E testing |
+| Phase 7: Implementation | Resume orchestrated TDD implementation |
+| Phase 8: E2E Testing | Resume orchestrated E2E testing |
 | Phase 9: Review | Continue review/fixes process |
 
 ### For Implementation Phases (7, 8, 9)
 
-If the current phase involves ralph-loop:
+The TDD implementation gate Stop hook keeps the session alive during these phases. If continuing in a fresh session:
 
 1. Read `docs/workflow-$1/plans/$1-implementation-plan.md` to identify components and status
 2. Check which components are complete (from state file or git history)
-3. Resume ralph-loop for the current/next incomplete component
+3. Resume orchestrated TDD for the current/next incomplete component
 
 ---
 
@@ -186,19 +186,6 @@ The dev-workflow plugin uses hooks for automatic context preservation:
 This command (`/continue-workflow`) is for **manual continuation** in scenarios where:
 - You're starting a fresh session (not triggered by compaction/clear)
 - You want to explicitly resume a specific workflow by name
-
-### ralph-loop Dependency (TDD only)
-
-Phases 7, 8, and 9 of the TDD implementation workflow require the `ralph-loop` plugin:
-
-```
-/plugin marketplace add anthropics/claude-code
-/plugin install ralph-wiggum
-```
-
-**Safety**: Always set `--max-iterations` to prevent runaway costs (50 iterations = $50-100+).
-
----
 
 ## BEGIN CONTINUATION
 

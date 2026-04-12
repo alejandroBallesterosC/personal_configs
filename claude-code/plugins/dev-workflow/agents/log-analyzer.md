@@ -1,7 +1,7 @@
 ---
 name: log-analyzer
 description: Analyze debug log output against hypotheses to determine root cause.
-tools: Read, Grep, Glob
+tools: [Read, Grep, Glob]
 model: sonnet
 ---
 

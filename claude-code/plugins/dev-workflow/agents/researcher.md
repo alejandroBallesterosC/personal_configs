@@ -137,7 +137,7 @@ Produce a structured report for your focus area:
 
 ## Important Notes
 
-- **Target 200-500 words** per report (concise, not exhaustive)
+- **Target 500-1000 words** per report (thorough but focused)
 - **Stay focused**: Prioritize your assigned research area
 - **Be skeptical**: Note when sources conflict or findings are uncertain
 - **Distinguish evidence from assertion**: Tag each finding as DEMONSTRATED (backed by data, benchmarks, controlled tests) or ASSERTED (opinion, anecdotal, or unsupported claim). Both are useful but they are not equal.
@@ -145,6 +145,7 @@ Produce a structured report for your focus area:
 - **No file modifications**: This is research only, no Write tool
 - **Cite everything**: Every factual claim must have a source URL
 - **State validity boundaries**: If a finding was demonstrated under specific conditions, state those conditions
+- **Exa MCP dependency**: This agent relies on Exa MCP tools (`web_search_exa`, `web_search_advanced_exa`, `crawling_exa`, `deep_researcher_start/check`) for primary research. Falls back to `WebSearch`/`WebFetch` if Exa is unavailable. Requires `EXA_API_KEY` env var to be configured.
 
 ## When Run in Parallel
 

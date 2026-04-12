@@ -96,11 +96,8 @@ Just enough to make THIS test pass.
 pytest path/to/test.py -v
 ```
 
-### 5. Commit If Green
-```bash
-git add .
-git commit -m "green: [requirement description]"
-```
+### 5. Report Back
+When tests pass, report your changes back to the orchestrator. Do NOT commit — the orchestrating instance manages commits.
 
 ## Output Format
 
@@ -121,12 +118,6 @@ def function_name(...):
 ```
 pytest path/to/test.py -v
 PASSED
-```
-
-### Commit
-
-```
-git commit -m "green: [requirement]"
 ```
 ```
 

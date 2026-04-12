@@ -21,10 +21,6 @@ Before starting, complete these steps:
    - This loads the workflow overview, phase diagram, key principles, and context management details
    - **REQUIRED**: Do this before proceeding
 
-2. **Verify ralph-loop plugin** is installed (required for Phases 7, 8, 9)
-   - Check that the `ralph-loop` plugin is available
-   - If not installed, inform the user and stop
-
 ---
 
 ## GUARD: SINGLE ACTIVE WORKFLOW
@@ -54,10 +50,11 @@ If no active workflow is found (no state files, or all have `status: complete`),
 ## CONTEXT MANAGEMENT
 
 Context is managed **automatically via hooks** - no manual intervention needed:
-- **Stop hook** (agent) verifies state file is up to date before Claude stops; blocks stopping if outdated
+- **TDD implementation gate Stop hook** (command) blocks Claude from stopping during Phases 7-9 and re-feeds the current phase command after context compaction
+- **State verification Stop hook** (agent) verifies state file is up to date before Claude stops; blocks stopping if outdated
 - **SessionStart hook** (command) restores context after compaction or clear
 
-The main Claude instance is responsible for keeping `docs/workflow-$1/$1-state.md` current.
+The main Claude instance is responsible for keeping `docs/workflow-$1/$1-state.md` current, including the `command` field in the YAML frontmatter which the gate hook uses for re-feeding.
 
 ---
 
@@ -146,8 +143,10 @@ Create `docs/workflow-$1/$1-state.md`:
 ---
 workflow_type: tdd-implementation
 name: $1
+description: $2
 status: in_progress
 current_phase: "Phase 2: Exploration"
+command: "/dev-workflow:1-start-tdd-implementation $1 \"$2\""
 ---
 
 # Workflow State: $1
@@ -266,10 +265,14 @@ After completion:
 
 ## PHASE 7: ORCHESTRATED TDD IMPLEMENTATION
 
-**What**: TDD implementation with main instance owning feedback loop via ralph-loop
+**What**: TDD implementation with main instance owning feedback loop directly
 **Output**: Working code with test coverage
-**Agents**: `test-designer`, `implementer`, `refactorer` (via ralph-loop)
+**Agents**: `test-designer`, `implementer`, `refactorer` (spawned by orchestrator)
 **Prerequisites**: All planning artifacts exist, user has approved
+
+Before starting Phase 7, update the state file YAML frontmatter:
+- Set `current_phase: "Phase 7: Implementation"`
+- Set `command: "/dev-workflow:7-implement $1 \"$2\""`
 
 Execute by following the instructions in the `7-implement` command with feature: $1 and description: $2
 
@@ -281,9 +284,13 @@ After completion:
 
 ## PHASE 8: ORCHESTRATED E2E TESTING
 
-**What**: End-to-end testing with main instance owning feedback loop via ralph-loop
+**What**: End-to-end testing with main instance owning feedback loop directly
 **Output**: Passing E2E test suite
-**Agents**: `test-designer`, `implementer` (via ralph-loop)
+**Agents**: `test-designer`, `implementer` (spawned by orchestrator)
+
+Before starting Phase 8, update the state file YAML frontmatter:
+- Set `current_phase: "Phase 8: E2E Testing"`
+- Set `command: "/dev-workflow:8-e2e-test $1 \"$2\""`
 
 Execute by following the instructions in the `8-e2e-test` command with feature: $1 and description: $2
 
@@ -297,7 +304,11 @@ After completion:
 
 **What**: 5 parallel reviewers, fix critical issues, generate completion report
 **Output**: `docs/workflow-$1/$1-review.md`, completion report
-**Agents**: 5x `code-reviewer` (parallel), then `implementer`/`refactorer` (via ralph-loop for fixes)
+**Agents**: 5x `code-reviewer` (parallel), then `implementer`/`refactorer` (spawned by orchestrator for fixes)
+
+Before starting Phase 9, update the state file YAML frontmatter:
+- Set `current_phase: "Phase 9: Review & Completion"`
+- Set `command: "/dev-workflow:9-review $1"`
 
 Execute by following the instructions in the `9-review` command with feature: $1
 
