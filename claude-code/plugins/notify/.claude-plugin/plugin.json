@@ -1,0 +1,16 @@
+{
+  "name": "notify",
+  "version": "1.0.0",
+  "description": "Terminal bell and macOS banner notifications when Claude Code needs input or finishes responding",
+  "author": {
+    "name": "jandro"
+  },
+  "keywords": [
+    "notify",
+    "notification",
+    "bell",
+    "tmux",
+    "ghostty",
+    "macos"
+  ]
+}
