@@ -1,20 +1,22 @@
 # Personal Development Configurations
 
-Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 7 plugins, configuration sync scripts, and IDE integrations.
+Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 9 plugins, configuration sync scripts, and IDE integrations.
 
 ## Repository Structure
 
 ```
 personal_configs/
 ├── claude-code/
-│   ├── plugins/                    # 7 encapsulated workflow plugins
-│   │   ├── dev-workflow/           # 12 agents, 18 commands, 6 skills, 4 hooks (TDD + Debug)
-│   │   ├── autonomous-workflow/    # 6 agents, 6 commands, 1 skill, 3 hooks (Research/Plan/Implement)
-│   │   ├── playwright/             # Browser automation (JS + skill)
+│   ├── plugins/                    # 9 encapsulated workflow plugins
+│   │   ├── dev-workflow/           # 12 agents, 20 commands, 6 skills, 5 hooks (TDD + Debug)
+│   │   ├── research-report/        # 4 agents, 3 commands, 1 skill, 2 hooks (Iterative research + LaTeX)
+│   │   ├── long-horizon-impl/      # 9 agents, 4 commands, 1 skill, 2 hooks (Research/Plan/Implement)
+│   │   ├── playwright/             # Browser automation (1 skill, token-efficient CLI)
 │   │   ├── claude-session-feedback/ # 4 commands
 │   │   ├── infrastructure-as-code/ # 1 command, 1 skill
 │   │   ├── claude-md-best-practices/ # 1 skill
-│   │   └── ralph-loop/            # Iterative AI loops (3 commands, 1 hook)
+│   │   ├── ralph-loop/            # Iterative AI loops (3 commands, 1 hook)
+│   │   └── notify/                # Terminal bell + macOS banner notifications (2 hooks)
 │   ├── agents/                     # Global subagents (symlinked to ~/.claude/agents/)
 │   ├── commands/                   # Shared global commands (symlinked to ~/.claude/commands/)
 │   ├── docs/                       # Python, UV, Docker best practices (symlinked to ~/.claude/docs/)
@@ -32,7 +34,7 @@ personal_configs/
 
 ### `claude-code/plugins/dev-workflow/`
 
-A unified plugin combining an **8-phase TDD implementation workflow** and a **9-phase hypothesis-driven debugging workflow**. 12 specialized agents, 18 commands, 6 skills, and automatic context preservation via hooks.
+A unified plugin combining an **8-phase TDD implementation workflow** and a **9-phase hypothesis-driven debugging workflow**. 12 specialized agents, 20 commands, 6 skills, and automatic context preservation via hooks.
 
 ### TDD Implementation Workflow (Phases 2-9)
 
@@ -97,44 +99,43 @@ EXPLORE → DESCRIBE → HYPOTHESIZE → INSTRUMENT → REPRODUCE → ANALYZE �
 /dev-workflow:9-verify emoji-bug
 ```
 
-### Autonomous Workflow Plugin
+### Research Report Plugin
 
-### `claude-code/plugins/autonomous-workflow/`
+### `claude-code/plugins/research-report/`
 
-Long-running autonomous research, planning, and TDD implementation with 4 modes, 8 research strategies, budget-based phase transitions, and LaTeX report output.
-
-**Modes:**
-| Mode | Command | Phases | Outputs |
-|------|---------|--------|---------|
-| 1 | `/autonomous-workflow:research` | Research only | LaTeX report |
-| 2 | `/autonomous-workflow:research-and-plan` | Research + Plan | Report + plan |
-| 3 | `/autonomous-workflow:full-auto` | Research + Plan + Implement | Report + plan + code |
-| 4 | `/autonomous-workflow:implement` | Implement from plan | Working code |
+Autonomous iterative deep research producing LaTeX reports with synthesis, 9 research strategies, parallel subagents, and strategy rotation.
 
 **Commands:**
 ```bash
-# Research only (infinite until ralph-loop stops)
-/ralph-loop:ralph-loop "/autonomous-workflow:research 'topic' 'prompt'" --max-iterations 50
+/research-report:research "topic" "prompt"
+/research-report:continue-research topic-name
+/research-report:help
+```
 
-# Full autonomous (research + planning + TDD implementation)
-/ralph-loop:ralph-loop "/autonomous-workflow:full-auto 'project' 'prompt' --research-iterations 30 --plan-iterations 15" --max-iterations 150 --completion-promise "WORKFLOW_COMPLETE"
+### Long Horizon Implementation Plugin
 
-# Resume interrupted workflow
-/autonomous-workflow:continue-auto project-name
+### `claude-code/plugins/long-horizon-impl/`
 
-# Help
-/autonomous-workflow:help
+Long-running autonomous research, planning, and TDD implementation with parallel subagents, anti-slop escalation, and multi-day execution.
+
+**Commands:**
+```bash
+/long-horizon-impl:1-research-and-plan "project" "prompt"
+/long-horizon-impl:2-implement project-name
+/long-horizon-impl:continue-workflow project-name
+/long-horizon-impl:help
 ```
 
 ### Other Plugins
 
 | Plugin | Purpose | Components |
 |--------|---------|------------|
-| **playwright** | Browser automation with Playwright | JS executor + skill |
+| **playwright** | Browser automation with Playwright | 1 skill (token-efficient CLI) |
 | **ralph-loop** | Iterative AI loops for autonomous development | 3 commands, 1 hook |
 | **claude-session-feedback** | Export conversations, read history, provide feedback | 4 commands |
 | **infrastructure-as-code** | Terraform and AWS management | 1 command, 1 skill |
 | **claude-md-best-practices** | CLAUDE.md writing guidance | 1 skill |
+| **notify** | Terminal bell + macOS banner notifications | 2 hooks (Notification, Stop) |
 
 ## MCP Servers
 
@@ -207,12 +208,14 @@ Register this repo as a Claude Code plugin marketplace, then install plugins:
 Then install plugins:
 ```bash
 /plugin install dev-workflow
-/plugin install autonomous-workflow
+/plugin install research-report
+/plugin install long-horizon-impl
 /plugin install playwright
 /plugin install claude-session-feedback
 /plugin install infrastructure-as-code
 /plugin install ralph-loop
 /plugin install claude-md-best-practices
+/plugin install notify
 ```
 
 ### Install External Dependencies
@@ -227,25 +230,26 @@ Then install plugins:
 ### Context Preservation
 
 Context is preserved automatically via hooks:
-- **Stop hook**: Runs scoped tests + verifies state file accuracy before allowing Claude to stop (dev-workflow + autonomous-workflow)
-- **SessionStart hook**: Auto-restores workflow context after `/compact` or `/clear` (dev-workflow + autonomous-workflow)
-- **PreCompact hook**: Saves transcript + state snapshot before context compaction (autonomous-workflow only)
-- **Manual resume**: `/dev-workflow:continue-workflow <name>` or `/autonomous-workflow:continue-auto <name>` for fresh sessions
+- **Stop hook**: Runs scoped tests + verifies state file accuracy before allowing Claude to stop (dev-workflow), iteration engine + completion verifier (research-report, long-horizon-impl), terminal bell + macOS banner (notify)
+- **SessionStart hook**: Auto-restores workflow context after `/compact` or `/clear` (dev-workflow, research-report, long-horizon-impl)
+- **Notification hook**: Terminal bell + macOS banner when Claude needs input (notify)
+- **Manual resume**: `/dev-workflow:continue-workflow <name>`, `/research-report:continue-research <name>`, or `/long-horizon-impl:continue-workflow <name>` for fresh sessions
 
 ## External Dependencies
 
-- **ralph-loop plugin** (required for TDD implementation phases 7-9 and autonomous workflows)
+- **ralph-loop plugin** (required for long-horizon-impl 2-implement only; dev-workflow uses its own built-in Stop hook)
 - **Claude Code** (runtime environment)
-- **yq + jq** (required for hooks — `brew install yq jq` on macOS)
+- **yq + jq** (required for dev-workflow, research-report, and long-horizon-impl hooks — `brew install yq jq` on macOS)
+- **terminal-notifier** (optional, for notify plugin — `brew install terminal-notifier` on macOS; falls back to osascript)
 - **uv** (Python package management, referenced in docs)
-- **Node.js 18+** (for Playwright plugin)
-- **MacTeX** (optional, for autonomous-workflow LaTeX PDF compilation)
+- **MacTeX** (optional, for research-report and long-horizon-impl LaTeX PDF compilation)
 
 ## Documentation
 
 - `docs/CODEBASE.md` - Comprehensive codebase analysis (architecture, workflows, open questions)
 - `claude-code/plugins/dev-workflow/README.md` - Dev workflow plugin reference
-- `claude-code/plugins/autonomous-workflow/README.md` - Autonomous workflow plugin reference
+- `claude-code/plugins/research-report/README.md` - Research report plugin reference
+- `claude-code/plugins/long-horizon-impl/README.md` - Long-horizon implementation reference
 - `claude-code/docs/` - Python, UV, Docker best practices
 
 ---

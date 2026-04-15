@@ -86,6 +86,15 @@
       },
       "source": "./claude-code/plugins/long-horizon-impl",
       "category": "development"
+    },
+    {
+      "name": "notify",
+      "description": "Terminal bell and macOS banner notifications when Claude Code needs input or finishes responding",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/notify",
+      "category": "productivity"
     }
   ]
 }

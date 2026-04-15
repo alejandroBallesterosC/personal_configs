@@ -1,12 +1,12 @@
 # Personal Configs
 
-Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 8 plugins (Dev Workflow, Research Report, Long Horizon Impl, Playwright, Session Feedback, Infrastructure-as-Code, CLAUDE.md Best Practices, Ralph Loop), configuration sync scripts, and IDE integrations.
+Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 9 plugins (Dev Workflow, Research Report, Long Horizon Impl, Playwright, Session Feedback, Infrastructure-as-Code, CLAUDE.md Best Practices, Ralph Loop, Notify), configuration sync scripts, and IDE integrations.
 
 ## Architecture
 
 ```
 claude-code/
-├── plugins/           # 7 encapsulated plugins (installed via marketplace)
+├── plugins/           # 9 encapsulated plugins (installed via marketplace)
 │   ├── dev-workflow/  # 12 agents, 20 commands, 6 skills, 5 hooks (TDD + Debug)
 │   ├── research-report/   # 4 agents, 3 commands, 1 skill, 2 hooks (Iterative research + LaTeX)
 │   ├── long-horizon-impl/ # 9 agents, 4 commands, 1 skill, 2 hooks (Research/Plan/Implement)
@@ -14,7 +14,8 @@ claude-code/
 │   ├── claude-session-feedback/ # 4 commands
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
 │   ├── claude-md-best-practices/ # 1 skill
-│   └── ralph-loop/   # Iterative AI loops (3 commands, 1 hook)
+│   ├── ralph-loop/   # Iterative AI loops (3 commands, 1 hook)
+│   └── notify/       # Terminal bell + macOS banner notifications (2 hooks: Notification, Stop)
 ├── agents/            # Global subagents (symlinked to ~/.claude/agents/)
 ├── commands/          # 8 shared global commands (symlinked to ~/.claude/commands/)
 ├── docs/              # Python, UV, Docker best practices (symlinked to ~/.claude/docs/)
@@ -28,9 +29,11 @@ cursor/                # Cursor IDE mirror (42 files, TDD-only, unidirectional s
 - **Plugin structure**: Each plugin has `commands/`, `agents/`, `skills/`, optional `hooks/`
 - **Agent YAML frontmatter**: Defines `name`, `tools`, `model` (sonnet|opus)
 - **Skill activation**: Skills auto-activate when context matches their description
-- **Hooks**: Event-driven automation (Stop, SessionStart across dev-workflow, research-report, long-horizon-impl)
-  - `Stop`: TDD implementation gate + archive completed workflows + run scoped tests + state verification agent (dev-workflow), iteration control (ralph-loop), iteration engine + completion verifier (research-report, long-horizon-impl)
+- **Hooks**: Event-driven automation (Stop, SessionStart, Notification across plugins)
+  - `Stop`: TDD implementation gate + archive completed workflows + run scoped tests + state verification agent (dev-workflow), iteration control (ralph-loop), iteration engine + completion verifier (research-report, long-horizon-impl), terminal bell + macOS banner (notify)
   - `SessionStart`: Auto-restore context after compact/clear (dev-workflow: TDD + debug state, research-report: research state, long-horizon-impl: research/planning/impl state)
+  - `Notification`: Terminal bell + macOS banner when Claude needs input (notify)
+- **Project-level hooks** (`.claude/hooks/`): `document-learnings.sh` Stop hook prompts Claude to document architectural decisions and insights after implementation work
 
 ## No Application Code
 
@@ -82,7 +85,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - `dev-workflow` plugin contains both TDD implementation and debug workflows
 - Cursor mirror (`cursor/`) is TDD-only — missing entire debug workflow (6 commands, 4 agents, 2 skills)
 - VS Code `tasks.json` has dead tasks referencing removed sync scripts and leftover tasks from previous projects
-- Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 8 plugins
+- Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 10 plugins (9 active + 1 deprecated autonomous-workflow)
 - All matching Stop hooks across all plugins run in **parallel** (official Claude Code behavior). If any hook returns `decision: "block"`, Claude continues — the most restrictive decision wins after all hooks complete. There is no sequential ordering or short-circuit between plugins
 - `research-report` has its own Stop hook iteration engine — it does NOT depend on ralph-loop for iteration
 - `long-horizon-impl` 1-research-and-plan uses its own Stop hook for iteration; 2-implement uses ralph-loop
