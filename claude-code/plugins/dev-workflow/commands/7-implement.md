@@ -24,10 +24,10 @@ Implement the feature using **orchestrated TDD** where the **main instance owns 
 Before implementation, verify:
 
 ### 1. Planning Artifacts Exist
-- `docs/workflow-$1/specs/$1-specs.md` (specification)
-- `docs/workflow-$1/plans/$1-implementation-plan.md` (implementation plan with components)
-- `docs/workflow-$1/plans/$1-architecture-plan.md` (architecture)
-- `docs/workflow-$1/codebase-context/$1-exploration.md` (codebase context)
+- `.plugin-state/workflow-$1/specs/$1-specs.md` (specification)
+- `.plugin-state/workflow-$1/plans/$1-implementation-plan.md` (implementation plan with components)
+- `.plugin-state/workflow-$1/plans/$1-architecture-plan.md` (architecture)
+- `.plugin-state/workflow-$1/codebase-context/$1-exploration.md` (codebase context)
 
 If any are missing, run the planning workflow first.
 
@@ -57,7 +57,7 @@ This must complete before parallel components begin.
 
 ### Step 2: Categorize Components by Dependencies
 
-Read `docs/workflow-$1/plans/$1-implementation-plan.md` and categorize:
+Read `.plugin-state/workflow-$1/plans/$1-implementation-plan.md` and categorize:
 - **Independent components** (no shared state, no dependencies on other components) → implement in PARALLEL
 - **Dependent components** (requires another component to be complete first) → implement SEQUENTIALLY after dependency
 
@@ -72,10 +72,10 @@ Read `docs/workflow-$1/plans/$1-implementation-plan.md` and categorize:
 For each component, the **main instance owns the feedback loop** directly:
 
 **Context Files** (read these for each component):
-- `docs/workflow-$1/specs/$1-specs.md` (full specification)
-- `docs/workflow-$1/plans/$1-implementation-plan.md` (implementation plan)
-- `docs/workflow-$1/plans/$1-architecture-plan.md` (architecture)
-- `docs/workflow-$1/codebase-context/$1-exploration.md` (codebase context)
+- `.plugin-state/workflow-$1/specs/$1-specs.md` (full specification)
+- `.plugin-state/workflow-$1/plans/$1-implementation-plan.md` (implementation plan)
+- `.plugin-state/workflow-$1/plans/$1-architecture-plan.md` (architecture)
+- `.plugin-state/workflow-$1/codebase-context/$1-exploration.md` (codebase context)
 
 **TDD Cycle** (repeat for each requirement of the component):
 

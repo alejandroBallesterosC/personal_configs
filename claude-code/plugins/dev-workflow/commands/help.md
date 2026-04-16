@@ -134,9 +134,8 @@ Context is managed **automatically via hooks** - no manual intervention needed.
 | Hook | Event | Type | Purpose |
 |------|-------|------|---------|
 | tdd-implementation-gate.sh | Stop | command | Blocks stop during Phases 7-9, re-feeds command after compaction |
-| archive-completed-workflows.sh | Stop | command | Auto-archives completed workflows to `docs/archive/` |
+| archive-completed-workflows.sh | Stop | command | Auto-archives completed workflows to `.plugin-state/archive/` |
 | run-scoped-tests.sh | Stop | command | Run tests after code changes |
-| State verification | Stop | agent | Verify state file is up to date; blocks stopping if outdated |
 | auto-resume | SessionStart | command | Reads state file, injects context to resume (checks both TDD and debug) |
 
 ### Manual Continuation
@@ -159,7 +158,7 @@ For fresh sessions (not triggered by compaction/clear):
 
 ### TDD Artifacts
 ```
-docs/workflow-<feature>/
+.plugin-state/workflow-<feature>/
 ├── <feature>-state.md
 ├── <feature>-original-prompt.md
 ├── <feature>-review.md
@@ -173,7 +172,7 @@ docs/workflow-<feature>/
 
 ### Debug Artifacts
 ```
-docs/debug/<bug-name>/
+.plugin-state/debug/<bug-name>/
 ├── <bug-name>-state.md
 ├── <bug-name>-bug.md
 ├── <bug-name>-exploration.md

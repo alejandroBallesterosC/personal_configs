@@ -20,7 +20,7 @@ Verify that all implemented components work together correctly. The **main insta
 ## PREREQUISITES
 
 All components should be implemented:
-- Read `docs/workflow-$1/plans/$1-implementation-plan.md` for component list
+- Read `.plugin-state/workflow-$1/plans/$1-implementation-plan.md` for component list
 - Verify all components have passing unit tests
 - Verify integration layer is complete
 
@@ -30,7 +30,7 @@ All components should be implemented:
 
 ### Step 1: Identify E2E Test Scenarios
 
-Based on `docs/workflow-$1/specs/$1-specs.md`, identify end-to-end scenarios:
+Based on `.plugin-state/workflow-$1/specs/$1-specs.md`, identify end-to-end scenarios:
 
 1. **Happy path scenarios** - Primary user workflows
 2. **Error scenarios** - How errors propagate through the system
@@ -44,7 +44,7 @@ Spawn a **test-designer subagent** to write E2E tests:
 Use Task tool with subagent_type='dev-workflow:test-designer':
 ```
 Feature: $1
-Context: docs/workflow-$1/specs/$1-specs.md, docs/workflow-$1/plans/$1-implementation-plan.md
+Context: .plugin-state/workflow-$1/specs/$1-specs.md, .plugin-state/workflow-$1/plans/$1-implementation-plan.md
 
 Write END-TO-END integration tests covering:
 - Happy path scenarios (primary user workflows)
@@ -67,8 +67,8 @@ Execute the full E2E test suite and capture results.
 If E2E tests fail, the **main instance owns the fix loop** directly:
 
 **Context Files** (read for diagnosis):
-- `docs/workflow-$1/specs/$1-specs.md` (expected behavior)
-- `docs/workflow-$1/plans/$1-implementation-plan.md` (architecture)
+- `.plugin-state/workflow-$1/specs/$1-specs.md` (expected behavior)
+- `.plugin-state/workflow-$1/plans/$1-implementation-plan.md` (architecture)
 
 **Fix Loop** (repeat until ALL E2E tests pass):
 

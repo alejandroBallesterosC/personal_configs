@@ -13,7 +13,7 @@ This is **Phase 3** of the TDD implementation workflow. It follows Thariq Shihab
 
 ## Before Starting
 
-Check if exploration exists at `docs/workflow-$1/codebase-context/$1-exploration.md`. If not, recommend running `/dev-workflow:2-explore $1 "$2"` first.
+Check if exploration exists at `.plugin-state/workflow-$1/codebase-context/$1-exploration.md`. If not, recommend running `/dev-workflow:2-explore $1 "$2"` first.
 
 ## Domain Research
 
@@ -46,7 +46,7 @@ Research focus: Performance and scalability approaches for "$1". Look for benchm
 
 After all 5 researcher agents return, synthesize their findings into a single document:
 
-Write to `docs/workflow-$1/codebase-context/$1-domain-research.md`:
+Write to `.plugin-state/workflow-$1/codebase-context/$1-domain-research.md`:
 
 ```markdown
 # Domain Research: $1
@@ -167,7 +167,7 @@ Be like a journalist or skeptical senior engineer:
 
 When the specification interview is complete (you have clarity on ALL domains):
 
-Write specification to `docs/workflow-$1/specs/$1-specs.md`:
+Write specification to `.plugin-state/workflow-$1/specs/$1-specs.md`:
 - Complete requirements
 - Acceptance criteria
 - Non-functional requirements
@@ -181,8 +181,8 @@ End with this message:
 Specification interview complete for: $1
 
 Artifacts created:
-- docs/workflow-$1/codebase-context/$1-domain-research.md (domain research)
-- docs/workflow-$1/specs/$1-specs.md (specification)
+- .plugin-state/workflow-$1/codebase-context/$1-domain-research.md (domain research)
+- .plugin-state/workflow-$1/specs/$1-specs.md (specification)
 
 Next step:
 /dev-workflow:4-plan-architecture $1 (create technical architecture from spec)

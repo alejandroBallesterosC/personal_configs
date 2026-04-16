@@ -13,11 +13,11 @@ This follows Mo Bitar's interrogation method: pushback on idealistic ideas, find
 ## Prerequisites
 
 Read ALL planning artifacts:
-- `docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md` (codebase context)
-- `docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md` (specification)
-- `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md` (architecture)
-- `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md` (implementation plan)
-- `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-tests.md` (test cases)
+- `.plugin-state/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md` (codebase context)
+- `.plugin-state/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md` (specification)
+- `.plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md` (architecture)
+- `.plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md` (implementation plan)
+- `.plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-tests.md` (test cases)
 
 If any are missing, recommend running the previous workflow steps first.
 
@@ -30,8 +30,8 @@ Use Task tool with subagent_type: "dev-workflow:researcher" (5 parallel instance
 
 Each instance receives:
 Feature: $ARGUMENTS
-Architecture: docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md
-Implementation Plan: docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md
+Architecture: .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md
+Implementation Plan: .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md
 
 Instance 1 - Architecture Validation:
 Research focus: Validate the architecture decisions for "$ARGUMENTS" against current best practices. Look for whether the chosen patterns are still recommended, if better alternatives have emerged, and whether the component decomposition follows established guidelines.
@@ -53,7 +53,7 @@ Research focus: Security validation for "$ARGUMENTS" against current threat mode
 
 After all 5 researcher agents return, synthesize their findings into:
 
-Write to `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-review-research.md`:
+Write to `.plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-review-research.md`:
 
 ```markdown
 # Validation Research: $ARGUMENTS
@@ -99,15 +99,15 @@ Feature: $ARGUMENTS
 Critically review the implementation plan for this feature.
 
 Context files to read:
-- docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md (codebase context)
-- docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-domain-research.md (domain research, if exists)
-- docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (specification)
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-research.md (architecture research, if exists)
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (architecture)
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-research.md (implementation research, if exists)
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md (implementation plan)
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-tests.md (test cases)
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-review-research.md (validation research)
+- .plugin-state/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md (codebase context)
+- .plugin-state/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-domain-research.md (domain research, if exists)
+- .plugin-state/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (specification)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-research.md (architecture research, if exists)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (architecture)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-research.md (implementation research, if exists)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md (implementation plan)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-tests.md (test cases)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-review-research.md (validation research)
 
 Review Focus:
 1. Evaluate each planning artifact against the checklist below
@@ -208,10 +208,10 @@ All blockers resolved. Plan is ready for implementation.
 [Summary of suggestions and user's decisions]
 
 ## Updated Artifacts
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-review-research.md (validation research)
-- docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (if modified)
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md (if modified)
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (if modified)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-review-research.md (validation research)
+- .plugin-state/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (if modified)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-implementation-plan.md (if modified)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (if modified)
 
 Next step:
 obtain explicit user approval to start implementation.

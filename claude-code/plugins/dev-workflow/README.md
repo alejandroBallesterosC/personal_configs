@@ -96,14 +96,11 @@ Long workflows degrade in quality as context fills. This plugin uses **automatic
 | Hook | Event | Type | Purpose |
 |------|-------|------|---------|
 | tdd-implementation-gate.sh | Stop | command | Blocks stop during Phases 7-9, re-feeds command after compaction |
-| archive-completed-workflows.sh | Stop | command | Auto-archives completed workflows to `docs/archive/` |
+| archive-completed-workflows.sh | Stop | command | Auto-archives completed workflows to `.plugin-state/archive/` |
 | run-scoped-tests.sh | Stop | command | Runs tests after code changes |
-| State verification | Stop | agent | Verifies state files are up to date; blocks stopping if outdated |
 | auto-resume | SessionStart | command | Restores context after `/compact` or `/clear` (checks both TDD and debug) |
 
-The unified Stop hook checks both `docs/workflow-*/*-state.md` (TDD) and `docs/debug/*/*-state.md` (debug) for stale state.
-
-The unified SessionStart hook detects which workflow type is active and injects the appropriate context.
+The TDD implementation gate blocks Claude from stopping during Phases 7-9 and re-feeds the current phase command. The SessionStart hook detects which workflow type is active and injects the appropriate context.
 
 ### Manual Continuation
 
@@ -183,7 +180,7 @@ The plugin accumulates workflow observations into standalone Markdown files for 
 ### TDD Artifacts
 
 ```
-docs/workflow-<feature>/
+.plugin-state/workflow-<feature>/
 ├── <feature>-state.md                    # Workflow state (auto-managed by hooks)
 ├── <feature>-original-prompt.md          # Original user request
 ├── <feature>-review.md                   # Consolidated review findings
@@ -204,7 +201,7 @@ docs/workflow-<feature>/
 ### Debug Artifacts
 
 ```
-docs/debug/<bug-name>/
+.plugin-state/debug/<bug-name>/
 ├── <bug-name>-state.md          # Session state (auto-managed by hooks)
 ├── <bug-name>-bug.md            # Bug description and repro steps
 ├── <bug-name>-exploration.md    # Codebase exploration findings

@@ -210,7 +210,7 @@ Feature: $ARGUMENTS
 
 REVIEW FOCUS: Spec Compliance
 
-Review implementation against docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md:
+Review implementation against .plugin-state/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md:
 
 1. **Functional Requirements**
    - Are all requirements implemented?
@@ -337,7 +337,7 @@ Show the consolidated review findings to the user.
 
 Review complete. This is Phase 9 (final phase). Address Critical issues, then:
 
-1. **Update YAML frontmatter** in the state file (`docs/workflow-$ARGUMENTS/$ARGUMENTS-state.md`):
+1. **Update YAML frontmatter** in the state file (`.plugin-state/workflow-$ARGUMENTS/$ARGUMENTS-state.md`):
    - Set `status: complete`
    - Set `current_phase: "COMPLETE"`
 2. **Update markdown body**: Set "Current Phase" to "COMPLETE" and "Status" to "✅ COMPLETE"

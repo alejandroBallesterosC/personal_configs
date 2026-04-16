@@ -27,14 +27,14 @@ Before starting, complete these steps:
 
 Before creating a workflow, check if one is already active:
 
-1. Search for any existing `docs/workflow-*/*-state.md` files
+1. Search for any existing `.plugin-state/workflow-*/*-state.md` files
 2. For each found, read the YAML frontmatter `status` field
 3. If any has `status: in_progress`, output the following error and **STOP**:
 
 ```
 Error: An active TDD workflow already exists
 
-Active workflow found: docs/workflow-<name>/<name>-state.md
+Active workflow found: .plugin-state/workflow-<name>/<name>-state.md
 Status: in_progress
 Current phase: <phase from state file>
 
@@ -51,10 +51,9 @@ If no active workflow is found (no state files, or all have `status: complete`),
 
 Context is managed **automatically via hooks** - no manual intervention needed:
 - **TDD implementation gate Stop hook** (command) blocks Claude from stopping during Phases 7-9 and re-feeds the current phase command after context compaction
-- **State verification Stop hook** (agent) verifies state file is up to date before Claude stops; blocks stopping if outdated
 - **SessionStart hook** (command) restores context after compaction or clear
 
-The main Claude instance is responsible for keeping `docs/workflow-$1/$1-state.md` current, including the `command` field in the YAML frontmatter which the gate hook uses for re-feeding.
+The main Claude instance is responsible for keeping `.plugin-state/workflow-$1/$1-state.md` current, including the `command` field in the YAML frontmatter which the gate hook uses for re-feeding.
 
 ---
 
@@ -81,7 +80,7 @@ Create a CLAUDE.md at the repository root with:
 - Debug: `/dev-workflow:1-start-debug <bug description>`
 - Continue workflow: `/dev-workflow:continue-workflow <name>`
 - Workflow guides: `dev-workflow:tdd-implementation-workflow-guide` and `dev-workflow:debug-workflow-guide` skills
-- Workflow artifacts: `docs/workflow-*/` and `docs/debug/*/`
+- Workflow artifacts: `.plugin-state/workflow-*/` and `.plugin-state/debug/*/`
 
 ## Testing
 
@@ -109,7 +108,7 @@ Create the workflow directory structure and initial files:
 
 #### 1. Create Directory Structure
 ```
-docs/workflow-$1/
+.plugin-state/workflow-$1/
 ├── codebase-context/
 ├── plans/
 ├── specs/
@@ -119,7 +118,7 @@ docs/workflow-$1/
 
 #### 2. Save Original Prompt
 
-Create `docs/workflow-$1/$1-original-prompt.md`:
+Create `.plugin-state/workflow-$1/$1-original-prompt.md`:
 
 ```markdown
 # Original Prompt: $1
@@ -137,7 +136,7 @@ Create `docs/workflow-$1/$1-original-prompt.md`:
 
 #### 3. Create State File
 
-Create `docs/workflow-$1/$1-state.md`:
+Create `.plugin-state/workflow-$1/$1-state.md`:
 
 ```markdown
 ---
@@ -172,16 +171,16 @@ Phase 2: Exploration
 (To be filled as workflow progresses)
 
 ## Context Restoration Files
-1. docs/workflow-$1/$1-state.md (this file)
-2. docs/workflow-$1/$1-original-prompt.md
-3. docs/workflow-$1/codebase-context/$1-exploration.md
-4. docs/workflow-$1/codebase-context/$1-domain-research.md (if exists)
-5. docs/workflow-$1/specs/$1-specs.md
-6. docs/workflow-$1/plans/$1-architecture-research.md (if exists)
-7. docs/workflow-$1/plans/$1-architecture-plan.md
-8. docs/workflow-$1/plans/$1-implementation-research.md (if exists)
-9. docs/workflow-$1/plans/$1-implementation-plan.md
-10. docs/workflow-$1/plans/$1-review-research.md (if exists)
+1. .plugin-state/workflow-$1/$1-state.md (this file)
+2. .plugin-state/workflow-$1/$1-original-prompt.md
+3. .plugin-state/workflow-$1/codebase-context/$1-exploration.md
+4. .plugin-state/workflow-$1/codebase-context/$1-domain-research.md (if exists)
+5. .plugin-state/workflow-$1/specs/$1-specs.md
+6. .plugin-state/workflow-$1/plans/$1-architecture-research.md (if exists)
+7. .plugin-state/workflow-$1/plans/$1-architecture-plan.md
+8. .plugin-state/workflow-$1/plans/$1-implementation-research.md (if exists)
+9. .plugin-state/workflow-$1/plans/$1-implementation-plan.md
+10. .plugin-state/workflow-$1/plans/$1-review-research.md (if exists)
 11. CLAUDE.md
 ```
 
@@ -190,7 +189,7 @@ Phase 2: Exploration
 ## PHASE 2: PARALLEL CODEBASE EXPLORATION
 
 **What**: 5 parallel agents explore Architecture, Patterns, Boundaries, Testing, Dependencies
-**Output**: `docs/workflow-$1/codebase-context/$1-exploration.md`
+**Output**: `.plugin-state/workflow-$1/codebase-context/$1-exploration.md`
 **Agents**: 5x `code-explorer` (Sonnet with 1M context)
 
 Execute by following the instructions in the `2-explore` command with feature: $1 and description: $2
@@ -205,9 +204,9 @@ After completion:
 ## PHASE 3: SPECIFICATION INTERVIEW
 
 **What**: Domain research via 5 parallel researcher agents, then 40+ questions across 9 domains via AskUserQuestionTool
-**Output**: `docs/workflow-$1/codebase-context/$1-domain-research.md`, `docs/workflow-$1/specs/$1-specs.md`
+**Output**: `.plugin-state/workflow-$1/codebase-context/$1-domain-research.md`, `.plugin-state/workflow-$1/specs/$1-specs.md`
 **Agents**: 5x `researcher` (Sonnet)
-**Prerequisite**: `docs/workflow-$1/codebase-context/$1-exploration.md` exists
+**Prerequisite**: `.plugin-state/workflow-$1/codebase-context/$1-exploration.md` exists
 
 Execute by following the instructions in the `3-user-specification-interview` command with feature: $1 and description: $2
 
@@ -220,7 +219,7 @@ After completion:
 ## PHASE 4: ARCHITECTURE DESIGN
 
 **What**: Architecture research via 5 parallel researcher agents, then technical architecture with independent components for parallel implementation
-**Output**: `docs/workflow-$1/plans/$1-architecture-research.md`, `docs/workflow-$1/plans/$1-architecture-plan.md`
+**Output**: `.plugin-state/workflow-$1/plans/$1-architecture-research.md`, `.plugin-state/workflow-$1/plans/$1-architecture-plan.md`
 **Agents**: 5x `researcher` (Sonnet), optionally `code-architect` (Opus)
 **Prerequisites**: Exploration and specification exist
 
@@ -235,7 +234,7 @@ After completion:
 ## PHASE 5: IMPLEMENTATION PLAN
 
 **What**: Implementation research via 4 parallel researcher agents, then detailed implementation tasks mapped from architecture
-**Output**: `docs/workflow-$1/plans/$1-implementation-research.md`, `docs/workflow-$1/plans/$1-implementation-plan.md`, `docs/workflow-$1/plans/$1-tests.md`
+**Output**: `.plugin-state/workflow-$1/plans/$1-implementation-research.md`, `.plugin-state/workflow-$1/plans/$1-implementation-plan.md`, `.plugin-state/workflow-$1/plans/$1-tests.md`
 **Agents**: 4x `researcher` (Sonnet)
 **Prerequisite**: Architecture exists
 
@@ -250,7 +249,7 @@ After completion:
 ## PHASE 6: PLAN REVIEW & APPROVAL
 
 **What**: Validation research via 5 parallel researcher agents, then critical review of plan, challenge assumptions, get user approval
-**Output**: `docs/workflow-$1/plans/$1-review-research.md`, updated plans + explicit user approval
+**Output**: `.plugin-state/workflow-$1/plans/$1-review-research.md`, updated plans + explicit user approval
 **Agents**: 5x `researcher` (Sonnet), `plan-reviewer`
 
 Execute by following the instructions in the `6-review-plan` command with feature: $1
@@ -303,7 +302,7 @@ After completion:
 ## PHASE 9: REVIEW, FIXES & COMPLETION
 
 **What**: 5 parallel reviewers, fix critical issues, generate completion report
-**Output**: `docs/workflow-$1/$1-review.md`, completion report
+**Output**: `.plugin-state/workflow-$1/$1-review.md`, completion report
 **Agents**: 5x `code-reviewer` (parallel), then `implementer`/`refactorer` (spawned by orchestrator for fixes)
 
 Before starting Phase 9, update the state file YAML frontmatter:
@@ -323,7 +322,7 @@ After completion:
 
 When all phases are complete:
 
-### 1. Update YAML frontmatter in `docs/workflow-$1/$1-state.md`
+### 1. Update YAML frontmatter in `.plugin-state/workflow-$1/$1-state.md`
 
 Update the YAML frontmatter at the top of the state file to set completion status:
 
@@ -336,7 +335,7 @@ current_phase: "COMPLETE"
 ---
 ```
 
-### 2. Update markdown body in `docs/workflow-$1/$1-state.md`
+### 2. Update markdown body in `.plugin-state/workflow-$1/$1-state.md`
 
 ```markdown
 ## Current Phase
@@ -398,7 +397,7 @@ Move the workflow directory to the archive:
 
 ```bash
 mkdir -p docs/archive
-mv docs/workflow-$1 docs/archive/workflow-$1
+mv .plugin-state/workflow-$1 .plugin-state/archive/workflow-$1
 ```
 
 ---

@@ -114,10 +114,9 @@ Track failed fix attempts in the state file. If 3+ fixes have failed:
 Context and verification are managed via three hooks (same system as TDD implementation workflow):
 
 1. **Stop hook - Test runner** (command): Runs scoped tests if a `.tdd-test-scope` file exists. Active during Phases 8-10 when Claude writes the scope file for verification. No-op during investigation phases (2-7).
-2. **Stop hook - State verifier** (agent): Before Claude stops responding, verifies the state file is up to date. If outdated, blocks Claude from stopping until the state file is updated.
-3. **SessionStart hook** (command): After context reset (`/compact` or `/clear`), reads the state file and injects full context for seamless resume.
+2. **SessionStart hook** (command): After context reset (`/compact` or `/clear`), reads the state file and injects full context for seamless resume.
 
-**The key insight**: The main Claude instance is responsible for keeping `docs/debug/<bug-name>/<bug-name>-state.md` current. The Stop hook enforces this by blocking Claude from stopping if the state file is stale.
+**The key insight**: The main Claude instance is responsible for keeping `.plugin-state/debug/<bug-name>/<bug-name>-state.md` current. The command prompts instruct Claude to update the state file after each phase transition.
 
 ### Test Scope File
 
@@ -141,7 +140,7 @@ The Stop hook verifies the state file against these criteria:
 ### What Happens After Context Reset
 
 After `/compact` or `/clear`:
-1. **SessionStart hook** detects active debug session from `docs/debug/*/<bug-name>-state.md`
+1. **SessionStart hook** detects active debug session from `.plugin-state/debug/*/<bug-name>-state.md`
 2. Reads the entire state file and injects it into context
 3. Lists all relevant artifact files to read
 4. Claude continues the debug workflow automatically
@@ -170,7 +169,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Analyzes dependencies and recent git changes
 - Identifies test coverage gaps
 
-**Output**: `docs/debug/<bug-name>/<bug-name>-exploration.md`
+**Output**: `.plugin-state/debug/<bug-name>/<bug-name>-exploration.md`
 
 **Command**: `/dev-workflow:2-explore-debug <bug description>`
 
@@ -184,7 +183,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Cover: expected vs actual, reproduction steps, timing, environment, errors
 - Document all findings
 
-**Output**: `docs/debug/<bug-name>/<bug-name>-bug.md`
+**Output**: `.plugin-state/debug/<bug-name>/<bug-name>-bug.md`
 
 **Human gate**: User provides essential bug context
 
@@ -204,7 +203,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 
 **Key addition**: The framing assessment catches the case where we're debugging the wrong thing entirely. If framing confidence is LOW, the workflow should pause for user input before proceeding.
 
-**Output**: `docs/debug/<bug-name>/<bug-name>-hypotheses.md`
+**Output**: `.plugin-state/debug/<bug-name>/<bug-name>-hypotheses.md`
 
 **Command**: `/dev-workflow:4-hypothesize <bug-name>`
 
@@ -249,7 +248,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - If all REJECTED → loop back to Phase 4 with new findings
 - If INCONCLUSIVE → add more instrumentation and loop back to Phase 6
 
-**Output**: `docs/debug/<bug-name>/<bug-name>-analysis.md`
+**Output**: `.plugin-state/debug/<bug-name>/<bug-name>-analysis.md`
 
 **Command**: `/dev-workflow:7-analyze <bug-name>`
 
@@ -374,7 +373,7 @@ When a fix doesn't work, capture new log output and re-analyze. The 3-Fix Rule a
 
 ## State File Format
 
-All progress is tracked in `docs/debug/<bug-name>/<bug-name>-state.md`:
+All progress is tracked in `.plugin-state/debug/<bug-name>/<bug-name>-state.md`:
 
 ```markdown
 ---
@@ -426,11 +425,11 @@ Count: 0/3
 ## Context Restoration Files
 Read these files to restore context:
 1. Use the debug-workflow-guide skill if needed
-2. docs/debug/<bug-name>/<bug-name>-state.md (this file)
-3. docs/debug/<bug-name>/<bug-name>-bug.md
-4. docs/debug/<bug-name>/<bug-name>-exploration.md
-5. docs/debug/<bug-name>/<bug-name>-hypotheses.md
-6. docs/debug/<bug-name>/<bug-name>-analysis.md
+2. .plugin-state/debug/<bug-name>/<bug-name>-state.md (this file)
+3. .plugin-state/debug/<bug-name>/<bug-name>-bug.md
+4. .plugin-state/debug/<bug-name>/<bug-name>-exploration.md
+5. .plugin-state/debug/<bug-name>/<bug-name>-hypotheses.md
+6. .plugin-state/debug/<bug-name>/<bug-name>-analysis.md
 7. CLAUDE.md
 ```
 
@@ -438,10 +437,10 @@ Read these files to restore context:
 
 ## Artifacts Created
 
-All artifacts for a debug session are stored in `docs/debug/<bug-name>/`:
+All artifacts for a debug session are stored in `.plugin-state/debug/<bug-name>/`:
 
 ```
-docs/debug/<bug-name>/
+.plugin-state/debug/<bug-name>/
 ├── <bug-name>-state.md          # Session state (auto-managed by hooks)
 ├── <bug-name>-bug.md            # Bug description and reproduction steps
 ├── <bug-name>-exploration.md    # Codebase exploration findings
@@ -450,7 +449,7 @@ docs/debug/<bug-name>/
 └── <bug-name>-resolution.md     # Final resolution summary
 ```
 
-Completed sessions are archived to `docs/archive/debug-<bug-name>/`.
+Completed sessions are archived to `.plugin-state/archive/debug-<bug-name>/`.
 
 ---
 

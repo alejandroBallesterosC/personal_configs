@@ -16,11 +16,11 @@ This command continues an in-progress workflow by detecting whether it's a TDD i
 
 ### 1.1 Check for TDD implementation workflow
 
-Check if the `docs/workflow-$1/` directory exists AND contains `docs/workflow-$1/$1-state.md`.
+Check if the `.plugin-state/workflow-$1/` directory exists AND contains `.plugin-state/workflow-$1/$1-state.md`.
 
 ### 1.2 Check for debug session
 
-Check if the `docs/debug/$1/` directory exists AND contains `docs/debug/$1/$1-state.md`.
+Check if the `.plugin-state/debug/$1/` directory exists AND contains `.plugin-state/debug/$1/$1-state.md`.
 
 ### 1.3 Handle results
 
@@ -30,14 +30,14 @@ Check if the `docs/debug/$1/` directory exists AND contains `docs/debug/$1/$1-st
 Error: No workflow or debug session found for '$1'
 
 No matching directory found in:
-- docs/workflow-$1/ (TDD implementation workflow)
-- docs/debug/$1/ (debug session)
+- .plugin-state/workflow-$1/ (TDD implementation workflow)
+- .plugin-state/debug/$1/ (debug session)
 
 Available workflows:
-[List all docs/workflow-* directories found, or "None"]
+[List all .plugin-state/workflow-* directories found, or "None"]
 
 Available debug sessions:
-[List all docs/debug/*/ directories found, or "None"]
+[List all .plugin-state/debug/*/ directories found, or "None"]
 
 To start a TDD implementation workflow:
   /dev-workflow:1-start-tdd-implementation <name> "<description>"
@@ -56,15 +56,15 @@ To start a debug session:
 
 ### Check if complete
 
-If `docs/workflow-$1/$1-state.md` contains "Current Phase" with "COMPLETE" or "Status: COMPLETE":
+If `.plugin-state/workflow-$1/$1-state.md` contains "Current Phase" with "COMPLETE" or "Status: COMPLETE":
 
 ```
 Error: TDD implementation workflow for '$1' is already complete
 
-The workflow at docs/workflow-$1/$1-state.md shows status COMPLETE.
+The workflow at .plugin-state/workflow-$1/$1-state.md shows status COMPLETE.
 
 To start a fresh workflow:
-1. Archive: mkdir -p docs/archive && mv docs/workflow-$1 docs/archive/workflow-$1
+1. Archive: mkdir -p .plugin-state/archive && mv .plugin-state/workflow-$1 .plugin-state/archive/workflow-$1
 2. Run: /dev-workflow:1-start-tdd-implementation $1 "<description>"
 ```
 
@@ -75,18 +75,18 @@ To start a fresh workflow:
 
 ### Read all context restoration files (in order)
 
-1. **State file**: `docs/workflow-$1/$1-state.md`
-2. **Original prompt**: `docs/workflow-$1/$1-original-prompt.md` (if exists)
-3. **Exploration context**: `docs/workflow-$1/codebase-context/$1-exploration.md` (if exists)
-4. **Domain research**: `docs/workflow-$1/codebase-context/$1-domain-research.md` (if exists)
-5. **Specification**: `docs/workflow-$1/specs/$1-specs.md` (if exists)
-6. **Architecture research**: `docs/workflow-$1/plans/$1-architecture-research.md` (if exists)
-7. **Architecture**: `docs/workflow-$1/plans/$1-architecture-plan.md` (if exists)
-8. **Implementation research**: `docs/workflow-$1/plans/$1-implementation-research.md` (if exists)
-9. **Implementation plan**: `docs/workflow-$1/plans/$1-implementation-plan.md` (if exists)
-10. **Test strategy**: `docs/workflow-$1/plans/$1-tests.md` (if exists)
-11. **Validation research**: `docs/workflow-$1/plans/$1-review-research.md` (if exists)
-12. **Review findings**: `docs/workflow-$1/$1-review.md` (if exists)
+1. **State file**: `.plugin-state/workflow-$1/$1-state.md`
+2. **Original prompt**: `.plugin-state/workflow-$1/$1-original-prompt.md` (if exists)
+3. **Exploration context**: `.plugin-state/workflow-$1/codebase-context/$1-exploration.md` (if exists)
+4. **Domain research**: `.plugin-state/workflow-$1/codebase-context/$1-domain-research.md` (if exists)
+5. **Specification**: `.plugin-state/workflow-$1/specs/$1-specs.md` (if exists)
+6. **Architecture research**: `.plugin-state/workflow-$1/plans/$1-architecture-research.md` (if exists)
+7. **Architecture**: `.plugin-state/workflow-$1/plans/$1-architecture-plan.md` (if exists)
+8. **Implementation research**: `.plugin-state/workflow-$1/plans/$1-implementation-research.md` (if exists)
+9. **Implementation plan**: `.plugin-state/workflow-$1/plans/$1-implementation-plan.md` (if exists)
+10. **Test strategy**: `.plugin-state/workflow-$1/plans/$1-tests.md` (if exists)
+11. **Validation research**: `.plugin-state/workflow-$1/plans/$1-review-research.md` (if exists)
+12. **Review findings**: `.plugin-state/workflow-$1/$1-review.md` (if exists)
 13. **Project conventions**: `CLAUDE.md`
 
 ### Summarize and continue
@@ -110,7 +110,7 @@ Output a summary of current state, loaded artifacts, and continue from the curre
 
 The TDD implementation gate Stop hook keeps the session alive during these phases. If continuing in a fresh session:
 
-1. Read `docs/workflow-$1/plans/$1-implementation-plan.md` to identify components and status
+1. Read `.plugin-state/workflow-$1/plans/$1-implementation-plan.md` to identify components and status
 2. Check which components are complete (from state file or git history)
 3. Resume orchestrated TDD for the current/next incomplete component
 
@@ -120,15 +120,15 @@ The TDD implementation gate Stop hook keeps the session alive during these phase
 
 ### Check if complete
 
-If `docs/debug/$1/$1-state.md` contains "Current Phase" with "COMPLETE" or all phases checked:
+If `.plugin-state/debug/$1/$1-state.md` contains "Current Phase" with "COMPLETE" or all phases checked:
 
 ```
 Error: Debug session for '$1' is already complete
 
-The session at docs/debug/$1/$1-state.md shows status COMPLETE.
+The session at .plugin-state/debug/$1/$1-state.md shows status COMPLETE.
 
 To start a fresh debug session:
-1. Archive: mkdir -p docs/archive && mv docs/debug/$1 docs/archive/debug-$1
+1. Archive: mkdir -p .plugin-state/archive && mv .plugin-state/debug/$1 .plugin-state/archive/debug-$1
 2. Run: /dev-workflow:1-start-debug <bug description>
 ```
 
@@ -139,12 +139,12 @@ To start a fresh debug session:
 
 ### Read all context restoration files (in order)
 
-1. **State file**: `docs/debug/$1/$1-state.md`
-2. **Bug description**: `docs/debug/$1/$1-bug.md` (if exists)
-3. **Exploration findings**: `docs/debug/$1/$1-exploration.md` (if exists)
-4. **Hypotheses**: `docs/debug/$1/$1-hypotheses.md` (if exists)
-5. **Log analysis**: `docs/debug/$1/$1-analysis.md` (if exists)
-6. **Resolution**: `docs/debug/$1/$1-resolution.md` (if exists)
+1. **State file**: `.plugin-state/debug/$1/$1-state.md`
+2. **Bug description**: `.plugin-state/debug/$1/$1-bug.md` (if exists)
+3. **Exploration findings**: `.plugin-state/debug/$1/$1-exploration.md` (if exists)
+4. **Hypotheses**: `.plugin-state/debug/$1/$1-hypotheses.md` (if exists)
+5. **Log analysis**: `.plugin-state/debug/$1/$1-analysis.md` (if exists)
+6. **Resolution**: `.plugin-state/debug/$1/$1-resolution.md` (if exists)
 7. **Project conventions**: `CLAUDE.md`
 
 ### Summarize and continue

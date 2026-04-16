@@ -18,14 +18,14 @@ Adding instrumentation for: **$ARGUMENTS**
 
 ### 2.1 Check hypotheses exist
 
-Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md` exists. If not:
+Verify `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md` exists. If not:
 
 **ERROR**: Output the following message and STOP:
 
 ```
 Error: Hypotheses not found
 
-The file docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md does not exist.
+The file .plugin-state/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md does not exist.
 Hypotheses must be generated before adding instrumentation.
 
 Run: /dev-workflow:4-hypothesize $ARGUMENTS
@@ -34,9 +34,9 @@ Run: /dev-workflow:4-hypothesize $ARGUMENTS
 ### 2.2 Read context
 
 Read:
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md` (for file paths)
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md` (if exists)
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-exploration.md` (for file paths)
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md` (if exists)
 
 ---
 
@@ -117,7 +117,7 @@ Write clear instructions for the user:
 
 ## STEP 6: UPDATE STATE FILE
 
-Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+Update `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
 - Mark Phase 5 complete
 - Update current phase to Phase 6 (Reproduce)
 - Note which files were instrumented

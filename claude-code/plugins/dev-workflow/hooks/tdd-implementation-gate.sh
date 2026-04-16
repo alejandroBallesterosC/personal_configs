@@ -51,7 +51,7 @@ cat > /dev/null
 
 # Find active TDD implementation workflow state file
 ACTIVE_STATE=""
-for state_file in docs/workflow-*/*-state.md; do
+for state_file in .plugin-state/workflow-*/*-state.md; do
   [ -f "$state_file" ] || continue
   wf_type=$(yq --front-matter=extract '.workflow_type' "$state_file" 2>/dev/null)
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)

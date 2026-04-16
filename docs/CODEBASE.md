@@ -85,9 +85,9 @@ Plugin execution order follows marketplace.json registration order:
 ```
 Stop Event (on Claude exit attempt) — all matching hooks run in parallel
 ├── dev-workflow:
-│   ├── archive-completed-workflows.sh   # Move status:complete to docs/archive/
+│   ├── archive-completed-workflows.sh   # Move status:complete to .plugin-state/archive/
 │   ├── run-scoped-tests.sh              # Run tests per .tdd-test-scope file
-│   └── State verification agent          # Block exit if state file outdated (120s)
+│   └── tdd-implementation-gate.sh         # Block exit during phases 7-9 + re-feed command
 ├── ralph-loop:
 │   └── stop-hook.sh                     # Block exit + feed prompt back (loop)
 ├── research-report:
@@ -138,8 +138,8 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 - **Plugins do NOT sync**: Installed via marketplace (`/plugin marketplace add` + `/plugin install`)
 
 ### State File Contract
-- **TDD state**: `docs/workflow-<name>/<name>-state.md` — YAML frontmatter (`workflow_type`, `name`, `status`, `current_phase`)
-- **Debug state**: `docs/debug/<name>/<name>-state.md` — Same format + `fix_attempts`, `max_fix_attempts`
+- **TDD state**: `.plugin-state/workflow-<name>/<name>-state.md` — YAML frontmatter (`workflow_type`, `name`, `status`, `current_phase`)
+- **Debug state**: `.plugin-state/debug/<name>/<name>-state.md` — Same format + `fix_attempts`, `max_fix_attempts`
 - **Autonomous research state**: `.claude/autonomous-<topic>-research-state.md` — YAML with `current_research_strategy`, `research_budget`, iteration tracking
 - **Autonomous implementation state**: `.claude/autonomous-<topic>-implementation-state.md` — YAML with `planning_budget`, `features_total/complete/failed`
 - **Autonomous feature list**: `.claude/autonomous-<topic>-feature-list.json` — JSON array of features for TDD implementation
@@ -306,7 +306,7 @@ All matching Stop hooks across all plugins run in **parallel** (official Claude 
 dev-workflow: tdd-implementation-gate.sh       -> blocks during Phases 7-9, re-feeds command
 dev-workflow: archive-completed-workflows.sh   -> always exits 0
 dev-workflow: run-scoped-tests.sh              -> exits 0 or blocks with JSON
-dev-workflow: State verification agent          -> {ok:true/false}, 120s timeout
+dev-workflow: tdd-implementation-gate.sh        -> block+re-feed during phases 7-9, allow otherwise
 ralph-loop: stop-hook.sh                       -> exits 0 or blocks with JSON
 research-report: stop-hook.sh                  -> iteration engine + completion verifier
 long-horizon-impl: stop-hook.sh                -> iteration engine + completion verifier
@@ -399,11 +399,11 @@ All blocking hooks use the same format:
 
 - [ ] Should the Cursor mirror be updated to include the debug workflow?
 - [ ] Should dead VS Code tasks be removed?
-- [ ] Is the 120s timeout for the Stop hook state verification agent sufficient for large workflows?
+- [x] ~~Is the 120s timeout for the Stop hook state verification agent sufficient for large workflows?~~ **Resolved**: State verification agent removed — it competed with the TDD implementation gate during phases 7-9, causing an infinite loop of conflicting blocks. The gate handles phase-based blocking; the command prompts handle state file updates.
 - [ ] Should `detect-test-runner.sh` support additional frameworks (e.g., PHPUnit, dotnet test)?
 - [x] ~~How do multiple Stop hooks interact across plugins when one fails?~~ **Answered**: Sequential execution per marketplace.json order. If hook exits nonzero or blocks, downstream hooks may not run.
 - [x] ~~Should autonomous-workflow verify-state.sh run before or after ralph-loop?~~ **Answered**: autonomous-workflow stop-hook.sh runs AFTER ralph-loop (marketplace order). This means it doesn't run between ralph-loop iterations — only on final iteration.
-- [x] ~~Is there risk of state file naming collisions?~~ **Answered**: No. dev-workflow uses `docs/workflow-*/` and `docs/debug/*/`, autonomous-workflow uses `.claude/autonomous-*`. Completely separate locations.
+- [x] ~~Is there risk of state file naming collisions?~~ **Answered**: No. dev-workflow uses `.plugin-state/workflow-*/` and `.plugin-state/debug/*/`, autonomous-workflow uses `.claude/autonomous-*`. Completely separate locations.
 - [ ] Should there be a cost cap mechanism in autonomous-workflow beyond ralph-loop --max-iterations?
 - [ ] Should research results be cached to avoid re-searching on workflow restart?
 - [ ] Should autonomous-workflow be registered before ralph-loop in marketplace.json so stop-hook.sh runs before ralph-loop feeds the next prompt?
@@ -416,7 +416,7 @@ All blocking hooks use the same format:
 Three plugins register SessionStart hooks with matcher `"compact|clear"`: dev-workflow, research-report, and long-horizon-impl. When multiple have active workflows:
 
 **dev-workflow** (`auto-resume-after-compact-or-clear.sh`):
-- Scans `docs/workflow-*/*-state.md` (TDD) and `docs/debug/*/*-state.md` (debug)
+- Scans `.plugin-state/workflow-*/*-state.md` (TDD) and `.plugin-state/debug/*/*-state.md` (debug)
 - Can detect both TDD and debug workflows simultaneously (concatenates with `---` separator)
 - Outputs single JSON with `additionalContext` containing workflow state + Skill invocation instructions
 

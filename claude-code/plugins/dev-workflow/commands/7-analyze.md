@@ -18,14 +18,14 @@ Analyzing logs for: **$ARGUMENTS**
 
 ### 2.1 Check hypotheses exist
 
-Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md` exists. If not:
+Verify `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md` exists. If not:
 
 **ERROR**: Output the following message and STOP:
 
 ```
 Error: Hypotheses not found
 
-The file docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md does not exist.
+The file .plugin-state/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md does not exist.
 Hypotheses must be generated before analyzing logs.
 
 Run: /dev-workflow:4-hypothesize $ARGUMENTS
@@ -41,8 +41,8 @@ If the file is empty or missing, ask the user to confirm they reproduced the bug
 
 Read:
 - `logs/debug-output.log` (the debug output)
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md` (if exists, to check for previous analysis rounds)
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md` (if exists, to check for previous analysis rounds)
 
 ---
 
@@ -65,7 +65,7 @@ The agent should:
 
 ## STEP 4: SAVE ANALYSIS
 
-Write to: `docs/debug/$ARGUMENTS/$ARGUMENTS-analysis.md`
+Write to: `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-analysis.md`
 
 Use this template:
 
@@ -152,7 +152,7 @@ Update state file: note what's inconclusive, set phase back to Phase 5.
 
 ## STEP 6: UPDATE STATE FILE
 
-Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+Update `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
 - Update hypothesis verdicts
 - Record key findings from log analysis
 - Update current phase based on results (Phase 8, or loopback to 4/5)

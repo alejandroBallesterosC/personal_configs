@@ -13,8 +13,8 @@ This is **Phase 4** of the TDD implementation workflow. It creates the technical
 ## Prerequisites
 
 Read these files before designing:
-- `docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md` (codebase context)
-- `docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md` (feature specification)
+- `.plugin-state/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md` (codebase context)
+- `.plugin-state/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md` (feature specification)
 - `CLAUDE.md` (project conventions)
 
 If any are missing, recommend running the previous workflow steps first:
@@ -30,7 +30,7 @@ Use Task tool with subagent_type: "dev-workflow:researcher" (5 parallel instance
 
 Each instance receives:
 Feature: $ARGUMENTS
-Specification: docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md
+Specification: .plugin-state/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md
 
 Instance 1 - Architecture Patterns:
 Research focus: Architecture patterns for systems similar to "$ARGUMENTS". Look for design patterns, component decomposition strategies, and proven architectural approaches.
@@ -52,7 +52,7 @@ Research focus: Infrastructure and deployment patterns for "$ARGUMENTS". Look fo
 
 After all 5 researcher agents return, synthesize their findings into:
 
-Write to `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-research.md`:
+Write to `.plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-research.md`:
 
 ```markdown
 # Architecture Research: $ARGUMENTS
@@ -112,8 +112,8 @@ Feature: $ARGUMENTS
 Create technical architecture for this feature.
 
 Context files to read:
-- docs/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md (codebase context)
-- docs/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (feature specification)
+- .plugin-state/workflow-$ARGUMENTS/codebase-context/$ARGUMENTS-exploration.md (codebase context)
+- .plugin-state/workflow-$ARGUMENTS/specs/$ARGUMENTS-specs.md (feature specification)
 - CLAUDE.md (project conventions)
 
 Design requirements:
@@ -124,7 +124,7 @@ Design requirements:
 5. Integration approach with existing code
 6. Parallel implementation strategy - components must be independently implementable
 
-Output: Write architecture to docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md
+Output: Write architecture to .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md
 ```
 
 ## Architecture for Parallel Implementation
@@ -144,7 +144,7 @@ The architecture MUST support parallel component implementation:
 
 ## Output
 
-Write architecture document to `docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md`:
+Write architecture document to `.plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md`:
 
 ```markdown
 # $ARGUMENTS Architecture
@@ -259,8 +259,8 @@ End with:
 Architecture design complete for: $ARGUMENTS
 
 Artifacts created:
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-research.md (architecture research)
-- docs/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (architecture design)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-research.md (architecture research)
+- .plugin-state/workflow-$ARGUMENTS/plans/$ARGUMENTS-architecture-plan.md (architecture design)
 
 Architecture supports:
 - [N] independent components for parallel implementation

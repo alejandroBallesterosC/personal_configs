@@ -18,14 +18,14 @@ Generating hypotheses for: **$ARGUMENTS**
 
 ### 2.1 Check exploration exists
 
-Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md` exists. If not:
+Verify `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-exploration.md` exists. If not:
 
 **ERROR**: Output the following message and STOP:
 
 ```
 Error: Exploration not found
 
-The file docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md does not exist.
+The file .plugin-state/debug/$ARGUMENTS/$ARGUMENTS-exploration.md does not exist.
 Exploration must be completed before generating hypotheses.
 
 Run: /dev-workflow:2-explore-debug $ARGUMENTS
@@ -33,14 +33,14 @@ Run: /dev-workflow:2-explore-debug $ARGUMENTS
 
 ### 2.2 Check bug description exists
 
-Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md` exists. If not, inform the user that bug context will need to be gathered during hypothesis generation.
+Verify `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-bug.md` exists. If not, inform the user that bug context will need to be gathered during hypothesis generation.
 
 ### 2.3 Read existing context
 
 Read:
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md`
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md` (if exists)
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md` (if exists)
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-exploration.md`
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-bug.md` (if exists)
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md` (if exists)
 
 ---
 
@@ -107,7 +107,7 @@ Present the hypotheses to the user. Use AskUserQuestionTool:
 
 ## STEP 6: SAVE HYPOTHESES
 
-Write to: `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
+Write to: `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md`
 
 Include:
 - Summary with ranked list
@@ -119,7 +119,7 @@ Include:
 
 ## STEP 7: UPDATE STATE FILE
 
-Update `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+Update `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
 - Mark Phase 4 complete
 - Add hypotheses status (all PENDING)
 - Update current phase to Phase 5

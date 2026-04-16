@@ -27,14 +27,14 @@ Starting debug workflow for: $ARGUMENTS
 
 Before creating a debug session, check if one is already active:
 
-1. Search for any existing `docs/debug/*/*-state.md` files (skip `docs/archive/`)
+1. Search for any existing `.plugin-state/debug/*/*-state.md` files (skip `.plugin-state/archive/`)
 2. For each found, read the YAML frontmatter `status` field
 3. If any has `status: in_progress`, output the following error and **STOP**:
 
 ```
 Error: An active debug session already exists
 
-Active session found: docs/debug/<name>/<name>-state.md
+Active session found: .plugin-state/debug/<name>/<name>-state.md
 Status: in_progress
 Current phase: <phase from state file>
 
@@ -66,7 +66,7 @@ Before creating debug artifacts, ensure the project has a CLAUDE.md at the repos
 - Debug: `/dev-workflow:1-start-debug <bug description>`
 - Continue workflow: `/dev-workflow:continue-workflow <name>`
 - Workflow guides: `dev-workflow:tdd-implementation-workflow-guide` and `dev-workflow:debug-workflow-guide` skills
-- Workflow artifacts: `docs/workflow-*/` and `docs/debug/*/`
+- Workflow artifacts: `.plugin-state/workflow-*/` and `.plugin-state/debug/*/`
 
 ## Testing
 
@@ -95,12 +95,12 @@ Store this slug as `$BUG_NAME`. Use `$BUG_NAME` for all directory/file paths thr
 Create the directory structure for this debug session:
 
 ```
-docs/debug/$BUG_NAME/
+.plugin-state/debug/$BUG_NAME/
 ```
 
 ### 2.3 Create state file
 
-Write the initial state file to `docs/debug/$BUG_NAME/$BUG_NAME-state.md`:
+Write the initial state file to `.plugin-state/debug/$BUG_NAME/$BUG_NAME-state.md`:
 
 ```markdown
 ---
@@ -149,17 +149,17 @@ Count: 0/3
 ## Context Restoration Files
 Read these files to restore context:
 1. Use the debug-workflow-guide skill if needed
-2. docs/debug/$BUG_NAME/$BUG_NAME-state.md (this file)
-3. docs/debug/$BUG_NAME/$BUG_NAME-bug.md
-4. docs/debug/$BUG_NAME/$BUG_NAME-exploration.md
-5. docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md
-6. docs/debug/$BUG_NAME/$BUG_NAME-analysis.md
+2. .plugin-state/debug/$BUG_NAME/$BUG_NAME-state.md (this file)
+3. .plugin-state/debug/$BUG_NAME/$BUG_NAME-bug.md
+4. .plugin-state/debug/$BUG_NAME/$BUG_NAME-exploration.md
+5. .plugin-state/debug/$BUG_NAME/$BUG_NAME-hypotheses.md
+6. .plugin-state/debug/$BUG_NAME/$BUG_NAME-analysis.md
 7. CLAUDE.md
 ```
 
 ### 2.4 Save original prompt
 
-Write the user's bug description to `docs/debug/$BUG_NAME/$BUG_NAME-bug.md` with what is known so far. This file will be enriched in Phase 3.
+Write the user's bug description to `.plugin-state/debug/$BUG_NAME/$BUG_NAME-bug.md` with what is known so far. This file will be enriched in Phase 3.
 
 ---
 
@@ -178,7 +178,7 @@ Provide the agent with:
 
 ### 3.2 Save exploration findings
 
-Write exploration output to: `docs/debug/$BUG_NAME/$BUG_NAME-exploration.md`
+Write exploration output to: `.plugin-state/debug/$BUG_NAME/$BUG_NAME-exploration.md`
 
 ### 3.3 Update state file
 
@@ -204,7 +204,7 @@ Skip questions where the answer is already known from the bug description.
 
 ### 4.2 Update bug description
 
-Enrich `docs/debug/$BUG_NAME/$BUG_NAME-bug.md` with the user's answers:
+Enrich `.plugin-state/debug/$BUG_NAME/$BUG_NAME-bug.md` with the user's answers:
 
 ```markdown
 # Bug Report: $ARGUMENTS
@@ -242,8 +242,8 @@ Mark Phase 3 complete. Update current phase to Phase 4.
 Use the Task tool with `subagent_type: "dev-workflow:hypothesis-generator"` to generate 3-5 ranked hypotheses.
 
 Provide the agent with:
-- Bug description from `docs/debug/$BUG_NAME/$BUG_NAME-bug.md`
-- Exploration findings from `docs/debug/$BUG_NAME/$BUG_NAME-exploration.md`
+- Bug description from `.plugin-state/debug/$BUG_NAME/$BUG_NAME-bug.md`
+- Exploration findings from `.plugin-state/debug/$BUG_NAME/$BUG_NAME-exploration.md`
 
 ### 5.2 Review hypotheses
 
@@ -253,7 +253,7 @@ Present the hypotheses to the user. Ask via AskUserQuestionTool:
 
 ### 5.3 Save hypotheses
 
-Write to: `docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md`
+Write to: `.plugin-state/debug/$BUG_NAME/$BUG_NAME-hypotheses.md`
 
 ### 5.4 Update state file
 
@@ -268,7 +268,7 @@ Mark Phase 4 complete. Update hypotheses status (all PENDING). Update current ph
 Use the Task tool with `subagent_type: "dev-workflow:instrumenter"` to add targeted logging.
 
 Provide the agent with:
-- Hypotheses from `docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md`
+- Hypotheses from `.plugin-state/debug/$BUG_NAME/$BUG_NAME-hypotheses.md`
 - Relevant file paths from exploration
 
 ### 6.2 Verify instrumentation
@@ -335,11 +335,11 @@ Read `logs/debug-output.log` from the repository root. Then use the Task tool wi
 
 Provide the agent with:
 - The contents of `logs/debug-output.log`
-- Hypotheses from `docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md`
+- Hypotheses from `.plugin-state/debug/$BUG_NAME/$BUG_NAME-hypotheses.md`
 
 ### 8.2 Save analysis
 
-Write to: `docs/debug/$BUG_NAME/$BUG_NAME-analysis.md`
+Write to: `.plugin-state/debug/$BUG_NAME/$BUG_NAME-analysis.md`
 
 ### 8.3 Handle analysis results
 
@@ -467,7 +467,7 @@ Added regression test to prevent recurrence."
 
 ### 11.4 Archive debug session
 
-Write resolution summary to `docs/debug/$BUG_NAME/$BUG_NAME-resolution.md`:
+Write resolution summary to `.plugin-state/debug/$BUG_NAME/$BUG_NAME-resolution.md`:
 
 ```markdown
 # Debug Resolution: $ARGUMENTS
@@ -529,7 +529,7 @@ date: YYYY-MM-DD
 
 ### 11.6 Update state file
 
-Update the YAML frontmatter at the top of `docs/debug/$BUG_NAME/$BUG_NAME-state.md`:
+Update the YAML frontmatter at the top of `.plugin-state/debug/$BUG_NAME/$BUG_NAME-state.md`:
 
 ```yaml
 ---
@@ -547,8 +547,8 @@ Then update the markdown body - mark Phase 10 complete, set current phase to COM
 Move the debug session directory to the archive:
 
 ```bash
-mkdir -p docs/archive
-mv docs/debug/$BUG_NAME docs/archive/debug-$BUG_NAME
+mkdir -p .plugin-state/archive
+mv .plugin-state/debug/$BUG_NAME .plugin-state/archive/debug-$BUG_NAME
 ```
 
 ---

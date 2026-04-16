@@ -76,28 +76,17 @@ Long workflows degrade in quality as context fills. This plugin uses **hooks for
 
 ### How It Works
 
-Context is managed via two hooks:
+Context is managed via hooks:
 
-1. **Stop hook** (agent): Before Claude stops responding, verifies the state file is up to date. If outdated, blocks Claude from stopping until the state file is updated.
+1. **TDD implementation gate** (command Stop hook): During Phases 7-9, blocks Claude from stopping and re-feeds the current phase command. This keeps Claude working through implementation until completion.
 2. **SessionStart hook** (command): After context reset (`/compact` or `/clear`), reads the state file and injects full context for seamless resume.
 
-**The key insight**: The main Claude instance is responsible for keeping `docs/workflow-<feature>/<feature>-state.md` current. The Stop hook enforces this by blocking Claude from stopping if the state file is stale.
-
-### State File Verification Criteria
-
-The Stop hook verifies the state file against these criteria:
-- **Phase accuracy**: Current phase matches actual work done
-- **Component accuracy**: Current component (if in Phase 7/8) is correctly identified
-- **Next action accuracy**: Next action reflects what should actually be done (not something completed)
-- **No stale progress**: Session progress doesn't describe work from a previous session
-- **Files reflect reality**: Modified files list matches actual recent changes
-
-If any criterion fails, Claude is blocked from stopping and must update the state file first.
+**The key insight**: The main Claude instance is responsible for keeping `.plugin-state/workflow-<feature>/<feature>-state.md` current. The command prompts instruct Claude to update the state file after each phase transition.
 
 ### What Happens After Context Reset
 
 After `/compact` or `/clear`:
-1. **SessionStart hook** detects active workflow from `docs/workflow-*/*-state.md`
+1. **SessionStart hook** detects active workflow from `.plugin-state/workflow-*/*-state.md`
 2. Reads the entire state file and injects it into context
 3. Lists all relevant artifact files to read
 4. Claude continues the workflow automatically
@@ -125,7 +114,7 @@ No specific phase or "checkpoint" required - works at any point in the workflow.
 - Each explores: Architecture, Patterns, Boundaries, Testing, Dependencies
 - Identifies test command and API key availability
 
-**Output**: `docs/workflow-<feature>/codebase-context/<feature>-exploration.md`
+**Output**: `.plugin-state/workflow-<feature>/codebase-context/<feature>-exploration.md`
 
 **Command**: `/dev-workflow:2-explore <feature> "<description>"`
 
@@ -148,7 +137,7 @@ Specifically, before asking the user questions informed by research:
 - Check: Does this finding apply to our specific context, or was it studied under different conditions?
 - If uncertain, frame questions to the user as "research suggests X, but under conditions that may differ from ours — how does this apply to your case?"
 
-**Output**: `docs/workflow-<feature>/codebase-context/<feature>-domain-research.md`, `docs/workflow-<feature>/specs/<feature>-specs.md`
+**Output**: `.plugin-state/workflow-<feature>/codebase-context/<feature>-domain-research.md`, `.plugin-state/workflow-<feature>/specs/<feature>-specs.md`
 
 **Command**: `/dev-workflow:3-user-specification-interview <feature> "<description>"`
 
@@ -165,7 +154,7 @@ Specifically, before asking the user questions informed by research:
 - Architecture decisions documented
 - Integration points identified
 
-**Output**: `docs/workflow-<feature>/plans/<feature>-architecture-research.md`, `docs/workflow-<feature>/plans/<feature>-architecture-plan.md`
+**Output**: `.plugin-state/workflow-<feature>/plans/<feature>-architecture-research.md`, `.plugin-state/workflow-<feature>/plans/<feature>-architecture-plan.md`
 
 **Command**: `/dev-workflow:4-plan-architecture <feature>`
 
@@ -183,9 +172,9 @@ Specifically, before asking the user questions informed by research:
 - Create test strategy per component
 
 **Output**:
-- `docs/workflow-<feature>/plans/<feature>-implementation-research.md`
-- `docs/workflow-<feature>/plans/<feature>-implementation-plan.md`
-- `docs/workflow-<feature>/plans/<feature>-tests.md`
+- `.plugin-state/workflow-<feature>/plans/<feature>-implementation-research.md`
+- `.plugin-state/workflow-<feature>/plans/<feature>-implementation-plan.md`
+- `.plugin-state/workflow-<feature>/plans/<feature>-tests.md`
 
 **Command**: `/dev-workflow:5-plan-implementation <feature>`
 
@@ -207,7 +196,7 @@ Specifically, before asking the user questions informed by research:
 
 **Key addition**: The pre-mortem and assumption inversions catch structural problems that checklists miss. A plan can pass every checklist item and still fail because of an unstated assumption about data volume, latency, or system behavior.
 
-**Output**: `docs/workflow-<feature>/plans/<feature>-review-research.md`, updated plans based on feedback + User approval
+**Output**: `.plugin-state/workflow-<feature>/plans/<feature>-review-research.md`, updated plans based on feedback + User approval
 
 **Command**: `/dev-workflow:6-review-plan <feature>`
 
@@ -260,7 +249,7 @@ Specifically, before asking the user questions informed by research:
   - Tests verified after each fix
 - **Part C - Completion Summary**: Final state file updated, completion report generated
 
-**Output**: `docs/workflow-<feature>/<feature>-review.md`, completion report
+**Output**: `.plugin-state/workflow-<feature>/<feature>-review.md`, completion report
 
 **Command**: `/dev-workflow:9-review <feature>`
 
@@ -391,7 +380,7 @@ These principles guide all phases of the workflow:
 
 ## State File Format
 
-All progress is tracked in `docs/workflow-<feature>/<feature>-state.md`:
+All progress is tracked in `.plugin-state/workflow-<feature>/<feature>-state.md`:
 
 ```markdown
 ---
@@ -430,16 +419,16 @@ command: "[current phase command string for Stop hook re-feeding]"
 ## Context Restoration Files
 Read these files to restore context:
 1. Use the tdd-implementation-workflow-guide skill if needed
-2. docs/workflow-<feature>/<feature>-state.md (this file)
-3. docs/workflow-<feature>/<feature>-original-prompt.md
-4. docs/workflow-<feature>/codebase-context/<feature>-exploration.md
-5. docs/workflow-<feature>/codebase-context/<feature>-domain-research.md (if exists)
-6. docs/workflow-<feature>/specs/<feature>-specs.md
-7. docs/workflow-<feature>/plans/<feature>-architecture-research.md (if exists)
-8. docs/workflow-<feature>/plans/<feature>-architecture-plan.md
-9. docs/workflow-<feature>/plans/<feature>-implementation-research.md (if exists)
-10. docs/workflow-<feature>/plans/<feature>-implementation-plan.md
-11. docs/workflow-<feature>/plans/<feature>-review-research.md (if exists)
+2. .plugin-state/workflow-<feature>/<feature>-state.md (this file)
+3. .plugin-state/workflow-<feature>/<feature>-original-prompt.md
+4. .plugin-state/workflow-<feature>/codebase-context/<feature>-exploration.md
+5. .plugin-state/workflow-<feature>/codebase-context/<feature>-domain-research.md (if exists)
+6. .plugin-state/workflow-<feature>/specs/<feature>-specs.md
+7. .plugin-state/workflow-<feature>/plans/<feature>-architecture-research.md (if exists)
+8. .plugin-state/workflow-<feature>/plans/<feature>-architecture-plan.md
+9. .plugin-state/workflow-<feature>/plans/<feature>-implementation-research.md (if exists)
+10. .plugin-state/workflow-<feature>/plans/<feature>-implementation-plan.md
+11. .plugin-state/workflow-<feature>/plans/<feature>-review-research.md (if exists)
 12. CLAUDE.md
 ```
 
@@ -447,10 +436,10 @@ Read these files to restore context:
 
 ## Artifacts Created
 
-All artifacts for a feature are stored in `docs/workflow-<feature>/`:
+All artifacts for a feature are stored in `.plugin-state/workflow-<feature>/`:
 
 ```
-docs/workflow-<feature>/
+.plugin-state/workflow-<feature>/
 ├── <feature>-state.md                    # Workflow state (auto-managed by hooks)
 ├── <feature>-original-prompt.md          # Original user request
 ├── <feature>-review.md                   # Consolidated review findings

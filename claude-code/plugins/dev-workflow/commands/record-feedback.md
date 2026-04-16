@@ -13,34 +13,34 @@ You are recording the user's feedback about the final output of a dev-workflow s
 
 ### Arguments
 
-- `$1` — workflow name (required). Used to locate artifacts at `docs/workflow-$1/` (TDD) or `docs/debug/$1/` (debug).
+- `$1` — workflow name (required). Used to locate artifacts at `.plugin-state/workflow-$1/` (TDD) or `.plugin-state/debug/$1/` (debug).
 - `$2` — user feedback (optional). If not provided, ask the user using AskUserQuestion.
 
 ### Step 1: Detect Workflow Type and Locate Artifacts
 
 Check which artifacts exist for this workflow:
 
-**TDD artifacts** (at `docs/workflow-$1/`):
-- `docs/workflow-$1/$1-state.md`
-- `docs/workflow-$1/$1-original-prompt.md`
-- `docs/workflow-$1/codebase-context/$1-exploration.md`
-- `docs/workflow-$1/specs/$1-specs.md`
-- `docs/workflow-$1/plans/$1-architecture-plan.md`
-- `docs/workflow-$1/plans/$1-implementation-plan.md`
-- `docs/workflow-$1/plans/$1-tests.md`
-- `docs/workflow-$1/$1-review.md`
+**TDD artifacts** (at `.plugin-state/workflow-$1/`):
+- `.plugin-state/workflow-$1/$1-state.md`
+- `.plugin-state/workflow-$1/$1-original-prompt.md`
+- `.plugin-state/workflow-$1/codebase-context/$1-exploration.md`
+- `.plugin-state/workflow-$1/specs/$1-specs.md`
+- `.plugin-state/workflow-$1/plans/$1-architecture-plan.md`
+- `.plugin-state/workflow-$1/plans/$1-implementation-plan.md`
+- `.plugin-state/workflow-$1/plans/$1-tests.md`
+- `.plugin-state/workflow-$1/$1-review.md`
 
-**Debug artifacts** (at `docs/debug/$1/`):
-- `docs/debug/$1/$1-state.md`
-- `docs/debug/$1/$1-bug.md`
-- `docs/debug/$1/$1-exploration.md`
-- `docs/debug/$1/$1-hypotheses.md`
-- `docs/debug/$1/$1-analysis.md`
-- `docs/debug/$1/$1-resolution.md`
+**Debug artifacts** (at `.plugin-state/debug/$1/`):
+- `.plugin-state/debug/$1/$1-state.md`
+- `.plugin-state/debug/$1/$1-bug.md`
+- `.plugin-state/debug/$1/$1-exploration.md`
+- `.plugin-state/debug/$1/$1-hypotheses.md`
+- `.plugin-state/debug/$1/$1-analysis.md`
+- `.plugin-state/debug/$1/$1-resolution.md`
 
 Also check archived paths:
-- `docs/archive/workflow-$1/` (TDD)
-- `docs/archive/debug-$1/` (debug)
+- `.plugin-state/archive/workflow-$1/` (TDD)
+- `.plugin-state/archive/debug-$1/` (debug)
 
 If no artifacts found at any path, tell the user no artifacts were found for workflow `$1` and ask them to verify the name.
 

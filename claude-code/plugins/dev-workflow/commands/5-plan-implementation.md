@@ -12,10 +12,10 @@ This is **Phase 5** of the TDD implementation workflow. It creates a detailed im
 
 ## Before Starting
 
-1. **Check architecture exists** at `docs/workflow-$1/plans/$1-architecture-plan.md`
+1. **Check architecture exists** at `.plugin-state/workflow-$1/plans/$1-architecture-plan.md`
    - If not, recommend running `/dev-workflow:4-plan-architecture $1` first
 
-2. **Check specification exists** at `docs/workflow-$1/specs/$1-specs.md`
+2. **Check specification exists** at `.plugin-state/workflow-$1/specs/$1-specs.md`
    - If not, recommend running `/dev-workflow:3-user-specification-interview $1 "<description>"` first
 
 3. **Read the architecture** thoroughly to understand:
@@ -30,7 +30,7 @@ This is **Phase 5** of the TDD implementation workflow. It creates a detailed im
    - Non-functional requirements
    - Out of scope items
 
-5. **Read exploration** at `docs/workflow-$1/codebase-context/$1-exploration.md` for:
+5. **Read exploration** at `.plugin-state/workflow-$1/codebase-context/$1-exploration.md` for:
    - Codebase patterns to follow
    - Existing interfaces to use
    - Test framework and conventions
@@ -44,8 +44,8 @@ Use Task tool with subagent_type: "dev-workflow:researcher" (4 parallel instance
 
 Each instance receives:
 Feature: $1
-Architecture: docs/workflow-$1/plans/$1-architecture-plan.md
-Specification: docs/workflow-$1/specs/$1-specs.md
+Architecture: .plugin-state/workflow-$1/plans/$1-architecture-plan.md
+Specification: .plugin-state/workflow-$1/specs/$1-specs.md
 
 Instance 1 - Library Documentation:
 Research focus: Library and framework documentation for technologies chosen in the architecture of "$1". Look for official docs, getting started guides, and API references for the specific libraries and tools.
@@ -64,7 +64,7 @@ Research focus: Common implementation pitfalls when building "$1" with the chose
 
 After all 4 researcher agents return, synthesize their findings into:
 
-Write to `docs/workflow-$1/plans/$1-implementation-research.md`:
+Write to `.plugin-state/workflow-$1/plans/$1-implementation-research.md`:
 
 ```markdown
 # Implementation Research: $1
@@ -134,13 +134,13 @@ The implementation plan MUST:
 
 Create these artifacts:
 
-### 1. Implementation Plan (`docs/workflow-$1/plans/$1-implementation-plan.md`)
+### 1. Implementation Plan (`.plugin-state/workflow-$1/plans/$1-implementation-plan.md`)
 
 ```markdown
 # Implementation Plan: $1
 
 ## Architecture Reference
-See docs/workflow-$1/plans/$1-architecture-plan.md for component architecture.
+See .plugin-state/workflow-$1/plans/$1-architecture-plan.md for component architecture.
 
 ## Implementation Tasks
 
@@ -201,7 +201,7 @@ See docs/workflow-$1/plans/$1-architecture-plan.md for component architecture.
 - Mock fallback strategy (if needed)
 ```
 
-### 2. Test Cases (`docs/workflow-$1/plans/$1-tests.md`)
+### 2. Test Cases (`.plugin-state/workflow-$1/plans/$1-tests.md`)
 
 ```markdown
 # Test Cases: $1
@@ -233,13 +233,13 @@ End with this message:
 Implementation plan complete for: $1
 
 Artifacts created:
-- docs/workflow-$1/plans/$1-implementation-research.md (implementation research)
-- docs/workflow-$1/plans/$1-implementation-plan.md (implementation plan with parallel tasks)
-- docs/workflow-$1/plans/$1-tests.md (test cases)
+- .plugin-state/workflow-$1/plans/$1-implementation-research.md (implementation research)
+- .plugin-state/workflow-$1/plans/$1-implementation-plan.md (implementation plan with parallel tasks)
+- .plugin-state/workflow-$1/plans/$1-tests.md (test cases)
 
 References:
-- docs/workflow-$1/plans/$1-architecture-plan.md (architecture design from Phase 4)
-- docs/workflow-$1/plans/$1-architecture-research.md (architecture research from Phase 4)
+- .plugin-state/workflow-$1/plans/$1-architecture-plan.md (architecture design from Phase 4)
+- .plugin-state/workflow-$1/plans/$1-architecture-research.md (architecture research from Phase 4)
 
 Next step:
 /dev-workflow:6-review-plan $1 (challenge the plan before implementation)

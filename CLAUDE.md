@@ -30,7 +30,7 @@ cursor/                # Cursor IDE mirror (42 files, TDD-only, unidirectional s
 - **Agent YAML frontmatter**: Defines `name`, `tools`, `model` (sonnet|opus)
 - **Skill activation**: Skills auto-activate when context matches their description
 - **Hooks**: Event-driven automation (Stop, SessionStart, Notification across plugins)
-  - `Stop`: TDD implementation gate + archive completed workflows + run scoped tests + state verification agent (dev-workflow), iteration control (ralph-loop), iteration engine + completion verifier (research-report, long-horizon-impl), terminal bell + macOS banner (notify)
+  - `Stop`: TDD implementation gate + archive completed workflows + run scoped tests (dev-workflow), iteration control (ralph-loop), iteration engine + completion verifier (research-report, long-horizon-impl), terminal bell + macOS banner (notify)
   - `SessionStart`: Auto-restore context after compact/clear (dev-workflow: TDD + debug state, research-report: research state, long-horizon-impl: research/planning/impl state)
   - `Notification`: Terminal bell + macOS banner when Claude needs input (notify)
 - **Project-level hooks** (`.claude/hooks/`): `document-learnings.sh` Stop hook prompts Claude to document architectural decisions and insights after implementation work
@@ -87,11 +87,17 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - VS Code `tasks.json` has dead tasks referencing removed sync scripts and leftover tasks from previous projects
 - Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 10 plugins (9 active + 1 deprecated autonomous-workflow)
 - All matching Stop hooks across all plugins run in **parallel** (official Claude Code behavior). If any hook returns `decision: "block"`, Claude continues — the most restrictive decision wins after all hooks complete. There is no sequential ordering or short-circuit between plugins
+- Do not use agent-type Stop hooks alongside command-type hooks that loop (e.g., TDD gate). The agent fires on every iteration, burning tokens/time and producing competing block reasons that cause infinite loops
 - `research-report` has its own Stop hook iteration engine — it does NOT depend on ralph-loop for iteration
 - `long-horizon-impl` 1-research-and-plan uses its own Stop hook for iteration; 2-implement uses ralph-loop
 - Running TDD and research/impl workflows simultaneously may cause SessionStart hook context loss (both output independently, no merging)
 - `autonomous-workflow/` directory still exists but is superseded by `research-report/` and `long-horizon-impl/`
-- Plugin state files (debug logs, workflow state, config overrides) are stored in `.plugin-state/` at the project repo root, NOT in `.claude/` — this avoids Claude Code's hardcoded `.claude/` directory write protection (v2.1.78+)
+- Plugin state files (debug logs, workflow state, config overrides) are stored in `.plugin-state/` at the project repo root, NOT in `.claude/` — this avoids Claude Code's hardcoded `.claude/` directory write protection (v2.1.78+). All hooks anchor to repo root via `git rev-parse --show-toplevel` before writing state.
+  - dev-workflow: `.plugin-state/workflow-<feature>/` (TDD), `.plugin-state/debug/<bug>/` (debug), `.plugin-state/archive/` (completed)
+  - research-report: `.plugin-state/research-report-<topic>-state.md`
+  - long-horizon-impl: `.plugin-state/lhi-<topic>-{research,implementation}-state.md`
+  - ralph-loop: `.plugin-state/ralph-loop.local.md`
+  - claude-session-feedback: `.plugin-state/session-feedback/{history,feedback}/`
 
 ## Plugin Installation
 

@@ -18,14 +18,14 @@ Verifying fix for: **$ARGUMENTS**
 
 ### 2.1 Check session exists
 
-Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md` exists. If not:
+Verify `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md` exists. If not:
 
 **ERROR**: Output the following message and STOP:
 
 ```
 Error: No debug session found for '$ARGUMENTS'
 
-The file docs/debug/$ARGUMENTS/$ARGUMENTS-state.md does not exist.
+The file .plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md does not exist.
 
 To start a debug session, use:
   /dev-workflow:1-start-debug <bug description or error message>
@@ -33,17 +33,17 @@ To start a debug session, use:
 
 ### 2.2 Check analysis exists
 
-Verify `docs/debug/$ARGUMENTS/$ARGUMENTS-analysis.md` exists and contains a CONFIRMED hypothesis. If not:
+Verify `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-analysis.md` exists and contains a CONFIRMED hypothesis. If not:
 
 **WARNING**: "No confirmed root cause found in the analysis. Are you sure the fix is ready for verification?"
 
 ### 2.3 Read context
 
 Read:
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-analysis.md` (if exists)
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md` (if exists)
-- `docs/debug/$ARGUMENTS/$ARGUMENTS-bug.md` (for reproduction steps)
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md`
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-analysis.md` (if exists)
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-hypotheses.md` (if exists)
+- `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-bug.md` (for reproduction steps)
 
 ---
 
@@ -191,7 +191,7 @@ Added regression test to prevent recurrence."
 
 ### 8.1 Write resolution summary
 
-Write to `docs/debug/$ARGUMENTS/$ARGUMENTS-resolution.md`:
+Write to `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-resolution.md`:
 
 ```markdown
 # Debug Resolution: $ARGUMENTS
@@ -233,7 +233,7 @@ If this bug reveals a recurring pattern, suggest adding a gotcha to the project'
 
 ### 8.3 Update state file
 
-Update the YAML frontmatter at the top of `docs/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
+Update the YAML frontmatter at the top of `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-state.md`:
 
 ```yaml
 ---
@@ -256,8 +256,8 @@ COMPLETE
 Move the debug session directory to the archive:
 
 ```bash
-mkdir -p docs/archive
-mv docs/debug/$ARGUMENTS docs/archive/debug-$ARGUMENTS
+mkdir -p .plugin-state/archive
+mv .plugin-state/debug/$ARGUMENTS .plugin-state/archive/debug-$ARGUMENTS
 ```
 
 ---

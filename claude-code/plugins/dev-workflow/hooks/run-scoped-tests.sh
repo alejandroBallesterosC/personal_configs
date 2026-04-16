@@ -2,6 +2,13 @@
 # ABOUTME: Stop hook that runs scoped tests and blocks Claude from stopping if they fail.
 # ABOUTME: Uses exit 0 + JSON decision:block pattern per Claude Code hooks spec.
 
+# Anchor to git repo root for consistent state file discovery
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$REPO_ROOT" ]; then
+    REPO_ROOT="."
+fi
+cd "$REPO_ROOT"
+
 # Debug log file for diagnosing hook behavior
 DEBUG_FILE=".plugin-state/run-scoped-tests-debug.log"
 
@@ -42,13 +49,6 @@ cat > /dev/null
 # Get the directory where this script lives
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Find the git repo root (the .tdd-test-scope file must be placed there)
-REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-if [ -z "$REPO_ROOT" ]; then
-    # Not in a git repo, fall back to current directory
-    REPO_ROOT="."
-fi
-
 # Check if .tdd-test-scope exists in repo root
 SCOPE_FILE="$REPO_ROOT/.tdd-test-scope"
 if [ ! -f "$SCOPE_FILE" ]; then
@@ -65,9 +65,6 @@ if [ "$SCOPE" = "none" ] || [ -z "$SCOPE" ]; then
     rm -f "$SCOPE_FILE"
     exit 0
 fi
-
-# Change to repo root to run tests (test runners expect to run from project root)
-cd "$REPO_ROOT"
 
 # Detect the test runner
 DETECTED=$("$SCRIPT_DIR/detect-test-runner.sh")

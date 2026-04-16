@@ -16,7 +16,7 @@ Exploring codebase for: **$ARGUMENTS**
 
 ## STEP 2: VALIDATE PREREQUISITES
 
-Check if a debug session directory exists at `docs/debug/$ARGUMENTS/`. If it does, read the state file to understand the current context.
+Check if a debug session directory exists at `.plugin-state/debug/$ARGUMENTS/`. If it does, read the state file to understand the current context.
 
 If no session exists yet, this is a standalone exploration. Proceed directly to Step 3.
 
@@ -78,7 +78,7 @@ Understand existing test coverage:
 
 ## STEP 4: SAVE EXPLORATION FINDINGS
 
-Write exploration findings to: `docs/debug/$ARGUMENTS/$ARGUMENTS-exploration.md`
+Write exploration findings to: `.plugin-state/debug/$ARGUMENTS/$ARGUMENTS-exploration.md`
 
 Use this template:
 

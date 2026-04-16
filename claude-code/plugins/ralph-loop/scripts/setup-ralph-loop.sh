@@ -127,6 +127,11 @@ if [[ -z "$PROMPT" ]]; then
   exit 1
 fi
 
+# Anchor to git repo root for consistent state file placement
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+REPO_ROOT="${REPO_ROOT:-.}"
+cd "$REPO_ROOT"
+
 # Create state file for stop hook (markdown with YAML frontmatter)
 mkdir -p .plugin-state
 

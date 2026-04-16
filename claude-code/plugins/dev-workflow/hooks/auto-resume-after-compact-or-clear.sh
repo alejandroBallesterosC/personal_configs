@@ -1,6 +1,6 @@
 #!/bin/bash
 # ABOUTME: Auto-resume TDD implementation or debug workflow after context reset (compact or clear)
-# ABOUTME: Checks both docs/workflow-* and docs/debug/*/ for active sessions, parses YAML frontmatter, and injects context
+# ABOUTME: Checks both .plugin-state/workflow-* and .plugin-state/debug/*/ for active sessions, parses YAML frontmatter, and injects context
 
 # Anchor to git repo root for consistent state file discovery
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
@@ -67,7 +67,7 @@ fi
 # Loop through all workflow dirs, find first with active (non-complete) YAML status
 TDD_STATE_FILE=""
 TDD_ACTIVE=false
-for state_file in docs/workflow-*/*-state.md; do
+for state_file in .plugin-state/workflow-*/*-state.md; do
   [ -f "$state_file" ] || continue
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
   if [ "$status" = "in_progress" ]; then
@@ -86,10 +86,10 @@ done
 # Loop through debug session dirs, skip archive directory, find first active session
 DEBUG_STATE_FILE=""
 DEBUG_ACTIVE=false
-for state_file in docs/debug/*/*-state.md; do
+for state_file in .plugin-state/debug/*/*-state.md; do
   [ -f "$state_file" ] || continue
   # Skip the archive directory
-  case "$state_file" in docs/archive/*) continue ;; esac
+  case "$state_file" in .plugin-state/archive/*) continue ;; esac
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
   if [ "$status" = "in_progress" ]; then
     DEBUG_STATE_FILE="$state_file"
@@ -123,7 +123,7 @@ if [ "$TDD_ACTIVE" = true ]; then
   CONTEXT="## TDD Implementation Workflow Resumed After Context Reset
 
 **Feature**: $FEATURE
-**State File**: docs/workflow-$FEATURE/$FEATURE-state.md
+**State File**: .plugin-state/workflow-$FEATURE/$FEATURE-state.md
 **Trigger**: Context was $TRIGGER_DESC
 
 ---
@@ -144,12 +144,12 @@ Context was $TRIGGER_DESC during an active TDD implementation workflow. To conti
 4. Continue from where we left off
 
 **Key files to read** (based on workflow artifacts):
-- \`docs/workflow-$FEATURE/$FEATURE-state.md\` (already included above)
-- \`docs/workflow-$FEATURE/$FEATURE-original-prompt.md\` (if exists - the original request)
-- \`docs/workflow-$FEATURE/specs/$FEATURE-specs.md\` (if exists - the specification)
-- \`docs/workflow-$FEATURE/plans/$FEATURE-implementation-plan.md\` (if exists - the implementation plan)
-- \`docs/workflow-$FEATURE/plans/$FEATURE-architecture-plan.md\` (if exists - the architecture)
-- \`docs/workflow-$FEATURE/codebase-context/$FEATURE-exploration.md\` (if exists - codebase exploration)
+- \`.plugin-state/workflow-$FEATURE/$FEATURE-state.md\` (already included above)
+- \`.plugin-state/workflow-$FEATURE/$FEATURE-original-prompt.md\` (if exists - the original request)
+- \`.plugin-state/workflow-$FEATURE/specs/$FEATURE-specs.md\` (if exists - the specification)
+- \`.plugin-state/workflow-$FEATURE/plans/$FEATURE-implementation-plan.md\` (if exists - the implementation plan)
+- \`.plugin-state/workflow-$FEATURE/plans/$FEATURE-architecture-plan.md\` (if exists - the architecture)
+- \`.plugin-state/workflow-$FEATURE/codebase-context/$FEATURE-exploration.md\` (if exists - codebase exploration)
 - \`CLAUDE.md\` (project conventions)
 
 **Continue the workflow now.** Read any additional files needed and proceed with the next action indicated in the state."
@@ -173,7 +173,7 @@ if [ "$DEBUG_ACTIVE" = true ]; then
   CONTEXT="${CONTEXT}## Debug Workflow Resumed After Context Reset
 
 **Bug**: $BUG_NAME
-**State File**: docs/debug/$BUG_NAME/$BUG_NAME-state.md
+**State File**: .plugin-state/debug/$BUG_NAME/$BUG_NAME-state.md
 **Trigger**: Context was $TRIGGER_DESC
 
 ---
@@ -194,11 +194,11 @@ Context was $TRIGGER_DESC during an active debug session. To continue:
 4. Continue from where we left off
 
 **Key files to read** (based on debug artifacts):
-- \`docs/debug/$BUG_NAME/$BUG_NAME-state.md\` (already included above)
-- \`docs/debug/$BUG_NAME/$BUG_NAME-bug.md\` (if exists - the bug description)
-- \`docs/debug/$BUG_NAME/$BUG_NAME-exploration.md\` (if exists - codebase exploration)
-- \`docs/debug/$BUG_NAME/$BUG_NAME-hypotheses.md\` (if exists - ranked hypotheses)
-- \`docs/debug/$BUG_NAME/$BUG_NAME-analysis.md\` (if exists - log analysis results)
+- \`.plugin-state/debug/$BUG_NAME/$BUG_NAME-state.md\` (already included above)
+- \`.plugin-state/debug/$BUG_NAME/$BUG_NAME-bug.md\` (if exists - the bug description)
+- \`.plugin-state/debug/$BUG_NAME/$BUG_NAME-exploration.md\` (if exists - codebase exploration)
+- \`.plugin-state/debug/$BUG_NAME/$BUG_NAME-hypotheses.md\` (if exists - ranked hypotheses)
+- \`.plugin-state/debug/$BUG_NAME/$BUG_NAME-analysis.md\` (if exists - log analysis results)
 - \`CLAUDE.md\` (project conventions)
 
 **Continue the debug session now.** Read any additional files needed and proceed with the next action indicated in the state."
