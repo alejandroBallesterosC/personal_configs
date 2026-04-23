@@ -1,6 +1,6 @@
 #!/bin/bash
 # ABOUTME: Stop hook that drives iteration (re-feeds command on in_progress) and verifies completion criteria for research-report workflows.
-# ABOUTME: Drives multi-iteration execution by re-feeding the command, and verifies research budget + synthesis completion before allowing stop.
+# ABOUTME: Drives multi-iteration execution by re-feeding the command, and verifies all Phase R/S sub-phase fields before allowing stop on complete.
 
 set -euo pipefail
 
@@ -52,7 +52,7 @@ cat > /dev/null
 # Find active research-report workflow state files
 ACTIVE_STATE=""
 
-# Single pass: find in_progress research-report state files
+# First pass: find in_progress research-report state files
 for state_file in .plugin-state/research-report-*-state.md; do
   [ -f "$state_file" ] || continue
   status=$(yq --front-matter=extract '.status' "$state_file" 2>/dev/null)
@@ -87,57 +87,67 @@ STATUS=$(yq --front-matter=extract '.status' "$ACTIVE_STATE" 2>/dev/null)
 ITERATION=$(yq --front-matter=extract '.iteration' "$ACTIVE_STATE" 2>/dev/null)
 COMMAND=$(yq --front-matter=extract '.command' "$ACTIVE_STATE" 2>/dev/null)
 WORKFLOW_TYPE=$(yq --front-matter=extract '.workflow_type' "$ACTIVE_STATE" 2>/dev/null)
-TOTAL_RESEARCH=$(yq --front-matter=extract '.total_iterations_research' "$ACTIVE_STATE" 2>/dev/null)
-RESEARCH_BUDGET=$(yq --front-matter=extract '.research_budget' "$ACTIVE_STATE" 2>/dev/null)
 NAME=$(yq --front-matter=extract '.name' "$ACTIVE_STATE" 2>/dev/null)
 CURRENT_PHASE=$(yq --front-matter=extract '.current_phase' "$ACTIVE_STATE" 2>/dev/null)
-SYNTHESIS_ITERATION=$(yq --front-matter=extract '.synthesis_iteration' "$ACTIVE_STATE" 2>/dev/null)
 
-debug_log "**Fields:** status=$STATUS, iteration=$ITERATION, workflow_type=$WORKFLOW_TYPE, name=$NAME, current_phase=$CURRENT_PHASE, synthesis_iteration=$SYNTHESIS_ITERATION, command=$(echo "$COMMAND" | head -1)"
+TOTAL_RESEARCH=$(yq --front-matter=extract '.total_iterations_research' "$ACTIVE_STATE" 2>/dev/null)
+RESEARCH_BUDGET=$(yq --front-matter=extract '.research_budget' "$ACTIVE_STATE" 2>/dev/null)
+
+VOICE_GUIDE_WRITTEN=$(yq --front-matter=extract '.voice_guide_written' "$ACTIVE_STATE" 2>/dev/null)
+CHAPTER_ARGS_LOCKED=$(yq --front-matter=extract '.chapter_arguments_locked' "$ACTIVE_STATE" 2>/dev/null)
+CHAPTER_COUNT=$(yq --front-matter=extract '.chapter_count' "$ACTIVE_STATE" 2>/dev/null)
+WRITING_CHAPTER=$(yq --front-matter=extract '.writing_chapter' "$ACTIVE_STATE" 2>/dev/null)
+CONCLUSIONS_WRITTEN=$(yq --front-matter=extract '.conclusions_written' "$ACTIVE_STATE" 2>/dev/null)
+FRONT_SYNTHESIS_WRITTEN=$(yq --front-matter=extract '.front_synthesis_written' "$ACTIVE_STATE" 2>/dev/null)
+
+READING_ITERATION=$(yq --front-matter=extract '.reading_iteration' "$ACTIVE_STATE" 2>/dev/null)
+READING_PHASE=$(yq --front-matter=extract '.reading_phase' "$ACTIVE_STATE" 2>/dev/null)
+READING_PASSES_COMPLETED=$(yq --front-matter=extract '.reading_passes_completed' "$ACTIVE_STATE" 2>/dev/null)
+
+# Hardcoded minimum: at least IDENTIFY + VERIFY (early termination floor)
+MIN_READING_PASSES=2
+# Hardcoded maximum: IDENTIFY + 3 FIX + VERIFY
+MAX_READING_PASSES=5
+
+debug_log "**Fields:** status=$STATUS, iteration=$ITERATION, current_phase=$CURRENT_PHASE, name=$NAME, total_research=$TOTAL_RESEARCH/$RESEARCH_BUDGET, voice=$VOICE_GUIDE_WRITTEN, chapters_locked=$CHAPTER_ARGS_LOCKED, chapter_count=$CHAPTER_COUNT, writing_chapter=$WRITING_CHAPTER, conclusions=$CONCLUSIONS_WRITTEN, front_synthesis=$FRONT_SYNTHESIS_WRITTEN, reading_iter=$READING_ITERATION, reading_phase=$READING_PHASE, reading_completed=$READING_PASSES_COMPLETED, command=$(echo "$COMMAND" | head -1)"
 
 # ---------------------------------------------------------------
 # STATUS: in_progress — increment iteration and block with command
 # ---------------------------------------------------------------
 if [ "$STATUS" = "in_progress" ]; then
-  # Validate iteration is numeric
   if ! [[ "$ITERATION" =~ ^[0-9]+$ ]]; then
     debug_log "**WARNING:** iteration is not numeric ('$ITERATION'). Allowing stop."
-    echo "WARNING: iteration field is not numeric ('$ITERATION') in $ACTIVE_STATE. Skipping iteration increment." >&2
+    echo "WARNING: iteration field is not numeric ('$ITERATION') in $ACTIVE_STATE." >&2
     exit 0
   fi
 
-  # Validate command is non-empty
   if [ -z "$COMMAND" ] || [ "$COMMAND" = "null" ]; then
     debug_log "**WARNING:** command field is empty in $ACTIVE_STATE. Allowing stop."
     echo "WARNING: command field is empty in $ACTIVE_STATE. Cannot re-feed command." >&2
     exit 0
   fi
 
-  # Phase R → Phase S transition (safety net)
-  # If research budget is reached but phase is still R, transition to Phase S
+  # Phase R → Phase S: Voice safety net
+  # If research budget is reached but phase is still R, transition to Phase S: Voice
   if [ "$CURRENT_PHASE" = "Phase R: Research" ] && \
      [ -n "$TOTAL_RESEARCH" ] && [ "$TOTAL_RESEARCH" != "null" ] && \
      [ -n "$RESEARCH_BUDGET" ] && [ "$RESEARCH_BUDGET" != "null" ] && \
      [ "$TOTAL_RESEARCH" -ge "$RESEARCH_BUDGET" ] 2>/dev/null; then
     TEMP_PHASE=$(mktemp "${ACTIVE_STATE}.XXXXXX")
-    yq --front-matter=process '.current_phase = "Phase S: Synthesis"' "$ACTIVE_STATE" > "$TEMP_PHASE"
+    yq --front-matter=process '.current_phase = "Phase S: Voice"' "$ACTIVE_STATE" > "$TEMP_PHASE"
     mv "$TEMP_PHASE" "$ACTIVE_STATE"
-    TEMP_SYNTH=$(mktemp "${ACTIVE_STATE}.XXXXXX")
-    yq --front-matter=process '.synthesis_iteration = 1' "$ACTIVE_STATE" > "$TEMP_SYNTH"
-    mv "$TEMP_SYNTH" "$ACTIVE_STATE"
-    debug_log "**Phase transition (safety net):** Phase R → Phase S for $NAME"
+    debug_log "**Phase transition (safety net):** Phase R → Phase S: Voice for $NAME"
   fi
 
-  # Increment iteration via sed + atomic temp file (same-directory for atomic rename)
+  # Increment iteration via sed + atomic temp file
   NEXT_ITERATION=$((ITERATION + 1))
   TEMP_FILE=$(mktemp "${ACTIVE_STATE}.XXXXXX")
   sed "s/^iteration: .*/iteration: $NEXT_ITERATION/" "$ACTIVE_STATE" > "$TEMP_FILE"
   mv "$TEMP_FILE" "$ACTIVE_STATE"
 
-  # Trim trailing whitespace/newlines from command
   CLEAN_COMMAND=$(echo "$COMMAND" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-  SYSTEM_MSG="Continuing research-report workflow iteration $NEXT_ITERATION. State file: $ACTIVE_STATE"
+  SYSTEM_MSG="Continuing research-report workflow iteration $NEXT_ITERATION (phase: $CURRENT_PHASE). State file: $ACTIVE_STATE"
 
   debug_log "**Blocking stop:** Incrementing iteration to $NEXT_ITERATION, re-feeding command."
 
@@ -153,7 +163,6 @@ fi
 # ---------------------------------------------------------------
 if [ "$STATUS" = "complete" ]; then
   ERRORS=""
-
   TOPIC_NAME="$NAME"
 
   if [ "$WORKFLOW_TYPE" != "research-report" ]; then
@@ -161,21 +170,64 @@ if [ "$STATUS" = "complete" ]; then
     exit 0
   fi
 
-  # Verify: total_iterations_research >= research_budget
-  if [ -n "$TOTAL_RESEARCH" ] && [ -n "$RESEARCH_BUDGET" ] && \
-     [ "$TOTAL_RESEARCH" != "null" ] && [ "$RESEARCH_BUDGET" != "null" ] && \
-     [ "$TOTAL_RESEARCH" -lt "$RESEARCH_BUDGET" ] 2>/dev/null; then
-    ERRORS="${ERRORS}Research budget not fulfilled: total_iterations_research ($TOTAL_RESEARCH) < research_budget ($RESEARCH_BUDGET). "
+  # Detect workflow mode: edit (Phase E:*) vs original creation (Phase R/S:*)
+  IS_EDIT="false"
+  case "$CURRENT_PHASE" in
+    "Phase E:"*) IS_EDIT="true" ;;
+  esac
+
+  # ---- Original-creation-only checks (skipped for edits) ----
+  if [ "$IS_EDIT" = "false" ]; then
+    # Verify: research budget fulfilled (only for original creation; edit has separate edit_research_budget)
+    if [ -n "$TOTAL_RESEARCH" ] && [ -n "$RESEARCH_BUDGET" ] && \
+       [ "$TOTAL_RESEARCH" != "null" ] && [ "$RESEARCH_BUDGET" != "null" ] && \
+       [ "$TOTAL_RESEARCH" -lt "$RESEARCH_BUDGET" ] 2>/dev/null; then
+      ERRORS="${ERRORS}Research budget not fulfilled: total_iterations_research ($TOTAL_RESEARCH) < research_budget ($RESEARCH_BUDGET). "
+    fi
+
+    # Verify: all body chapters written (writing_chapter > chapter_count after last chapter)
+    # During edit, writing_chapter is set to chapter_count+1 from initial reconstruction; checking would always pass but is meaningless.
+    if [ -n "$CHAPTER_COUNT" ] && [ "$CHAPTER_COUNT" != "null" ] && \
+       [ -n "$WRITING_CHAPTER" ] && [ "$WRITING_CHAPTER" != "null" ] && \
+       [ "$WRITING_CHAPTER" -le "$CHAPTER_COUNT" ] 2>/dev/null; then
+      ERRORS="${ERRORS}Body chapters incomplete: writing_chapter ($WRITING_CHAPTER) <= chapter_count ($CHAPTER_COUNT). "
+    fi
   fi
 
-  # Verify: Phase S synthesis is complete (4 iterations: outline, write, polish, compile+verify)
-  if [ -n "$SYNTHESIS_ITERATION" ] && [ "$SYNTHESIS_ITERATION" != "null" ]; then
-    if [ "$SYNTHESIS_ITERATION" -lt 4 ] 2>/dev/null; then
-      ERRORS="${ERRORS}Synthesis not complete: synthesis_iteration ($SYNTHESIS_ITERATION) < 4. "
-    fi
-    if [ "$CURRENT_PHASE" != "Phase S: Synthesis" ]; then
-      ERRORS="${ERRORS}Synthesis phase not reached: current_phase is '$CURRENT_PHASE', expected 'Phase S: Synthesis'. "
-    fi
+  # ---- Checks that apply to BOTH original creation and edits ----
+
+  # Verify: voice guide written (true for original creation; for edit, true since reconstruction sets it from existing artifact)
+  if [ "$VOICE_GUIDE_WRITTEN" != "true" ]; then
+    ERRORS="${ERRORS}Voice guide not written: voice_guide_written=$VOICE_GUIDE_WRITTEN (expected true). "
+  fi
+
+  # Verify: chapter arguments locked
+  if [ "$CHAPTER_ARGS_LOCKED" != "true" ]; then
+    ERRORS="${ERRORS}Chapter arguments not locked: chapter_arguments_locked=$CHAPTER_ARGS_LOCKED (expected true). "
+  fi
+
+  # Verify: back Conclusions written (must be true after edit's Rewrite-Conclusions step)
+  if [ "$CONCLUSIONS_WRITTEN" != "true" ]; then
+    ERRORS="${ERRORS}Back Conclusions not written: conclusions_written=$CONCLUSIONS_WRITTEN (expected true). "
+  fi
+
+  # Verify: front Synthesis written (must be true after edit's Rewrite-Front-Synthesis step)
+  if [ "$FRONT_SYNTHESIS_WRITTEN" != "true" ]; then
+    ERRORS="${ERRORS}Front Synthesis not written: front_synthesis_written=$FRONT_SYNTHESIS_WRITTEN (expected true). "
+  fi
+
+  # Verify: minimum reader passes completed (IDENTIFY + VERIFY floor; max is 5 with early termination)
+  # For edit, reading_passes_completed is reset to 0 at edit start and re-incremented during edit's Read phase.
+  if [ -n "$READING_PASSES_COMPLETED" ] && [ "$READING_PASSES_COMPLETED" != "null" ] && \
+     [ "$READING_PASSES_COMPLETED" -lt "$MIN_READING_PASSES" ] 2>/dev/null; then
+    ERRORS="${ERRORS}Reader passes incomplete: reading_passes_completed ($READING_PASSES_COMPLETED) < minimum required ($MIN_READING_PASSES — IDENTIFY + VERIFY). "
+  fi
+
+  # Verify: final phase is Compile (Phase S: Compile for original creation, Phase E: Compile for edit)
+  EXPECTED_FINAL_PHASE="Phase S: Compile"
+  [ "$IS_EDIT" = "true" ] && EXPECTED_FINAL_PHASE="Phase E: Compile"
+  if [ "$CURRENT_PHASE" != "$EXPECTED_FINAL_PHASE" ]; then
+    ERRORS="${ERRORS}Final phase not reached: current_phase is '$CURRENT_PHASE', expected '$EXPECTED_FINAL_PHASE'. "
   fi
 
   if [ -n "$ERRORS" ]; then

@@ -1,24 +1,28 @@
 ---
-description: "Deep research producing a LaTeX report via the research-report plugin"
+description: "Deep research producing an argument-driven LaTeX report via the research-report plugin"
 model: opus
-argument-hint: <topic-name> "Your detailed research prompt..." --research-iterations N
+argument-hint: "Your detailed research prompt..." [--research-iterations N]
 ---
 
-# ABOUTME: Research-report plugin command that runs one iteration of deep research per invocation.
-# ABOUTME: Spawns strategy-dependent parallel researcher agents, synthesizes findings, updates LaTeX report and state.
+# ABOUTME: Research-report plugin orchestrator that runs ONE iteration per invocation across an evidence-pool / outline / write / read pipeline.
+# ABOUTME: Phase R harvests evidence-pool entries; Phase S writes the report from the pool with single-voice sequential chapters and reader-pass iterations (max 5 with early termination).
 
 # Autonomous Deep Research
 
-**Topic**: $1
-**Prompt**: $2
+**Prompt**: $1
 **All Arguments**: $ARGUMENTS
+**Topic slug**: derived in STEP 1 (kebab-case, generated from prompt on first iteration; read from state on resume)
 
 Parse optional flags from **All Arguments**:
 - `--research-iterations N`: total research iteration budget (default: 30)
 
+Reader passes in Phase S are **hardcoded at a maximum of 5** with early termination — no flag.
+
 ## Objective
 
-Run ONE ITERATION of deep research on the given topic. Each iteration: read state, spawn parallel researcher agents (dispatched by current strategy), synthesize findings, update the LaTeX report, update state. The Stop hook re-feeds this command for multi-iteration execution.
+Run ONE ITERATION of the research-report pipeline. Each iteration: read state, route to the appropriate phase action, execute it, update state. The Stop hook re-feeds this command for multi-iteration execution.
+
+The pipeline separates **evidence collection** (Phase R) from **report writing** (Phase S). Phase R harvests structured evidence-pool entries — no prose is written into the report during Phase R. Phase S writes the report from the pool with a single authorial voice, sequential per-chapter writing, methodological audits, and reader-pass iterations.
 
 **REQUIRED**: Use the Skill tool to invoke `research-report:research-report-guide` to load the workflow source of truth.
 
@@ -26,34 +30,62 @@ Run ONE ITERATION of deep research on the given topic. Each iteration: read stat
 
 ## STEP 1: Initialize or Resume
 
-Check if `.plugin-state/research-report-$1-state.md` exists.
+**Find existing in-progress workflow first.** Use Glob to look for `.plugin-state/research-report-*-state.md`. For each match, check the YAML frontmatter `status` field — pick the one with `status: in_progress`.
 
-### If state file does NOT exist (first iteration):
+### If an in-progress state file exists (resuming):
 
-1. Create directory structure:
+1. Read its YAML frontmatter and extract `name` (the topic slug)
+2. Set `<topic_slug>` to that value for all paths below
+3. Read `.plugin-state/research-report-<topic_slug>-state.md` for full state
+4. Read `docs/research-report/<topic_slug>/evidence-pool.jsonl` (count entries; do NOT load all into context if large — use grep/wc)
+5. Read `docs/research-report/<topic_slug>/chapter-arguments.json`
+6. Read `docs/research-report/<topic_slug>/research-progress.md`
+7. If `current_phase` is past `Phase S: Voice`, also read `docs/research-report/<topic_slug>/voice-guide.md`
+8. Read `current_phase` and the relevant sub-phase counters from state YAML
+9. Skip to the **Phase Router**
+
+### If no in-progress state file exists (first iteration):
+
+1. **Derive topic slug from the prompt.** Generate a short kebab-case slug (3-5 words, lowercase, hyphen-separated) that captures the prompt's subject. Examples:
+   - Prompt: *"Research the dental practice RCM market and major players"* → `dental-rcm-market`
+   - Prompt: *"How are LLM agents being used in customer support today?"* → `llm-agents-customer-support`
+   - Prompt: *"Compare the leading vector databases for RAG"* → `vector-db-rag-comparison`
+
+   Pick a slug that's specific enough to be unique but short enough to use in file names. Set `<topic_slug>` to the chosen slug.
+
+2. Create directory structure:
    ```
-   docs/research-report/$1/
-   docs/research-report/$1/transcripts/
+   docs/research-report/<topic_slug>/
+   docs/research-report/<topic_slug>/transcripts/
    ```
 
-2. Read the report template from the plugin:
+3. Read the report template from the plugin:
    - Use Glob to find `**/research-report/templates/report-template.tex`
    - Read the template
-   - Replace `PLACEHOLDER_TITLE` with a descriptive title based on the research prompt
-   - Write to `docs/research-report/$1/$1-report.tex`
+   - Replace `PLACEHOLDER_TITLE` with a descriptive title based on the prompt
+   - Write to `docs/research-report/<topic_slug>/<topic_slug>-report.tex`
 
-3. Create empty bibliography file `docs/research-report/$1/sources.bib`:
+4. Create empty bibliography file `docs/research-report/<topic_slug>/sources.bib`:
    ```bibtex
-   % Bibliography for research topic: $1
+   % Bibliography for research topic: <topic_slug>
    % Entries are added as sources are discovered during research.
    ```
 
-4. Create `docs/research-report/$1/research-progress.md`:
+5. Create empty evidence pool `docs/research-report/<topic_slug>/evidence-pool.jsonl`:
+   - Read `**/research-report/templates/evidence-pool-template.jsonl` for the format spec (do not copy the example entry into the live pool)
+   - Write a fresh empty file with a single header line: `{"_comment": "Evidence pool for <topic_slug>. One JSON object per line."}`
+
+6. Create empty chapter-arguments file `docs/research-report/<topic_slug>/chapter-arguments.json`:
+   ```json
+   {"locked": false, "chapters": []}
+   ```
+
+7. Create `docs/research-report/<topic_slug>/research-progress.md`:
    ```markdown
-   # Research Progress: $1
+   # Research Progress: <topic_slug>
 
    ## Original Prompt
-   $2
+   $1
 
    ## Major Themes/Findings
    - (none yet)
@@ -65,207 +97,195 @@ Check if `.plugin-state/research-report-$1-state.md` exists.
    - (none yet)
 
    ## Methodological Quality
-   - Claims with TIGHT evidence gap: 0
-   - Claims with MODERATE evidence gap: 0
-   - Claims with WIDE evidence gap: 0
-   - Claims narrowed after critique: 0
-   - Sources flagged for removal: 0
+   - Pool entries with TIGHT gap: 0
+   - Pool entries with MODERATE gap: 0
+   - Pool entries with WIDE gap: 0
+   - Entries narrowed after critique: 0
+   - Entries flagged for removal: 0
 
    ## Research Direction
    - Begin with wide-exploration to establish baseline understanding
    ```
 
-5. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 30.
+8. Parse research budget from `--research-iterations` flag in All Arguments. If not provided, default to 30.
 
-6. Create state file `.plugin-state/research-report-$1-state.md` with YAML frontmatter:
+9. Create state file `.plugin-state/research-report-<topic_slug>-state.md` with YAML frontmatter:
    ```yaml
    ---
    workflow_type: research-report
-   name: $1
+   name: <topic_slug>
    status: in_progress
    current_phase: "Phase R: Research"
    iteration: 1
    total_iterations_research: 0
-   synthesis_iteration: 0
-   sources_cited: 0
-   findings_count: 0
    research_budget: <parsed from --research-iterations flag, or 30 if not provided>
    current_research_strategy: wide-exploration
    research_strategies_completed: []
    strategy_rotation_threshold: 3
    contributions_last_iteration: 0
    consecutive_low_contributions: 0
+   evidence_pool_count: 0
+   sources_cited: 0
+
+   # Phase O fields (interleaved within Phase R)
+   last_outline_pass_iteration: 0
+   outline_pass_interval: 5
+   chapter_arguments_count: 0
+   chapter_arguments_locked: false
+
+   # Phase S sub-phase tracking
+   voice_guide_written: false
+   chapter_count: 0
+   writing_chapter: 0
+   conclusions_written: false
+   front_synthesis_written: false
+
+   # Phase S Read (max 5 passes with early termination — no user-facing budget)
+   reading_iteration: 0
+   reading_phase: ""              # "IDENTIFY" | "FIX" | "VERIFY"
+   reading_passes_completed: 0
+   reading_high_issues_initial: 0     # set after IDENTIFY pass
+   reading_medium_issues_initial: 0   # set after IDENTIFY pass
+   reading_high_issues_remaining: 0   # updated after each FIX pass
+
    command: |
-     <the full invocation command, e.g. /research-report:research '$1' '$2' --research-iterations N>
+     <the full invocation command, e.g. /research-report:research '$1' --research-iterations N>
    ---
 
-   # Research Report State: $1
+   # Research Report State: <topic_slug>
 
    ## Current Phase
    Phase R: Research
 
    ## Original Prompt
-   $2
+   $1
 
    ## Completed Phases
-   - [ ] Phase R: Research
-   - [ ] Phase S: Synthesis
-
-   ## Research Progress
-   - Sources consulted: 0
-   - Key findings: 0
-   - Open questions: 5
-   - Sections in report: 0
+   - [ ] Phase R: Research (with interleaved Phase O outline passes)
+   - [ ] Phase S: Voice
+   - [ ] Phase S: Outline-Final
+   - [ ] Phase S: Write-Chapter (one per chapter)
+   - [ ] Phase S: Write-Conclusions
+   - [ ] Phase S: Write-Front-Synthesis
+   - [ ] Phase S: Read (early termination at any of 2-5 passes)
+   - [ ] Phase S: Compile
 
    ## Strategy History
-   | Strategy | Iterations | Contributions | Rotated At |
-   |----------|-----------|---------------|------------|
+   | Strategy | Iterations | Pool Entries Added | Rotated At |
+   |----------|-----------|-------------------|------------|
 
    ## Open Questions
    1. [Derive 5 initial research questions from the prompt]
    2. ...
 
    ## Context Restoration Files
-   1. .plugin-state/research-report-$1-state.md (this file)
-   2. docs/research-report/$1/$1-report.tex
-   3. docs/research-report/$1/research-progress.md
-   4. CLAUDE.md
+   1. .plugin-state/research-report-<topic_slug>-state.md (this file)
+   2. docs/research-report/<topic_slug>/<topic_slug>-report.tex
+   3. docs/research-report/<topic_slug>/evidence-pool.jsonl
+   4. docs/research-report/<topic_slug>/chapter-arguments.json
+   5. docs/research-report/<topic_slug>/research-progress.md
+   6. CLAUDE.md
    ```
-
-### If state file EXISTS (resuming):
-
-1. Read `.plugin-state/research-report-$1-state.md` to get current state
-2. Read `docs/research-report/$1/$1-report.tex` to understand what research has been done
-3. Read `docs/research-report/$1/research-progress.md` for high-level research progress
-4. Extract open questions and gaps from the state file
-5. Read `current_research_strategy` and `current_phase` from state YAML
 
 ---
 
 ## Phase Router
 
-After initializing or resuming, check `current_phase` from the state file:
+Route based on `current_phase`:
 
-- If `current_phase` is **"Phase R: Research"**: proceed to **STEP 2** below (normal research iteration).
-- If `current_phase` is **"Phase S: Synthesis"**: skip directly to the **Phase S: Synthesis** section at the end of this document.
+| current_phase | Action |
+|--------------|--------|
+| `Phase R: Research` | STEP 2 (Phase R iteration) |
+| `Phase S: Voice` | STEP 10 (write voice-guide.md) |
+| `Phase S: Outline-Final` | STEP 11 (lock chapter arguments) |
+| `Phase S: Write-Chapter` | STEP 12 (write the chapter at `writing_chapter`) |
+| `Phase S: Write-Conclusions` | STEP 13 (write back-loaded Conclusions) |
+| `Phase S: Write-Front-Synthesis` | STEP 14 (write front Synthesis) |
+| `Phase S: Read` | STEP 15 (run reader pass — mode determined by `reading_phase`) |
+| `Phase S: Compile` | STEP 16 (latex-compiler) |
 
 ---
+
+# PHASE R: Research (evidence collection)
+
+Phase R does NOT write prose into the report. It harvests structured pool entries. Interleaved Phase O passes propose chapter-level arguments based on accumulated evidence.
 
 ## STEP 2: Empty Repo Detection
 
 Before spawning repo-analyst agents, check if the repo has meaningful non-research content:
 
-Use Glob to search for files matching `**/*.py`, `**/*.ts`, `**/*.js`, `**/*.go`, `**/*.rs`, `**/*.java`, `**/*.rb`, `**/*.c`, `**/*.cpp`, `**/*.swift` (code files). Exclude anything under `docs/research-report/*`.
+Use Glob to search for files matching `**/*.py`, `**/*.ts`, `**/*.js`, `**/*.go`, `**/*.rs`, `**/*.java`, `**/*.rb`, `**/*.c`, `**/*.cpp`, `**/*.swift`. Exclude anything under `docs/research-report/*`.
 
-- If code files found: spawn repo-analyst agents in Step 3
-- If NO code files found: skip repo-analyst agents entirely
-
----
+- If code files found: spawn 1-2 repo-analyst agents alongside researchers in STEP 3
+- If NO code files found: skip repo-analyst agents
 
 ## STEP 3: Spawn Parallel Research Agents (Strategy-Dependent)
 
-Read `current_research_strategy` from the state file YAML. Dispatch agents based on the active strategy.
+Read `current_research_strategy` from state. Dispatch agents based on the active strategy.
 
 ### Strategy Dispatch Table
 
-| Strategy | Agents | Prompt Focus | Output |
-|----------|--------|-------------|--------|
-| `wide-exploration` | 3-5 | Different broad questions (default behavior) | Standard 200-500 words |
-| `source-verification` | 3-4 | Each verifies 2-3 existing claims from report against independent sources | Standard + Verification Results (CONFIRMED/REFUTED/INCONCLUSIVE) |
-| `methodological-critique` | 2-3 | Each evaluates 2-3 source-claim pairs from the report | Standard + Methodological Evaluation |
-| `contradiction-resolution` | 2-3 | Each resolves 1-2 contradictions from open questions | Standard + Resolution Analysis |
-| `deep-dive` | 2-3 | Single high-value topic per agent, primary sources | Expanded 800 words |
-| `adversarial-challenge` | 3-4 | Each challenges a key conclusion from the report | Standard + Counter-Argument Strength (STRONG/MODERATE/WEAK) |
-| `gaps-and-blind-spots` | 3-4 | Each investigates an uncovered area | Standard + Relevance Assessment (HIGH/MEDIUM/LOW) |
-| `temporal-analysis` | 3-4 | Historical evolution, recent developments, future trajectory | Standard + Timeline section |
-| `cross-domain-synthesis` | 3-4 | Analogous problems in other fields, applicable frameworks | Standard + Cross-Domain Mapping section |
+| Strategy | Agents | Prompt Focus |
+|----------|--------|--------------|
+| `wide-exploration` | 3-5 | Different broad questions derived from prompt + open questions |
+| `source-verification` | 3-4 | Each verifies 2-3 existing pool entries against independent sources |
+| `methodological-critique` | 2-3 | Each evaluates 2-3 pool entries via `methodological-critic` Mode 1 |
+| `contradiction-resolution` | 2-3 | Each resolves 1-2 contradictions in pool |
+| `deep-dive` | 2-3 | Single high-value topic per agent, primary sources, 5-10 entries |
+| `adversarial-challenge` | 3-4 | Each challenges a key pool entry or chapter argument |
+| `gaps-and-blind-spots` | 3-4 | Each investigates an uncovered area |
+| `temporal-analysis` | 3-4 | Historical evolution, recent developments, future trajectory |
+| `cross-domain-synthesis` | 3-4 | Analogous problems in other fields |
 
 ### Agent Prompt Format
 
-Each agent's prompt MUST include:
-1. A `Strategy: <name>` line so the researcher agent knows how to behave
-2. Strategy-specific instructions (see strategy descriptions below)
-3. Context about the current research state (iteration number, existing coverage, etc.)
+Every agent prompt MUST include:
+
+1. `Strategy: <name>` line
+2. The specific research question for this agent
+3. Brief context: iteration number, evidence-pool count, current themes
+4. **If `chapter_arguments_locked == false` and there are no proposed chapter args yet**: no chapter-arg targeting line
+5. **If proposed chapter args exist** (count > 0): one line `Target chapter argument: "<chapter heading>" — produce entries with supports_chapter_arg set to STRENGTHENS, WEAKENS, QUALIFIES, or UNRELATED for this argument.` Pick the chapter argument that needs more evidence (lowest entry count) or that the strategy is well-suited to (e.g., adversarial-challenge → most-cited argument).
+6. For `source-verification`: a list of 2-3 existing pool entry IDs to verify (researchers must NOT reuse those entries' sources)
+7. For `contradiction-resolution`: descriptions of 1-2 contradictions from open questions
 
 ```
 Task tool with subagent_type='research-report:researcher'
 prompt: "Strategy: <current_research_strategy>
 
-Research question: <specific question derived from strategy>
+Research question: <specific question>
 
-Context: This is iteration N of a deep research project on '<topic>'. Current strategy: <strategy>. Previous findings have covered: <brief summary of sections already written>. Focus on: <strategy-specific focus>.
+Context: This is iteration N of a deep research project on '<topic_slug>'. Current strategy: <strategy>. Evidence pool currently has <count> entries across themes: <top themes>. <Optional: target chapter arg line.>
 
-<Strategy-specific instructions — see below>
+<Strategy-specific instructions and inputs.>
 
-Return findings in the structured format appropriate for this strategy."
+Return Pool Entries and Source Catalogue per the researcher agent's output spec."
 ```
 
-### Strategy-Specific Agent Instructions
+### Strategy-Specific Dispatch Notes
 
-**wide-exploration**: Derive 3-5 specific research questions from the original prompt, open questions in the state file, gaps identified in the report, claims that need verification, and contradictions that need resolution. Standard researcher behavior.
+- **wide-exploration**: derive 3-5 specific questions from the prompt, open questions, and theme gaps. Standard researcher behavior.
+- **source-verification / contradiction-resolution / adversarial-challenge / gaps-and-blind-spots / temporal-analysis / cross-domain-synthesis**: see researcher agent spec for the strategy-specific output fields each entry must include.
+- **deep-dive**: 2-3 agents, each on one high-value topic from current themes. Each produces 5-10 pool entries.
+- **methodological-critique**: dispatch via `methodological-critic` agent in Mode 1 (Source vs. Pool-Entry):
+  ```
+  Task tool with subagent_type='research-report:methodological-critic'
+  prompt: "Mode: 1 (Source vs. Pool-Entry)
 
-**source-verification**: Read the current report and identify 6-10 claims. Assign 2-3 claims to each agent. Agent must find independent sources (NOT already cited in the report) that confirm or refute each claim. Agent adds `### Verification Results` section with CONFIRMED/REFUTED/INCONCLUSIVE per claim.
+  Pool file: docs/research-report/<topic_slug>/evidence-pool.jsonl
+  Sources file: docs/research-report/<topic_slug>/sources.bib
 
-**contradiction-resolution**: Read the Open Questions section and identify contradictions. Assign 1-2 contradictions per agent. Agent must find authoritative sources that settle the disagreement. Agent adds `### Resolution Analysis` section.
+  Pool entry IDs to evaluate:
+  - <entry_id_1>
+  - <entry_id_2>
+  - <entry_id_3>
 
-**deep-dive**: Identify 2-3 high-value topics that have only surface-level coverage. Assign one topic per agent. Agent produces expanded 800-word output. Agent should prefer primary sources and use `deep_researcher_start` preferentially.
+  Read the source URLs directly. Evaluate whether each entry's claim and narrowest_defensible_reading match what the source actually proves. Return Mode 1 output per the methodological-critic spec."
+  ```
 
-**adversarial-challenge**: Read the report's key conclusions. Assign 1-2 conclusions per agent. Agent must find the strongest counter-arguments (not strawmen). Agent adds `### Counter-Argument Strength` section (STRONG/MODERATE/WEAK).
+### Repo-Analyst Agents
 
-**gaps-and-blind-spots**: Identify uncovered areas: missing perspectives, unexplored adjacent domains, methodological gaps. Assign one area per agent. Agent adds `### Relevance Assessment` section (HIGH/MEDIUM/LOW).
-
-**temporal-analysis**: Identify key topics. Assign agents to investigate: historical evolution, recent developments, emerging trends, future trajectory. Agent adds `### Timeline` section.
-
-**cross-domain-synthesis**: Identify the core problem structure. Assign agents to investigate analogous problems in other fields (e.g., if researching blockchain scalability, look at how distributed databases solved similar problems). Agent adds `### Cross-Domain Mapping` section with explicit mapping from analogous domain to research domain.
-
-**methodological-critique**: Read the current report and `sources.bib`. Identify the 6-8 most consequential source-claim pairs (claims that drive major conclusions or recommendations). Assign 2-3 pairs per agent. Use the `methodological-critic` agent type instead of the standard `researcher` agent type:
-
-```
-Task tool with subagent_type='research-report:methodological-critic'
-prompt: "Evaluate these source-claim pairs from the research report.
-
-Report: docs/research-report/$1/$1-report.tex
-Sources: docs/research-report/$1/sources.bib
-
-Source-claim pairs to evaluate:
-1. Source [key1]: Claim '[claim text from report]'
-2. Source [key2]: Claim '[claim text from report]'
-3. Source [key3]: Claim '[claim text from report]'
-
-For each, assess: what the source actually proves vs. what the report claims from it, load-bearing assumptions, regime-dependency, and the evidence-to-claim gap. Identify the surviving insight from each source."
-```
-
-After receiving evaluations, apply verdicts to the report:
-- **KEEP_AS_IS**: No change needed
-- **NARROW_THE_CLAIM**: Rewrite the claim in the report to match the narrower valid interpretation. Update the prose to state the boundary conditions.
-- **DOWNGRADE_CONFIDENCE**: Add qualification language ("under conditions X, evidence suggests..." rather than "research shows...")
-- **FLAG_FOR_REMOVAL**: Remove the claim if no surviving insight exists, or replace with the surviving insight if one was identified.
-
-Count changes as contributions: each NARROW/DOWNGRADE/REMOVAL counts as one contribution.
-
-When a **FLAG_FOR_REMOVAL** verdict is issued, write a learning about the source quality pattern:
-
-1. Resolve the learnings directory: read `.plugin-state/research-report.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`.
-2. Run `mkdir -p` on the learnings directory.
-3. Write a learning file named `YYYY-MM-DD-$1-source-quality.md` (using today's date) with:
-   ```yaml
-   ---
-   type: learning
-   plugin: research-report
-   workflow_topic: $1
-   phase: methodological-critique
-   date: YYYY-MM-DD
-   ---
-   ```
-   Followed by sections:
-   - **Observation**: What source was flagged, what claim it supported, and the verdict rationale.
-   - **Learning**: The pattern — what made this source unreliable or the claim unsupported (e.g., source type, methodology weakness, scope mismatch).
-   - **Suggestion**: How to avoid similar issues in future research (e.g., prefer primary sources for X-type claims, verify sample sizes for quantitative claims).
-
-### Repo-Analyst Agents (0-2 in parallel, if applicable)
-
-If Step 2 found code files, spawn 1-2 repo-analyst agents in the SAME message as researchers:
-
+If STEP 2 found code files, spawn 1-2 in the SAME message as researchers:
 ```
 Task tool with subagent_type='research-report:repo-analyst'
 prompt: "Analyze how the codebase relates to: <specific aspect of the research topic>"
@@ -273,491 +293,611 @@ prompt: "Analyze how the codebase relates to: <specific aspect of the research t
 
 ### CRITICAL: Never search the web yourself.
 
-ALL web interaction happens in researcher subagents. The main instance receives ONLY compressed summaries. This prevents context bloat from raw web content.
+ALL web interaction happens in subagents. The main instance receives only structured pool entries.
 
-Launch ALL agents in a SINGLE message with multiple Task tool calls to maximize parallelism.
+Launch ALL agents in a SINGLE message with multiple Task tool calls.
 
----
-
-## STEP 4: Synthesize Findings
+## STEP 4: Validate and Append Pool Entries
 
 After all agents return:
 
-1. Read each agent's output (they return structured summaries)
-2. Identify:
-   - Findings that are consistent across multiple agents (high confidence)
-   - Contradictions between agents (need resolution)
-   - Gaps not covered by any agent
-   - Claims that need further verification
-3. Count contributions across 5 types:
-   - **New findings** — information not already in the report
-   - **Claims verified or refuted** — existing findings confirmed/refuted by new sources
-   - **Contradictions resolved** — conflicting information settled with evidence
-   - **Depth additions** — existing findings expanded with non-redundant detail/nuance
-   - **Source quality upgrades** — weak sources replaced with stronger ones
-4. Sum all types to get `contributions_this_iteration`
+1. Collect all `## Pool Entries` JSON arrays from researcher outputs.
+2. For each entry, validate required fields are present: `id`, `claim`, `evidence_summary`, `narrowest_defensible_reading`, `source_assertion`, `source_keys`, `gap_rating`, `load_bearing_assumptions`, `regime_conditions`, `themes`, `supports_chapter_arg`, `confidence`, `iteration_added`, `strategy`. If any required field is missing, ask the responsible researcher to fix (or reject the entry and log).
+3. **Deduplicate against existing pool**: for each new entry, grep `evidence-pool.jsonl` for entries with overlapping `claim` text or identical `source_keys`. If a near-duplicate exists, either merge (extend `source_keys`, keep tighter `gap_rating`) or skip.
+4. **Append validated entries** to `docs/research-report/<topic_slug>/evidence-pool.jsonl` (one JSON object per line, append-only).
+5. **Apply methodological-critic Mode 1 verdicts** (if this iteration's strategy was `methodological-critique`):
+   - `KEEP_AS_IS`: no change
+   - `NARROW_THE_CLAIM`: rewrite the entry's `claim` and `narrowest_defensible_reading` fields in-place (use `jq` or Edit on the JSONL line)
+   - `DOWNGRADE_CONFIDENCE`: lower `confidence` field
+   - `WIDEN_GAP_RATING`: change `gap_rating` to MODERATE or WIDE
+   - `FLAG_FOR_REMOVAL`: delete the entry from the pool. Write a source-quality learning (see Learnings System below).
+6. **Count contributions** across types:
+   - **New entries**: count of new pool entries added this iteration
+   - **Verifications applied**: entries with `verification.verdict` field (CONFIRMED/REFUTED/INCONCLUSIVE)
+   - **Contradictions resolved**: entries with `resolution` field
+   - **Pool refinements**: entries updated by methodological-critic verdicts (NARROW/DOWNGRADE/WIDEN/REMOVE)
+   - **Source-set expansions**: count of new BibTeX sources added to `sources.bib`
+7. Sum to get `contributions_this_iteration`.
 
-### Step 4.5: Internal Consistency Audit
+## STEP 5: Update sources.bib
 
-Before updating the report, audit the current report against the new findings for consistency:
+For each unique new source key from the agents' `## Source Catalogue` outputs:
 
-1. **New-vs-existing check**: For each new finding, check whether it contradicts any existing section of the report. If it does:
-   - Determine which has stronger evidence (more sources, higher credibility, more recent)
-   - The weaker claim must be updated or removed — do NOT leave both standing as separate conclusions
-   - Note the resolution in the `\section{Open Questions}` if confidence is not high
+1. Check if a BibTeX entry with that key already exists in `sources.bib` — skip if so. Also check if same URL appears under a different key — if so, log and use existing key.
+2. Convert the catalogue record to a BibTeX entry. Use `@article` for journal papers, `@techreport` for reports, `@misc` for web content. Include: title, author, year, url, note (with type and credibility).
+3. Append to `sources.bib`.
 
-2. **Cross-section consistency check**: Verify that:
-   - No Key Finding subsection contradicts another Key Finding subsection
-   - The Analysis & Synthesis section's patterns are consistent with Key Findings
-   - If genuinely mixed evidence exists, it must be presented as nuance in a single location, not as contradictory claims in separate sections. Use the pattern: "Evidence suggests X; however Y — on balance, Z."
+Sources.bib accumulates across all iterations. The narrative-writer's `\cite{key}` references will resolve against this file.
 
-3. **Evidence gap audit** (during `methodological-critique` strategy iterations):
-   - For each claim modified by the methodological-critic (NARROW/DOWNGRADE/REMOVE), verify the change is reflected consistently across all sections that reference the same source.
-   - Update the `## Methodological Quality` section of research-progress.md with current gap counts.
-
-4. **Deep consistency audit** (every 5th iteration, i.e., when `total_iterations_research` is a multiple of 5):
-   - Re-read the ENTIRE report from start to finish
-   - List all major claims and conclusions made across all sections
-   - Check each pair of claims for logical consistency
-   - Resolve any contradictions found by updating the weaker claim
-   - Update confidence levels across the report if new evidence has shifted the balance
-
----
-
-## STEP 5: Update LaTeX Report
-
-1. Read the current `docs/research-report/$1/$1-report.tex`
-2. Read the formatting rules in the template comments (between the `FORMATTING RULES` markers near the top of the document). Follow them strictly.
-3. Integrate new findings into the appropriate sections:
-   - Add new findings to `\section{Key Findings}` as subsections
-   - Update `\section{Analysis \& Synthesis}` with cross-cutting patterns
-   - Add unresolved items to `\section{Open Questions}`
-   - Update `\section{Methodology}` with iteration count and source count
-4. Write the updated `.tex` file
-
-### CRITICAL: Document Formatting Rules
-
-**Readability is non-negotiable.** The report must be easy to scan and read as a PDF. Follow these rules for ALL content:
-
-1. **No wall-of-text paragraphs.** Maximum 4-5 sentences per paragraph. If a paragraph has more, split it.
-2. **Use `\begin{itemize}` or `\begin{enumerate}`** for ANY list of 3+ related items. Do NOT embed lists as inline comma-separated items in a sentence.
-3. **Use `\textbf{bold lead-ins}`** for list items that have a label + explanation pattern:
-   ```latex
-   \begin{itemize}
-     \item \textbf{Market timing:} Evidence suggests the dental AI market is at an early-majority inflection \cite{McKinsey_2024_DentalAI}.
-     \item \textbf{Competitive dynamics:} Three categories of competitors are converging \cite{ADA_2025_TechReport}.
-   \end{itemize}
-   ```
-4. **Use `\subsubsection{}`** to break up any section that exceeds ~1 page of content.
-5. **One point per paragraph.** State the claim, provide evidence, note confidence — then start a new paragraph for the next point.
-6. **Whitespace is your friend.** Leave blank lines between paragraphs in the `.tex` source. LaTeX paragraph spacing handles the rest.
-7. **Never write a single paragraph longer than ~150 words.** If you catch yourself doing this, stop and restructure with bullets or sub-sections.
-
-### In-Line Citation Rules
-
-Every factual claim in the report MUST have an in-line `\cite{key}` reference. Follow these rules:
-
-1. **Converting researcher output to BibTeX**: Each researcher agent returns structured source entries with a `key` field (format: `AuthorOrOrg_Year_ShortTopic`). Convert each to a BibTeX entry:
-   ```bibtex
-   @article{AuthorOrOrg_Year_ShortTopic,
-     title = {Article Title},
-     author = {Author Name or Organization},
-     year = {2024},
-     url = {https://...},
-     note = {Type: article/report/blog. Credibility note here.}
-   }
-   ```
-   Use `@misc` for web content, `@article` for journal papers, `@techreport` for reports/whitepapers.
-
-2. **Deduplication**: Before adding a new BibTeX entry to `sources.bib`, check if an entry with the same URL already exists. If it does, reuse the existing key — do NOT create a duplicate entry. If the same source appears with a slightly different URL (e.g., with/without trailing slash, with tracking parameters), treat it as the same source.
-
-3. **In-line citation placement**: Place `\cite{key}` immediately after the claim it supports. For claims supported by multiple sources, use `\cite{key1, key2}`. Examples:
-   - "DSOs process 40\% of dental claims nationally \cite{ADA_2024_ClaimsData}."
-   - "Automated RCM reduces denial rates by 15-30\% \cite{McKinsey_2024_DentalAI, Becker_2024_RCMBenchmarks}."
-
-4. **Coverage requirement**: Every entry in `sources.bib` MUST appear as a `\cite{}` somewhere in the report (no orphan references). Every factual claim in Key Findings and Analysis \& Synthesis MUST have at least one `\cite{}`.
-
-5. Update `docs/research-report/$1/sources.bib` with new BibTeX entries (after dedup check)
-
-### Synthesis Section — Placeholder During Phase R
-
-During Phase R (research iterations), do NOT write content into the `\section{Synthesis}`. Leave it as a placeholder:
-
-```latex
-\section{Synthesis}
-% Synthesis will be written in Phase S after research completes.
-\textit{This section will be written after all research iterations are complete.}
-```
-
-The full Synthesis is written during Phase S (see the Phase S section below). This prevents drift from per-iteration rewrites and avoids wasting tokens on work that's immediately overwritten.
-
-### Update research-progress.md
-
-After updating the report, update `docs/research-report/$1/research-progress.md` with:
-
-1. **Major Themes/Findings**: Bullet points of the main themes discovered so far
-2. **Well-Supported vs. Thin**: Which findings have strong multi-source evidence vs. which are still single-source or shallow
-3. **Open Contradictions**: Any unresolved contradictions between sources or findings
-4. **Research Direction**: What the next iterations should focus on
-
-**Hard limit**: research-progress.md must never exceed 500 words / ~3000 characters. If it grows beyond that, trim older or less important items to stay within the limit. This file is a living summary, not a log.
-
-**LaTeX formatting rules**:
-- Escape special characters in content: `\%`, `\&`, `\$`, `\#`, `\_`, `\^{}`, `\{`, `\}`, `\textasciitilde{}`
-- Use `\url{...}` for URLs (requires hyperref package, already included)
-- Organize findings thematically, NOT chronologically
-- Each finding subsection should have: claim, evidence with `\cite{}` references, confidence level
-- **NEVER write a paragraph longer than 5 sentences or ~150 words**
-- **ALWAYS use `\begin{itemize}` or `\begin{enumerate}` for lists** — never inline lists as comma-separated items in prose
-
----
+**Bibliography hygiene rule (final, enforced in Phase S Compile)**: every `\cite{}` in the report must resolve against `sources.bib`. Conversely, any orphan source (in `sources.bib` but never cited) is acceptable during Phase R but will be pruned in Phase S Compile.
 
 ## STEP 6: Update State File
 
-Update `.plugin-state/research-report-$1-state.md`:
+Update `.plugin-state/research-report-<topic_slug>-state.md`:
 
 1. Increment `iteration` by 1
-2. Update `total_iterations_research`
-3. Update `sources_cited` (total unique sources across all iterations)
-4. Update `findings_count` (total substantive findings in report)
-5. Set `contributions_last_iteration` to the total from Step 4
+2. Update `total_iterations_research` (+1)
+3. Update `evidence_pool_count` (count lines in `evidence-pool.jsonl` minus header line)
+4. Update `sources_cited` (count entries in `sources.bib`)
+5. Set `contributions_last_iteration` to the total from STEP 4
 6. Update `consecutive_low_contributions`:
-   - If `contributions_last_iteration < 2`: increment `consecutive_low_contributions`
-   - Otherwise: reset `consecutive_low_contributions` to 0
-7. Update the `## Strategy History` table with this iteration's strategy and contribution count
-8. Update the `## Open Questions` section with new questions and remove answered ones
-9. Update `## Research Progress` counts
-
----
+   - If `contributions_last_iteration < 2`: increment
+   - Otherwise: reset to 0
+7. Update Strategy History table with this iteration's strategy and pool entries added
+8. Update Open Questions section
+9. Update `research-progress.md` (Major Themes, Well-Supported vs. Thin, Open Contradictions, Methodological Quality counts; ≤500 words total)
 
 ## STEP 7: Strategy Rotation Check
-
-Check if the current strategy has reached diminishing returns and should rotate.
 
 If `consecutive_low_contributions >= strategy_rotation_threshold`:
 
 1. Add `current_research_strategy` to `research_strategies_completed`
-2. Log to `## Strategy History`: strategy name, iterations spent, total contributions, rotation iteration number
+2. Log to Strategy History
+3. If ALL 9 strategies in `research_strategies_completed`: clear list, set strategy back to `wide-exploration`, log cycle restart, send macOS notification.
+4. Else: pick next strategy in fixed order:
+   1. `wide-exploration`
+   2. `source-verification`
+   3. `methodological-critique`
+   4. `contradiction-resolution`
+   5. `deep-dive`
+   6. `adversarial-challenge`
+   7. `gaps-and-blind-spots`
+   8. `temporal-analysis`
+   9. `cross-domain-synthesis`
+5. Reset `consecutive_low_contributions` to 0
+6. Send macOS notification: rotation message
+7. Write a strategy-rotation learning (see Learnings System below)
 
-3. If ALL 9 strategies are in `research_strategies_completed`:
-   - Clear `research_strategies_completed` to `[]`
-   - Set `current_research_strategy` to `wide-exploration`
-   - Reset `consecutive_low_contributions` to 0
-   - Send notification:
-     ```
-     Run via Bash: osascript -e 'display notification "Strategy cycle complete for $1 — restarting from wide-exploration" with title "Research Report" subtitle "Research"'
-     ```
-   - Log "--- Cycle N restart ---" to Strategy History table
+## STEP 8: Interleaved Phase O Outline Pass (conditional)
 
-4. Else:
-   - Pick next strategy from the fixed order NOT in `research_strategies_completed`:
-     1. `wide-exploration`
-     2. `source-verification`
-     3. `methodological-critique`
-     4. `contradiction-resolution`
-     5. `deep-dive`
-     6. `adversarial-challenge`
-     7. `gaps-and-blind-spots`
-     8. `temporal-analysis`
-     9. `cross-domain-synthesis`
-   - Set `current_research_strategy` to the next strategy
-   - Reset `consecutive_low_contributions` to 0
-   - Send notification:
-     ```
-     Run via Bash: osascript -e 'display notification "Rotating research strategy to <new_strategy> for $1" with title "Research Report" subtitle "Research"'
-     ```
+Run this step IF `total_iterations_research >= outline_pass_interval` AND `(total_iterations_research - last_outline_pass_iteration) >= outline_pass_interval`. Otherwise skip to STEP 9.
 
-### Strategy Rotation Learnings
+This is the heart of the argument-driven approach: chapter arguments evolve as evidence comes in.
 
-When rotation is triggered due to low contributions, write a learning about which strategy underperformed:
+### 8.1: Cluster pool entries by theme
 
-1. Resolve the learnings directory: read `.plugin-state/research-report.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`.
-2. Run `mkdir -p` on the learnings directory.
-3. Write a learning file named `YYYY-MM-DD-$1-strategy-rotation.md` (using today's date) with:
-   ```yaml
-   ---
-   type: learning
-   plugin: research-report
-   workflow_topic: $1
-   phase: <current phase>
-   date: YYYY-MM-DD
-   ---
-   ```
-   Followed by sections:
-   - **Observation**: Which strategy was rotated away from, how many iterations it ran, and how many contributions it produced (include the specific counts from the Strategy History table).
-   - **Learning**: Why the strategy likely underperformed in this context (e.g., topic already well-covered by previous strategies, limited available sources for this approach, strategy not well-suited to this topic type).
-   - **Suggestion**: When this strategy might be more productive (e.g., earlier in the research cycle, for topics with more primary sources, after more contradictions have accumulated).
+Read `evidence-pool.jsonl`. Group entries by their `themes` tags. Identify 3-7 thematic clusters that the report could organize around. Look for:
 
-### Phase R Completion → Phase S Transition
+- Themes with high entry counts (well-supported)
+- Themes with conflicting entries (the report should engage the conflict)
+- Themes that span multiple iterations and strategies (durable patterns)
+- Themes with both STRENGTHENS and WEAKENS support (interesting argument terrain)
 
-After updating the state file and checking strategy rotation, check:
+### 8.2: Propose / revise chapter arguments
+
+Read existing `chapter-arguments.json`. For each thematic cluster, draft (or revise) a chapter-level argument:
+
+- Heading must be a sentence that takes a position, not a topic bucket
+- Include `argument` field: 2-3 sentence thesis the chapter will defend
+- Include `supporting_entry_ids[]`: pool entry IDs that bear on the argument
+- Include `confidence`: high | medium | low based on the supporting entries' gap_ratings
+- Set `status`: PROPOSED (new), REVISED (changed from prior pass), STABLE (unchanged), DROPPED (no longer supported)
+
+Cap at 8 chapters. Long topics use deeper chapters (more sub-arguments per chapter), not more chapters.
+
+### 8.3: Methodological-critic Mode 2 check on each chapter argument
+
+Spawn methodological-critic in Mode 2 for each PROPOSED or REVISED chapter argument:
+
+```
+Task tool with subagent_type='research-report:methodological-critic'
+prompt: "Mode: 2 (Pool-Entry Set vs. Chapter-Level Argument)
+
+Pool file: docs/research-report/<topic_slug>/evidence-pool.jsonl
+
+Proposed chapter argument: '<heading>'
+Argument thesis: '<2-3 sentence thesis>'
+Supporting pool entry IDs: <list>
+
+Evaluate whether the pool entries jointly carry the argument's weight. Check for aggregation overreach, cherry-picking (look at entries with WEAKENS or QUALIFIES that the argument may ignore), and regime drift. Return Mode 2 verdict per the methodological-critic spec."
+```
+
+### 8.4: Apply verdicts
+
+For each chapter argument, apply the critic's verdict:
+- `HOLDS`: keep as-is, mark STABLE
+- `NARROW_THE_ARGUMENT`: replace heading and thesis with the critic's proposed revision
+- `STRONG_BUT_OVERSTATED`: keep but add `required_qualifications` field for the writer to honor
+- `DOES_NOT_HOLD`: drop the chapter (set status: DROPPED, keep in file for audit)
+
+### 8.5: Write chapter-arguments.json
+
+Write the updated structure:
+```json
+{
+  "locked": false,
+  "last_pass_iteration": <total_iterations_research>,
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "heading": "<argument-style sentence>",
+      "argument": "<thesis>",
+      "supporting_entry_ids": ["...", "..."],
+      "required_qualifications": ["..."],
+      "confidence": "high | medium | low",
+      "status": "PROPOSED | REVISED | STABLE | DROPPED",
+      "critic_verdict_history": ["HOLDS", "STRONG_BUT_OVERSTATED", ...]
+    }
+  ]
+}
+```
+
+Update state: `last_outline_pass_iteration = total_iterations_research`, `chapter_arguments_count = count of non-DROPPED chapters`.
+
+Send macOS notification:
+```
+osascript -e 'display notification "Phase O outline pass complete for <topic_slug> — N chapter arguments" with title "Research Report" subtitle "Outline"'
+```
+
+## STEP 9: Phase R Completion Check / Identify Next Directions
 
 If `total_iterations_research >= research_budget`:
-1. Transition to Phase S — update the state file:
-   - Set `current_phase: "Phase S: Synthesis"`
-   - Set `synthesis_iteration: 1`
-   - Do NOT set `status: complete` — keep it as `in_progress`
-   - Mark `Phase R: Research` as completed in the `## Completed Phases` section
-2. Send macOS notification:
-   ```
-   Run via Bash: osascript -e 'display notification "Research budget reached for $1 — transitioning to Phase S: Synthesis" with title "Research Report" subtitle "Research"'
-   ```
 
-The Stop hook re-feeds the command. The next invocation will enter Phase S via the Phase Router.
+1. Run a FINAL Phase O outline pass (per STEP 8) regardless of cadence — ensures the most-evolved chapter arguments enter Phase S
+2. Transition to Phase S:
+   - Set `current_phase: "Phase S: Voice"`
+   - Mark `Phase R: Research` complete in Completed Phases
+3. Send macOS notification: "Research budget reached for <topic_slug> — transitioning to Phase S"
+4. Stop hook re-feeds command; next invocation enters Phase S via Phase Router.
 
----
+Otherwise, write 3-5 prioritized research directions for the next iteration in the state file's Open Questions section. Direction-priority by strategy:
+- **wide-exploration**: contradictions, low-confidence claims, gaps, deeper dives
+- **source-verification**: lowest-confidence pool entries, single-source entries
+- **contradiction-resolution**: explicit pool contradictions, agent-reported conflicts
+- **deep-dive**: thinnest themes, surface-only entries
+- **adversarial-challenge**: strongest chapter arguments, most-confident pool entries
+- **gaps-and-blind-spots**: missing perspectives, unexplored adjacent domains
+- **temporal-analysis**: turning points, recent shifts, emerging trends
+- **cross-domain-synthesis**: structurally analogous problems in other fields
+- **methodological-critique**: highest-impact pool entries, single-source entries
 
-## STEP 8: Identify Next Research Directions
-
-Based on the current strategy, write 3-5 prioritized research directions for the next iteration. These become the open questions in the state file and guide the next iteration's researcher agent prompts.
-
-### Direction Priorities by Strategy
-
-**wide-exploration**: Contradictions that need resolution, claims with low confidence needing verification, gaps in coverage, follow-up questions from agents, deeper dives into important findings.
-
-**source-verification**: Claims with lowest confidence scores, single-source claims, high-impact claims whose truth significantly affects conclusions.
-
-**contradiction-resolution**: Explicit contradictions in Open Questions, agent-reported conflicts, claims where sources disagree on key details.
-
-**deep-dive**: Thinnest sections of the report, surface-level-only findings, prompt-specific depth requests.
-
-**adversarial-challenge**: Strongest/most confident conclusions first, implementation-critical conclusions, claims the report treats as settled.
-
-**gaps-and-blind-spots**: Missing perspectives (stakeholder groups not considered), unexplored adjacent domains, methodological gaps (types of evidence not yet gathered).
-
-**temporal-analysis**: Key turning points in the domain, most recent shifts in understanding, emerging trends, historical precedents that inform current state.
-
-**cross-domain-synthesis**: Most structurally similar problems in other fields, frameworks from other domains that map cleanly to this research domain.
-
----
-
-## PHASE R OUTPUT
-
-After completing one research iteration, output a brief summary:
+### Phase R Output
 
 ```
 ## Iteration N Complete (Phase R: Research)
 
 ### Strategy: [current_research_strategy]
 ### Contributions This Iteration: [count]
-- New findings: [count]
-- Verifications: [count]
+- New pool entries: [count]
+- Verifications applied: [count]
 - Contradictions resolved: [count]
-- Depth additions: [count]
-- Source upgrades: [count]
+- Pool refinements: [count]
+- New sources added: [count]
 
-### Sources Added: [count]
-### Open Questions Remaining: [count]
-### Strategy Progress: [completed_count]/9 strategies in current cycle
+### Pool Size: [evidence_pool_count]
+### Sources: [sources_cited]
+### Chapter Arguments: [chapter_arguments_count] (after [N] outline passes)
+### Strategy Progress: [completed]/9
 ### Consecutive Low-Contribution Iterations: [N]/[threshold]
 
-### Next Iteration Focus:
-- Strategy: [current or next strategy]
-- [Top 3 research directions]
+### Next Iteration:
+- Strategy: [current or rotated]
+- Top 3 directions: ...
 ```
 
 ---
----
 
-# Phase S: Synthesis (4 dedicated iterations)
+# PHASE S: Writing the report from the pool
 
-This phase runs AFTER the research budget is exhausted. The Phase Router (after Step 1) sends control here when `current_phase` is "Phase S: Synthesis".
+Phase S is broken into sub-phases routed by `current_phase`. One sub-phase action per iteration. Each writes its outputs and transitions `current_phase` to the next sub-phase.
 
-Read `synthesis_iteration` from the state file to determine which synthesis step to perform.
+## STEP 10: Phase S — Voice (write voice-guide.md)
 
----
+Goal: write `docs/research-report/<topic_slug>/voice-guide.md` based on the topic and the audience inferable from the research prompt.
 
-## Phase S — Iteration 1: "Read and Outline"
+1. Read `**/research-report/templates/voice-guide-template.md`
+2. Read the original research prompt from state and skim 10-20 representative pool entries to infer the audience and appropriate register
+3. Fill out every section of the voice-guide based on what fits the topic. Be decisive — pick one option per choice. Document terminology decisions for any concept where pool entries used different vocabulary.
+4. Write the headline argument as a single sentence based on the chapter arguments in `chapter-arguments.json`
+5. Write to `docs/research-report/<topic_slug>/voice-guide.md`
+6. Update state: `voice_guide_written: true`, `current_phase: "Phase S: Outline-Final"`
+7. Mark `Phase S: Voice` complete in Completed Phases
+8. Output:
+   ```
+   ## Phase S — Voice Complete
+   ### Audience: [inferred audience]
+   ### Register: [chosen]
+   ### Headline Argument: [one sentence]
+   ### Next: Outline-Final
+   ```
 
-**Goal**: Absorb the full report and produce a structured outline for the Synthesis section.
+## STEP 11: Phase S — Outline-Final (lock chapter arguments)
 
-1. Read the ENTIRE `docs/research-report/$1/$1-report.tex` end-to-end — all Key Findings, Analysis & Synthesis, Open Questions sections
-2. Read `docs/research-report/$1/research-progress.md` for the high-level view of what's well-supported vs. thin
-3. Produce a structured outline with:
-   - The 5-7 most important takeaways (ranked by importance, not discovery order)
-   - Key conclusions that flow from the evidence
-   - Actionable recommendations tied to each conclusion
-   - Confidence levels and known limitations
-4. Write the outline to `docs/research-report/$1/synthesis-outline.md`
-5. Do NOT write anything to the `.tex` report in this iteration
+Goal: produce the final, locked chapter outline that the body will be written from.
 
-**After completing this iteration:**
-- Update `synthesis_iteration` to 2 in the state file
-- Update `iteration` (overall counter) by 1
+1. Read `chapter-arguments.json` (current state from interleaved Phase O passes)
+2. Read full `evidence-pool.jsonl`
+3. Read `voice-guide.md`
+4. Run a final Phase O pass (per STEP 8.1-8.4) using the FULL pool. This may revise, drop, or merge chapters. Cap at 8.
+5. For each surviving chapter, finalize:
+   - `id`: stable chapter ID (chapter-1 through chapter-N in final order)
+   - `heading`: argument-style sentence (final)
+   - `argument`: 2-3 sentence thesis (final)
+   - `supporting_entry_ids[]`: full list of pool entries the chapter will draw from
+   - `required_qualifications[]`: caveats from critic that the writer must honor
+   - `target_word_count`: 1500-3500 based on `len(supporting_entry_ids)` and argument complexity
+   - `surrounding_context`: brief 1-line summary of preceding chapter and following chapter (for the writer's through-line awareness)
+6. Determine final chapter ORDER. Order should build the argument: foundational claims first, applications/implications later, counter-arguments and edge cases near the end before the back Conclusions.
+7. Update `chapter-arguments.json`:
+   ```json
+   {
+     "locked": true,
+     "locked_at_iteration": <iteration>,
+     "chapter_count": N,
+     "chapters": [...]
+   }
+   ```
+8. Update state: `chapter_arguments_locked: true`, `chapter_count: N`, `writing_chapter: 1`, `current_phase: "Phase S: Write-Chapter"`
+9. Mark `Phase S: Outline-Final` complete in Completed Phases
+10. Output:
+    ```
+    ## Phase S — Outline-Final Complete
+    ### Locked Chapters: N
+    1. [heading 1]
+    2. [heading 2]
+    ...
+    ### Next: Write-Chapter 1
+    ```
 
----
+## STEP 12: Phase S — Write-Chapter (one chapter per iteration)
 
-## Phase S — Iteration 2: "Write"
+Goal: write the body chapter at index `writing_chapter` as continuous argumentative prose, audit it, revise if needed.
 
-**Goal**: Write the full Synthesis section into the LaTeX report.
+Read the chapter to write from `chapter-arguments.json` at index `writing_chapter - 1` (1-indexed).
 
-1. Read `docs/research-report/$1/synthesis-outline.md` from iteration 1
-2. Read the report's Key Findings section for `\cite{}` reference keys
-3. Write the full `\section{Synthesis}` into the `.tex` report, replacing the placeholder
+### 12.1: Spawn narrative-writer
 
-### Synthesis Structure (MANDATORY formatting):
+```
+Task tool with subagent_type='research-report:narrative-writer'
+prompt: "Section to write: body chapter <writing_chapter> of <chapter_count>
 
-- `\subsection{Summary}`: 2-3 SHORT paragraphs (3-4 sentences each). What was researched, why it matters, scope.
-- `\subsection{Key Takeaways}`: **MUST use `\begin{enumerate}`** with 5-7 items. Each item uses `\item \textbf{Takeaway title.}` followed by 2-4 sentences of explanation. Each must reference its supporting section (e.g., "see Section 3.2"). Include `\cite{}` references.
-- `\subsection{Conclusions \& Recommendations}`: **MUST use `\begin{itemize}`** with paired items. Format: `\item \textbf{Conclusion:} [text] \\\\ \textbf{Recommendation:} [text]`. Keep each pair to 3-5 sentences total.
-- `\subsection{Confidence \& Limitations}`: One short paragraph for overall confidence, then **`\begin{itemize}`** listing specific limitations (1-2 sentences each).
+Argument to defend: <chapter heading>
+Thesis: <chapter argument>
+Required qualifications: <required_qualifications list>
+Target word count: <target_word_count>
 
-### Hard Rules:
+Voice guide: docs/research-report/<topic_slug>/voice-guide.md
+Evidence pool: docs/research-report/<topic_slug>/evidence-pool.jsonl
+Pool entry IDs assigned to this chapter: <supporting_entry_ids>
 
-1. **Length**: 1500-2000 words. Absolute maximum 2500 words.
-2. **NEVER** reference iteration numbers, research phases, strategy names, or chronological discovery order.
-3. **Write as if all findings were discovered simultaneously.** No temporal narrative.
-4. **Self-contained**: A busy reader with 5 minutes should understand the core findings, conclusions, and action items from this section alone.
-5. **Demonstrate JUDGMENT** (curate the 5-7 most important things), not THOROUGHNESS (list everything found).
-6. **Anti-contradiction rules**:
-   - No recommendation that contradicts its paired conclusion
-   - No Key Takeaway that contradicts another Key Takeaway
-   - If the report contains mixed evidence on a topic, the Synthesis MUST reconcile this into a single coherent position with appropriate nuance, not present both as separate unqualified claims
+Surrounding context:
+- Preceding chapter: <one-line summary or 'first chapter — opens the body'>
+- Following chapter: <one-line summary or 'last chapter — leads into back Conclusions'>
 
-**After completing this iteration:**
-- Update `synthesis_iteration` to 3 in the state file
-- Update `iteration` (overall counter) by 1
+Output: append the chapter's LaTeX content to docs/research-report/<topic_slug>/<topic_slug>-report.tex inside the body chapters region. The first time you write a body chapter, REPLACE the line containing '% CHAPTERS_PLACEHOLDER' with your chapter content. For subsequent chapters, INSERT after the previous chapter's last line.
 
----
+Follow the narrative-writer spec: argument-style heading, continuous argumentative prose, every paragraph makes a claim with cites as evidence, closing paragraph interprets, all qualifications from pool preserved."
+```
 
-## Phase S — Iteration 3: "Edit and Polish"
+### 12.2: Spawn methodological-critic Mode 3 audit
 
-**Goal**: Quality-check and tighten the Synthesis.
+Once the writer finishes:
 
-1. Re-read the `\section{Synthesis}` alongside the full `\section{Key Findings}`
-2. Check for:
-   - Internal contradictions within the Synthesis
-   - Critical findings from Key Findings that are missing from the Synthesis
-   - Unsupported claims (claims in Synthesis without backing in Key Findings)
-   - Recommendations that don't flow logically from their paired conclusions
-3. Tighten prose — remove filler, improve clarity, fix formatting
-4. Verify all `\cite{}` references in the Synthesis resolve against `sources.bib`
-5. Verify word count is within 1500-2500 words
-6. After this iteration, set `status: complete` in the state file
+```
+Task tool with subagent_type='research-report:methodological-critic'
+prompt: "Mode: 3 (Drafted Chapter Prose vs. Pool Entries)
 
-**After completing this iteration:**
-- Update `synthesis_iteration` to 4 in the state file
-- Update `iteration` (overall counter) by 1
+Report file: docs/research-report/<topic_slug>/<topic_slug>-report.tex
+Pool file: docs/research-report/<topic_slug>/evidence-pool.jsonl
 
----
+Chapter heading just drafted: '<chapter heading>'
+Pool entry IDs the writer was assigned: <supporting_entry_ids>
 
-## Phase S — Iteration 4: "Compile and Verify PDF"
+Read the chapter prose. For each cite, verify the claim being supported matches the pool entry's narrowest_defensible_reading. Check for OVERSTATEMENT, LOST_QUALIFICATION, SMUGGLED_INFERENCE, SOURCE_CLAIM_MISMATCH, AGGREGATION_OVERREACH. Return Mode 3 audit per the methodological-critic spec."
+```
 
-**Goal**: Compile the LaTeX report to PDF and verify the output is well-formatted and human-readable.
+### 12.3: Apply audit verdict
 
-### Step 1: Spawn the latex-compiler agent
+If overall verdict is `NEEDS_REVISION`:
 
-Spawn the `latex-compiler` agent to compile the report:
+Re-spawn the narrative-writer with the audit's issues list and instructions to fix:
+```
+Task tool with subagent_type='research-report:narrative-writer'
+prompt: "Section to revise: body chapter <writing_chapter>
+[Original prompt as above]
+
+REVISION REQUIRED. Methodological-critic audit found these issues:
+<issues list from audit>
+
+Fix each issue in the chapter at the locations identified. Do not introduce new claims; do not change cites. Re-write only the prose flagged."
+```
+
+After revision, optionally re-audit (max one re-audit per chapter — if it still fails, accept and document outstanding issues in state).
+
+### 12.4: Increment chapter pointer and route
+
+Update state:
+- `writing_chapter += 1`
+- If `writing_chapter > chapter_count`: set `current_phase: "Phase S: Write-Conclusions"`, mark `Phase S: Write-Chapter` complete in Completed Phases (one entry covers all chapters)
+- Else: stay on `current_phase: "Phase S: Write-Chapter"` (next iteration writes the next chapter)
+
+Send macOS notification per chapter completion:
+```
+osascript -e 'display notification "Chapter <writing_chapter-1> drafted for <topic_slug>" with title "Research Report" subtitle "Phase S: Write"'
+```
+
+### 12.5: Output
+
+```
+## Phase S — Write-Chapter <N> Complete
+### Heading: <heading>
+### Word count: <approx>
+### Audit verdict: PASSES | NEEDS_REVISION (revised: yes/no)
+### Outstanding issues: <list or 'none'>
+### Next: Write-Chapter <N+1> | Write-Conclusions
+```
+
+## STEP 13: Phase S — Write-Conclusions (back-loaded section)
+
+Goal: write the back-loaded `\section{Conclusions \& Recommendations}` — the integrated argument earned by the body chapters.
+
+```
+Task tool with subagent_type='research-report:narrative-writer'
+prompt: "Section to write: Conclusions & Recommendations (back-loaded)
+
+This is the integrated argument earned by all the body chapters. Be more direct than the front Synthesis — the reader has done the work.
+
+Voice guide: docs/research-report/<topic_slug>/voice-guide.md
+Evidence pool: docs/research-report/<topic_slug>/evidence-pool.jsonl
+Chapter arguments: docs/research-report/<topic_slug>/chapter-arguments.json
+Report so far: docs/research-report/<topic_slug>/<topic_slug>-report.tex (read the full body)
+
+Required subsections (per template): 'The Argument, Stated Plainly', 'Conclusions', 'Recommendations', 'Conditions Under Which the Argument Could Change'.
+
+Output: replace the placeholder content inside \section{Conclusions \& Recommendations} of docs/research-report/<topic_slug>/<topic_slug>-report.tex with the drafted content. Each conclusion must reference the chapter(s) that earned it; each recommendation must pair with a conclusion."
+```
+
+After writer completes, update state:
+- `conclusions_written: true`
+- `current_phase: "Phase S: Write-Front-Synthesis"`
+- Mark `Phase S: Write-Conclusions` complete in Completed Phases
+
+Output:
+```
+## Phase S — Write-Conclusions Complete
+### Word count: <approx>
+### Next: Write-Front-Synthesis
+```
+
+## STEP 14: Phase S — Write-Front-Synthesis (executive summary, written last)
+
+Goal: write the front-loaded `\section{Synthesis}` AFTER body and back are finalized, so it accurately reflects what was actually argued.
+
+```
+Task tool with subagent_type='research-report:narrative-writer'
+prompt: "Section to write: front Synthesis (executive summary)
+
+Written last so it reflects what was actually argued. Standalone — a busy reader who reads only this section gets the report.
+
+Voice guide: docs/research-report/<topic_slug>/voice-guide.md
+Report so far: docs/research-report/<topic_slug>/<topic_slug>-report.tex (READ the entire finalized body and back Conclusions)
+
+Required subsections (per template): 'Summary', 'Key Takeaways', 'Conclusions & Recommendations Preview', 'Confidence & Limitations'. Length 1500-2000 words. Key Takeaways MUST be \\begin{enumerate} with 5-7 items, each \\item \\textbf{Takeaway title.} followed by 2-4 sentences with \\cite{}. Each must reference its supporting chapter (e.g., 'see Chapter 3').
+
+No temporal narrative, no references to iterations or strategies. Write as if all findings were known simultaneously.
+
+Output: replace the placeholder content inside \\section{Synthesis} of docs/research-report/<topic_slug>/<topic_slug>-report.tex with the drafted content."
+```
+
+After writer completes, update state:
+- `front_synthesis_written: true`
+- `reading_iteration: 1`
+- `reading_phase: "IDENTIFY"`
+- `current_phase: "Phase S: Read"`
+- Mark `Phase S: Write-Front-Synthesis` complete in Completed Phases
+
+Output:
+```
+## Phase S — Write-Front-Synthesis Complete
+### Word count: <approx>
+### Body, Conclusions, Front Synthesis all drafted.
+### Next: Read pass 1 (IDENTIFY)
+```
+
+## STEP 15: Phase S — Read (max 5 passes with early termination)
+
+Goal: improve flow, engagement, and argumentative cohesion without sacrificing rigor.
+
+The reader-pass loop runs **at most 5 iterations** with early termination. The orchestrator decides each iteration's mode based on `reading_phase` from state.
+
+### Pass structure
+
+| Pass # | Mode (typical) | Notes |
+|--------|----------------|-------|
+| 1 | IDENTIFY | Always. Catalogues issues with HIGH/MEDIUM/LOW severity. |
+| 2-4 | FIX or VERIFY | FIX runs as long as HIGH issues remain. Otherwise VERIFY (early termination). |
+| 5 | VERIFY | Forced final pass if not already VERIFY'd. |
+
+Minimum: 2 passes (IDENTIFY + VERIFY). Maximum: 5 passes (IDENTIFY + 3 FIX + VERIFY).
+
+### Run the current pass
+
+Read `reading_phase` from state. Spawn the narrative-editor with the corresponding mode:
+
+```
+Task tool with subagent_type='research-report:narrative-editor'
+prompt: "Pass <reading_iteration>. Mode: <reading_phase>
+
+Report path: docs/research-report/<topic_slug>/<topic_slug>-report.tex
+Voice guide: docs/research-report/<topic_slug>/voice-guide.md
+Evidence pool (read-only, for verification): docs/research-report/<topic_slug>/evidence-pool.jsonl
+
+<For FIX/VERIFY: include 'Issues from previous pass: docs/research-report/<topic_slug>/reader-pass-<N-1>-issues.md' (or -fixes.md if N>2)>
+
+Follow the narrative-editor spec for the chosen mode. Run the rigor-preservation verification procedure before finalizing FIX or VERIFY passes."
+```
+
+### After the agent completes — read the output and decide what's next
+
+Read the agent's output file (issues / fixes / verification).
+
+#### If reading_phase was IDENTIFY (pass 1):
+
+1. Parse the issues report. Count HIGH-severity issues (`reading_high_issues_initial`) and MEDIUM-severity issues (`reading_medium_issues_initial`).
+2. Update state with these counts.
+3. **Decide next pass:**
+   - If `reading_high_issues_initial == 0` AND `reading_medium_issues_initial <= 3`:
+     - **Early termination**: skip FIX passes. The report is clean enough.
+     - Set `reading_phase: "VERIFY"`, `reading_iteration: 2`
+     - Macos notification: "IDENTIFY found minor issues — skipping FIX, going to VERIFY"
+   - Else:
+     - Set `reading_phase: "FIX"`, `reading_iteration: 2`
+
+4. Set `reading_passes_completed: 1`. Stay on `current_phase: "Phase S: Read"`.
+
+#### If reading_phase was FIX (pass 2, 3, or 4):
+
+1. Confirm the agent's rigor-preservation check PASSED. If FAILED, re-spawn the agent in FIX mode to address the failures BEFORE moving on (this happens within the same iteration; do not advance state until rigor passes).
+2. Parse the fixes report to see which IDENTIFY issues were addressed and read the agent's "remaining HIGH issues" count. Update `reading_high_issues_remaining`.
+3. **Decide next pass:**
+   - If `reading_high_issues_remaining == 0`: all HIGH-severity issues resolved.
+     - Set `reading_phase: "VERIFY"`, `reading_iteration += 1`
+   - Else if `reading_iteration == 4` (just finished the 3rd FIX pass): force VERIFY at pass 5.
+     - Set `reading_phase: "VERIFY"`, `reading_iteration: 5`
+   - Else: keep fixing.
+     - Set `reading_phase: "FIX"`, `reading_iteration += 1`
+
+4. Increment `reading_passes_completed`. Stay on `current_phase: "Phase S: Read"`.
+
+#### If reading_phase was VERIFY (pass 2, 3, 4, or 5):
+
+1. Confirm the agent's rigor-preservation check PASSED. If FAILED, re-spawn in VERIFY mode (max one retry within the same iteration).
+2. Read the verification report's sign-off (Argument cohesion, Flow, Voice, Rigor).
+3. Update state:
+   - `reading_passes_completed += 1`
+   - `current_phase: "Phase S: Compile"`
+   - Mark `Phase S: Read` complete in Completed Phases
+4. Macos notification:
+   ```
+   osascript -e 'display notification "Reader passes complete (<reading_passes_completed> total) for <topic_slug> — verification PASS" with title "Research Report" subtitle "Phase S: Read"'
+   ```
+
+### Output
+
+```
+## Phase S — Read Pass <N> Complete (Mode: <IDENTIFY|FIX|VERIFY>)
+### Issues identified: <count> (IDENTIFY) | Fixed: <count> (FIX) | Verified: pass/fail (VERIFY)
+### HIGH issues remaining: <count>
+### Rigor preservation: PASS | FAIL
+### Next: Read pass <N+1> (mode <next_mode>) | Compile (if VERIFY just completed)
+```
+
+## STEP 16: Phase S — Compile
+
+Goal: compile the LaTeX to PDF and verify formatting quality.
+
+### 16.1: Spawn latex-compiler
 
 ```
 Task tool with subagent_type='research-report:latex-compiler'
-prompt: "Compile the LaTeX report at docs/research-report/$1/$1-report.tex to PDF.
+prompt: "Compile the LaTeX report at docs/research-report/<topic_slug>/<topic_slug>-report.tex to PDF.
 
-The bibliography file is docs/research-report/$1/sources.bib.
+Bibliography: docs/research-report/<topic_slug>/sources.bib
 
-Run the full pdflatex → bibtex → pdflatex → pdflatex pipeline. Fix any compilation errors."
+Run the full pdflatex → bibtex → pdflatex → pdflatex pipeline. Fix any compilation errors. Prune orphan BibTeX entries (entries in sources.bib not referenced by any \\cite{} in the report)."
 ```
 
-If the latex-compiler reports pdflatex is not installed, skip to Step 3 (mark complete without PDF verification).
+If pdflatex is not installed, the agent reports and exits — proceed to 16.3 (mark complete without PDF verification).
 
-### Step 2: Verify PDF formatting quality
+### 16.2: Verify PDF formatting quality
 
-After compilation succeeds, read the `.tex` file and verify the following formatting requirements. Fix any violations directly in the `.tex` file, then re-compile by spawning the latex-compiler agent again.
+After compilation succeeds, read the `.tex` and verify (per existing template formatting rules):
 
-**Section and subsection structure:**
-- Every `\section{}` and `\subsection{}` has a descriptive title (not empty or placeholder)
-- No section contains only a comment with no content
-- The `\tableofcontents` is present and will render correctly
+- All `\section{}` and `\subsection{}` have descriptive titles (chapter sections must be argument-style sentences, not topic buckets)
+- No paragraph exceeds 5 sentences or ~150 words
+- Lists of 3+ items use `\begin{itemize}/\begin{enumerate}` (not inline comma-prose)
+- Every `\cite{key}` resolves against `sources.bib`; no orphan sources
+- `\bibliographystyle{plainnat}` and `\bibliography{sources}` present
+- `parskip`, `setstretch{1.35}`, `\setlength{\parindent}{0pt}`, `\titlespacing*` all present
+- Table of contents renders
 
-**Paragraph formatting:**
-- No paragraph exceeds 5 sentences or ~150 words. Search for text blocks between blank lines and verify length.
-- Every paragraph makes one clear point — no run-on paragraphs covering multiple topics
-- Blank lines separate paragraphs in the `.tex` source (LaTeX uses blank lines for paragraph breaks)
+Fix any violations directly in the `.tex` file, then re-spawn latex-compiler to recompile.
 
-**List formatting:**
-- Any enumeration of 3+ related items uses `\begin{itemize}` or `\begin{enumerate}`, NOT inline comma-separated lists in prose
-- List items with a label + explanation pattern use `\textbf{label:}` lead-ins
-- All `\begin{itemize/enumerate}` have matching `\end{itemize/enumerate}`
-- No deeply nested lists (max 2 levels)
+### 16.3: Mark complete
 
-**Table formatting:**
-- All tables use `\begin{tabular}` or `\begin{longtable}` with proper column separators
-- Tables have header rows using `\toprule`, `\midrule`, `\bottomrule` (from booktabs package)
-- Column counts match between header and data rows
-- No table has empty cells where data should be present
+After PDF verification (or if pdflatex unavailable):
 
-**Citation formatting:**
-- Every `\cite{key}` reference has a matching entry in `sources.bib`
-- Every entry in `sources.bib` is referenced by at least one `\cite{}` in the report (no orphan references)
-- The `\bibliographystyle{plainnat}` and `\bibliography{sources}` commands are present
-- Citations appear at the end of the claim they support, not floating disconnected from context
-
-**Spacing and readability:**
-- The `parskip` package is loaded (provides inter-paragraph spacing without indentation)
-- The `setstretch{1.35}` line spacing is present
-- `\setlength{\parindent}{0pt}` is set (no paragraph indentation)
-- Section spacing via `\titlespacing*` commands is present
-
-**Common formatting problems to fix:**
-- Walls of text: break into shorter paragraphs with blank lines between them
-- Inline lists masquerading as prose: convert to `\begin{itemize}`
-- Missing `\subsubsection{}` breaks: if a section exceeds ~1 page of content, add subsubsections
-- Unescaped special characters: `%`, `&`, `$`, `#`, `_` must be escaped in text content
-- Raw URLs not wrapped in `\url{}`: wrap them
-- Overfull `\hbox` warnings from long strings: add `\sloppy` locally or use `\url{}` for URLs
-
-If any violations are found:
-1. Fix them in the `.tex` file
-2. Re-spawn the latex-compiler agent to recompile
-3. Verify the fixes resolved the issues
-
-### Step 3: Mark complete
-
-After PDF verification passes (or if pdflatex is not installed):
-- Set `status: complete` in the state file
-- Mark `Phase S: Synthesis` as completed in the `## Completed Phases` section
+- Set `status: complete` in state file
+- Mark `Phase S: Compile` complete in Completed Phases
 - Send macOS notification:
   ```
-  Run via Bash: osascript -e 'display notification "Research complete for $1 — PDF compiled and verified" with title "Research Report" subtitle "Research"'
+  osascript -e 'display notification "Research complete for <topic_slug> — PDF compiled and verified" with title "Research Report" subtitle "Done"'
   ```
 
-### Completion Retrospective Learning
+### 16.4: Completion retrospective learning
 
-After setting `status: complete`, write a completion retrospective learning:
+Write a completion retrospective per the Learnings System (see below).
 
-1. Resolve the learnings directory: read `.plugin-state/research-report.local.md` for a `learnings_dir` YAML field. If not found or file does not exist, fall back to `~/.claude/plugin-learnings/research-report/`.
-2. Run `mkdir -p` on the learnings directory.
-3. Read the final report (`docs/research-report/$1/$1-report.tex`) and the original prompt from the state file.
-4. Write a learning file named `YYYY-MM-DD-$1-completion-review.md` (using today's date) with:
-   ```yaml
-   ---
-   type: learning
-   plugin: research-report
-   workflow_topic: $1
-   phase: completion-review
-   date: YYYY-MM-DD
-   ---
-   ```
-   Followed by sections:
-   - **Observation**: Summary of the research — how many iterations ran, how many sources were cited, how many strategies were used.
-   - **Intent Alignment**: Did the final report address the user's original prompt? What aspects were well-covered vs. underserved?
-   - **What Worked Well**: Which strategies produced the highest quality findings? Which phases ran smoothly?
-   - **What Produced Lower Quality**: Which strategies underperformed? Where did the report end up thin or repetitive?
-   - **Improvement Suggestions**: Specific, actionable suggestions for improving the research-report plugin workflow (e.g., "increase deep-dive budget for technical topics", "add a pre-synthesis consolidation step").
+Output:
+```
+## Phase S — Compile Complete
+### PDF: docs/research-report/<topic_slug>/<topic_slug>-report.pdf (or 'pdflatex not installed — .tex valid')
+### Formatting verification: PASS
+### Workflow status: complete
+```
 
-The Stop hook verifies `status: complete`, `synthesis_iteration >= 4`, and `total_iterations_research >= research_budget` before allowing the workflow to end.
+The Stop hook verifies `status: complete`, `total_iterations_research >= research_budget`, and Phase S sub-phase progression before allowing the workflow to end.
 
 ---
 
-## PHASE S OUTPUT
+# Learnings System
 
-After completing a synthesis iteration, output:
+The plugin writes structured learnings at key workflow points so future runs benefit. Learnings live at `~/.claude/plugin-learnings/research-report/` (overridable via `.plugin-state/research-report.local.md` with YAML field `learnings_dir`).
 
+### Learning Write Points
+
+| Trigger | File Pattern | Content |
+|---------|--------------|---------|
+| Strategy rotation (low contributions) | `YYYY-MM-DD-<topic_slug>-strategy-rotation.md` | Which strategy underperformed and why |
+| Pool entry FLAG_FOR_REMOVAL verdict | `YYYY-MM-DD-<topic_slug>-source-quality.md` | Source quality pattern that led to removal |
+| Chapter argument DOES_NOT_HOLD verdict | `YYYY-MM-DD-<topic_slug>-chapter-argument-dropped.md` | Why a proposed argument couldn't be earned by the pool |
+| Chapter audit NEEDS_REVISION (Mode 3) | `YYYY-MM-DD-<topic_slug>-writing-revision.md` | What kind of overstatement the writer made |
+| Reader-pass rigor-preservation FAIL | `YYYY-MM-DD-<topic_slug>-reader-pass-rigor-fail.md` | What rigor element was lost (citation, qualifier) |
+| Workflow completion | `YYYY-MM-DD-<topic_slug>-completion-review.md` | Retrospective: intent alignment, what worked, what to improve |
+
+### Learning File Format
+
+YAML frontmatter:
+```yaml
+---
+type: learning
+plugin: research-report
+workflow_topic: <topic_slug>
+phase: <current phase>
+date: YYYY-MM-DD
+---
 ```
-## Phase S — Iteration [1|2|3|4] Complete
 
-### Step: [Read and Outline | Write | Edit and Polish | Compile and Verify PDF]
-### Synthesis Status: [outline produced | section written | polished | PDF compiled and verified]
-### Word Count: [N/A for iteration 1 | count for iterations 2-3 | N/A for iteration 4]
-### Issues Found: [list any contradictions, missing findings, formatting violations, etc.]
-```
+Body sections (most learnings):
+- **Observation**: what happened concretely
+- **Learning**: the pattern (why it happened)
+- **Suggestion**: how to avoid or address it next time
+
+For completion-review, body sections are:
+- **Observation**: iteration counts, pool size, sources, chapter count, reader passes (note: report how many reader passes ran given early termination)
+- **Intent Alignment**: did the report address the original prompt?
+- **What Worked Well**: which strategies and phases ran smoothly
+- **What Produced Lower Quality**: which strategies underperformed; where the report ended up thin
+- **Improvement Suggestions**: specific, actionable changes to the plugin workflow
+
+Resolve learnings directory: read `.plugin-state/research-report.local.md` for `learnings_dir`; fall back to `~/.claude/plugin-learnings/research-report/`. Run `mkdir -p` before first write.

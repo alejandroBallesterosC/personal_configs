@@ -1,6 +1,5 @@
-% ABOUTME: Base LaTeX template for research-report plugin research reports.
-% ABOUTME: Provides standard document structure, packages, and section placeholders.
-% ABOUTME: FORMATTING IS CRITICAL — use itemize/enumerate for lists, keep paragraphs short.
+% ABOUTME: Base LaTeX template for research-report plugin reports.
+% ABOUTME: Argument-driven structure: front Synthesis (TL;DR), Background, dynamic body chapters with argument-style titles, back Conclusions, Open Questions, Methodology appendix.
 
 \documentclass[11pt]{article}
 \usepackage[margin=1.15in]{geometry}
@@ -45,76 +44,149 @@
 \newpage
 
 %% ==========================================================================
-%% FORMATTING RULES (read these before writing ANY content):
+%% WRITING PRINCIPLES (read these before writing ANY content):
 %%
-%% 1. NEVER write paragraphs longer than 4-5 sentences. Break them up.
-%% 2. Use \begin{itemize}...\end{itemize} for ANY list of 3+ items.
-%% 3. Use \begin{enumerate}...\end{enumerate} for ranked/ordered items.
-%% 4. Use \textbf{bold lead-ins} for list items that need emphasis.
-%% 5. Use \subsubsection{} to break up long sections into scannable chunks.
-%% 6. Key Takeaways MUST use enumerate (numbered list), not prose paragraphs.
-%% 7. Conclusions & Recommendations MUST pair each as a labeled item.
-%% 8. Each paragraph should make ONE point. Then move on.
-%% 9. Prefer visual structure (lists, bold, subsections) over long prose.
+%% STRUCTURAL
+%% 1. The body is built from chapter-level ARGUMENTS, not topic buckets.
+%%    Every chapter heading should be a sentence that takes a position.
+%%    BAD: "The State of LLM Agents"
+%%    GOOD: "LLM agents have not crossed the reliability threshold for
+%%           production autonomy"
+%% 2. Each body chapter is a self-contained piece of argumentative writing
+%%    that defends its chapter heading using cited evidence from the pool.
+%% 3. Single authorial voice across the whole report. The narrative-writer
+%%    agent reads voice-guide.md before each chapter and follows it.
+%%
+%% PROSE
+%% 4. Every paragraph should make a CLAIM and use \cite{} as evidence FOR
+%%    that claim. Forbid paragraphs that are just sequential cite-statements
+%%    ("Source X says Y. Source Z says W.") — that is notes, not writing.
+%% 5. Each section/chapter must close with a paragraph that INTERPRETS,
+%%    not describes. State the judgment, the so-what, the upshot. Form is
+%%    flexible — an unlabeled closing paragraph or a labeled
+%%    \paragraph{Implications} when the so-what is especially load-bearing.
+%% 6. Maximum 4-5 sentences per paragraph. Break longer ones up.
+%% 7. Use \begin{itemize}/\begin{enumerate} for ANY list of 3+ items.
+%%    Do NOT inline lists as comma-separated items in prose.
+%% 8. Use \subsubsection{} to break up long chapters into scannable chunks.
+%%
+%% RIGOR
+%% 9. Every factual claim has an inline \cite{key}.
+%% 10. Preserve qualifications and evidence-gap ratings from the pool.
+%%     If a pool entry says "supports the prevalence claim but not the
+%%     causal claim", the prose must reflect that boundary.
+%% 11. Reader-pass agents may improve flow but MUST NOT drop \cite{},
+%%     weaken qualifications, or turn qualified claims into unqualified ones.
 %% ==========================================================================
 
 \section{Synthesis}
-% NOTE: This section is written in Phase S (after all research iterations complete).
-% During Phase R, this section contains only a placeholder.
-% Do NOT write synthesis content during research iterations.
+% NOTE: This is the front-loaded executive summary. Written in Phase S
+% AFTER the body chapters and Conclusions are finalized, so it accurately
+% reflects what was actually argued.
 %
-% 3-4 page (1500-2000 word) standalone synthesis.
-% Self-contained: a reader should understand core findings without reading further.
-% FORMATTING: Use bullet points and numbered lists liberally. No wall-of-text paragraphs.
+% Purpose: a reader who reads only this section understands the core
+% findings, the argument the report makes, and the action items.
+% Length: 1500-2000 words. Absolute max 2500.
+% Self-contained, no temporal narrative, no references to iterations.
 
 \subsection{Summary}
-% 2-3 SHORT paragraphs (3-4 sentences each). What was researched, why it matters, scope.
+% 2-3 short paragraphs (3-4 sentences each). What was researched, why it
+% matters, scope, the report's headline argument in one sentence.
 
 \subsection{Key Takeaways}
-% 5-7 most important findings, MUST be a numbered list (\begin{enumerate}).
-% Each item: 2-4 sentences max. Reference supporting section (e.g., "see Section 3.2").
-% Format each takeaway as:
-%   \item \textbf{Takeaway title.} Supporting explanation with \cite{} references.
+% 5-7 most important findings as a numbered list (\begin{enumerate}).
+% Each item: \item \textbf{Takeaway title.} 2-4 sentences of explanation
+% with \cite{} references. Each must reference its supporting chapter
+% (e.g., "see Chapter 3").
 % Takeaways must be internally consistent — no contradictions between items.
 
-\subsection{Conclusions \& Recommendations}
-% Paired format — each conclusion gets a recommendation. Use description list or itemize.
-% Format:
-%   \item \textbf{Conclusion:} [What the evidence means]
-%         \textbf{Recommendation:} [What to do about it]
-% Keep each pair to 3-5 sentences total.
+\subsection{Conclusions \& Recommendations Preview}
+% Brief 2-3 sentence pointer to the back-loaded Conclusions section.
+% The full conclusions are at the end of the report; this is just a
+% signpost so a TL;DR reader knows where to find the action items.
 
 \subsection{Confidence \& Limitations}
-% Use itemize for listing limitations and confidence levels.
-% Short paragraph for overall confidence, then bullet list of specific limitations.
+% One short paragraph for overall confidence, then \begin{itemize} listing
+% specific limitations (1-2 sentences each).
 
 \section{Background \& Context}
-% Problem domain, why this matters, what motivated the research.
+% Why this question matters, what motivated the research, the prior state
+% of understanding, key terms used in the report.
 % Keep paragraphs short (3-5 sentences). Use itemize for listing context items.
+% Define key terminology once — voice-guide.md records the terminology
+% decisions and the rest of the report follows them consistently.
 
-\section{Key Findings}
-% Each subsection = one thematic finding.
-% Organized thematically, NOT chronologically.
-% Each finding structure:
-%   \subsection{Finding Title}
-%   1-2 paragraph summary of the claim
-%   \begin{itemize} for supporting evidence points with \cite{} \end{itemize}
-%   Brief confidence assessment (1 sentence)
+%% ==========================================================================
+%% BODY CHAPTERS
+%%
+%% This region is populated dynamically in Phase S by the narrative-writer
+%% agent. Each chapter:
+%%   - Has an argument-style \section{} heading (a sentence that takes a
+%%     position, not a topic bucket).
+%%   - Defends that argument using cited evidence from the pool.
+%%   - Closes with an interpretive paragraph stating the so-what.
+%%
+%% Chapter count: typically 3-7, capped at 8. Long topics use deeper
+%% chapters, not more chapters.
+%%
+%% The narrative-writer drafts one chapter at a time, sequentially, so a
+%% single voice carries through. Do NOT parallelize chapter drafting.
+%%
+%% Example (placeholder — replace during Phase S):
+%%
+%% \section{[Chapter 1's argument as a sentence taking a position]}
+%% [Continuous argumentative prose with inline \cite{} references.]
+%% [Use \subsection{} for major sub-arguments within the chapter.]
+%% [Closing paragraph or \paragraph{Implications} with the so-what.]
+%%
+%% \section{[Chapter 2's argument...]}
+%% ...
+%% ==========================================================================
 
-\section{Analysis \& Synthesis}
-% Cross-cutting patterns across findings.
-% Use \subsection{} for each major analytical theme.
-% Use itemize for listing patterns, connections, and implications.
-% Keep paragraphs to 3-5 sentences max.
+% CHAPTERS_PLACEHOLDER — narrative-writer inserts dynamic body here.
+
+\section{Conclusions \& Recommendations}
+% NOTE: This is the back-loaded Conclusions. Written in Phase S AFTER all
+% body chapters are drafted. The integrated argument earned by everything
+% in between.
+%
+% Purpose: state the unified position the body chapters jointly support,
+% and the actions that follow from it. The reader has now done the work,
+% so this section can be more direct than the front Synthesis.
+% Length: 1000-2000 words.
+
+\subsection{The Argument, Stated Plainly}
+% One paragraph stating the report's overall thesis as it now stands,
+% having walked through the evidence. Reference the chapters that earned it.
+
+\subsection{Conclusions}
+% Use \begin{itemize} or numbered prose. Each conclusion is a position
+% the report defends, with the chapter(s) that support it cited explicitly.
+% Be opinionated. Conclusions are judgments, not summaries.
+
+\subsection{Recommendations}
+% Use \begin{itemize}. Each recommendation is paired with the conclusion
+% it follows from. Specify: who should do it, why now, what changes if
+% they don't. Recommendations must flow logically from their paired
+% conclusions — no orphan recommendations.
+
+\subsection{Conditions Under Which the Argument Could Change}
+% Brief — what evidence or development would warrant revising the
+% conclusions? This is the intellectual-honesty appendix to the
+% conclusions, distinct from Open Questions.
 
 \section{Open Questions}
 % Use enumerate or itemize — this is naturally a list.
-% Each question: 1-2 sentences explaining why it remains open.
+% Each question: 1-2 sentences explaining why it remains open and what
+% would be needed to settle it.
+
+\appendix
 
 \section{Methodology}
-% How many iterations, sources consulted.
-% Source credibility criteria (use itemize).
-% Search strategies employed (use itemize or table).
+% Iterations run, sources consulted, source credibility hierarchy used,
+% how chapter-level arguments evolved during research, key revisions to
+% the thesis, evidence-pool size, reader-pass count.
+% This is the audit trail. Use itemize and tables liberally.
 
 \bibliographystyle{plainnat}
 \bibliography{sources}

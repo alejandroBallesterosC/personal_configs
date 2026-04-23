@@ -93,7 +93,10 @@ STATE_CONTENT=$(cat "$ACTIVE_STATE" 2>/dev/null)
 # Build artifact list for research-report workflows
 RESTORE_FILES="- \`${ACTIVE_STATE}\` (state file — already included below)
 - \`docs/research-report/${NAME}/${NAME}-report.tex\` (research report)
-- \`docs/research-report/${NAME}/research-progress.md\` (research progress)
+- \`docs/research-report/${NAME}/evidence-pool.jsonl\` (structured findings — Phase R output)
+- \`docs/research-report/${NAME}/chapter-arguments.json\` (chapter-level argument hypotheses — Phase O output)
+- \`docs/research-report/${NAME}/voice-guide.md\` (single-authorial-voice spec — Phase S Voice output, may not exist yet)
+- \`docs/research-report/${NAME}/research-progress.md\` (high-level living summary)
 - \`CLAUDE.md\` (project conventions)"
 
 # Build context message
