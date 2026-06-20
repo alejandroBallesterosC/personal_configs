@@ -62,13 +62,13 @@ Use for: test files committed to the repo, CI pipeline tests, complex multi-step
 
 ## Critical Rules
 
-**NEVER claim a visual or layout fix is correct without taking a fresh screenshot and reading the PNG.** Claude cannot mentally render CSS — visual verification requires actual rendered output. After every CSS or layout change, the cycle is: apply fix → screenshot → Read PNG → evaluate. Skipping the screenshot step guarantees unreliable results.
+**NEVER claim a visual or layout fix is correct without taking a fresh screenshot and reading the PNG.** Visual verification requires actual rendered output. After every CSS or layout change, the cycle is: apply fix → screenshot → Read PNG → evaluate. Skipping the screenshot step guarantees unreliable results.
 
 ---
 
 ## Visual Verification Workflow
 
-Use this workflow when verifying that a frontend/UI looks and functions correctly.
+Use this workflow when verifying that a frontend/UI looks and functions correctly. Only verify Mobile dimensions/viewports if the user explicitly asks, but always verify desktop dimensions/viewports, these are the most important to verify on.
 
 ```
 1. Ensure dev server is running:
@@ -173,6 +173,8 @@ After reading each screenshot, evaluate against these criteria. Rate each 1-5 (1
 
 ## Multi-Viewport Testing
 
+Only verify Mobile dimensions/viewports if the user explicitly asks, but always verify desktop dimensions/viewports, these are the most important to verify on.
+
 | Viewport | Width x Height | Use for |
 |----------|---------------|---------|
 | Desktop | 1280 x 800 | Default layout verification |
@@ -220,7 +222,7 @@ npx playwright test
 Before testing localhost, check for running dev servers:
 
 ```bash
-lsof -i :3000 -i :5173 -i :8080 -i :4200 -i :3001 | grep LISTEN
+lsof -i :3000 -i :5173 -i :5174 -i :8080 -i :4200 -i :3001 | grep LISTEN
 ```
 
 - If **1 server found**: Use it automatically

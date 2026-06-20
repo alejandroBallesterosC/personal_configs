@@ -4,26 +4,52 @@ This document contains the comprehensive Playwright API reference and advanced p
 
 ## Table of Contents
 
-- [Installation & Setup](#installation--setup)
-- [Core Patterns](#core-patterns)
-- [Selectors & Locators](#selectors--locators)
-- [Common Actions](#common-actions)
-- [Waiting Strategies](#waiting-strategies)
-- [Assertions](#assertions)
-- [Page Object Model](#page-object-model-pom)
-- [Network & API Testing](#network--api-testing)
-- [Authentication & Session Management](#authentication--session-management) 
-- [Visual Testing](#visual-testing)
-- [Mobile Testing](#mobile-testing)
-- [Debugging](#debugging)
-- [Performance Testing](#performance-testing)
-- [Parallel Execution](#parallel-execution)
-- [Data-Driven Testing](#data-driven-testing)
-- [Accessibility Testing](#accessibility-testing)
-- [CI/CD Integration](#cicd-integration)
-- [Best Practices](#best-practices)
-- [Common Patterns & Solutions](#common-patterns--solutions)
-- [Troubleshooting](#troubleshooting)
+- [Playwright Skill - Complete API Reference](#playwright-skill---complete-api-reference)
+  - [Table of Contents](#table-of-contents)
+  - [Installation \& Setup](#installation--setup)
+    - [Prerequisites](#prerequisites)
+    - [Basic Configuration (Optional)](#basic-configuration-optional)
+  - [Core Patterns](#core-patterns)
+    - [Basic Browser Automation](#basic-browser-automation)
+    - [Test Structure (with @playwright/test)](#test-structure-with-playwrighttest)
+  - [Selectors \& Locators](#selectors--locators)
+    - [Best Practices for Selectors](#best-practices-for-selectors)
+    - [Advanced Locator Patterns](#advanced-locator-patterns)
+  - [Common Actions](#common-actions)
+    - [Form Interactions](#form-interactions)
+    - [Mouse Actions](#mouse-actions)
+    - [Keyboard Actions](#keyboard-actions)
+  - [Waiting Strategies](#waiting-strategies)
+    - [Smart Waiting](#smart-waiting)
+  - [Assertions](#assertions)
+    - [Common Assertions](#common-assertions)
+  - [Page Object Model (POM)](#page-object-model-pom)
+    - [Basic Page Object](#basic-page-object)
+  - [Network \& API Testing](#network--api-testing)
+    - [Intercepting Requests](#intercepting-requests)
+  - [Authentication \& Session Management](#authentication--session-management)
+  - [Visual Testing](#visual-testing)
+    - [Screenshots](#screenshots)
+  - [Mobile Testing](#mobile-testing)
+  - [Debugging](#debugging)
+    - [Debug Mode](#debug-mode)
+    - [In-Code Debugging](#in-code-debugging)
+  - [Performance Testing](#performance-testing)
+  - [Parallel Execution](#parallel-execution)
+  - [Data-Driven Testing](#data-driven-testing)
+  - [Accessibility Testing](#accessibility-testing)
+  - [CI/CD Integration](#cicd-integration)
+    - [GitHub Actions](#github-actions)
+  - [Best Practices](#best-practices)
+  - [Common Patterns \& Solutions](#common-patterns--solutions)
+    - [Handling Popups](#handling-popups)
+    - [File Downloads](#file-downloads)
+    - [iFrames](#iframes)
+    - [Infinite Scroll](#infinite-scroll)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues](#common-issues)
+  - [Quick Reference Commands](#quick-reference-commands)
+  - [Additional Resources](#additional-resources)
 
 ## Installation & Setup
 
@@ -469,6 +495,8 @@ await expect(page).toHaveScreenshot('homepage.png');
 ```
 
 ## Mobile Testing
+
+Only verify Mobile dimensions/viewports if the user explicitly asks, otherwise focus on verifying desktop viewports/dimensions.
 
 ```javascript
 // Device emulation

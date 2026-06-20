@@ -1,12 +1,12 @@
 # Personal Configs
 
-Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 9 plugins (Dev Workflow, Research Report, Long Horizon Impl, Playwright, Session Feedback, Infrastructure-as-Code, CLAUDE.md Best Practices, Ralph Loop, Notify), configuration sync scripts, and IDE integrations.
+Development infrastructure repository for AI-assisted workflows with Claude Code. Contains 10 plugins (Dev Workflow, Research Report, Long Horizon Impl, Playwright, Session Feedback, Infrastructure-as-Code, CLAUDE.md Best Practices, Ralph Loop, Notify, Precise Technical Communication), configuration sync scripts, and IDE integrations.
 
 ## Architecture
 
 ```
 claude-code/
-├── plugins/           # 9 encapsulated plugins (installed via marketplace)
+├── plugins/           # 10 encapsulated plugins (installed via marketplace)
 │   ├── dev-workflow/  # 12 agents, 20 commands, 6 skills, 5 hooks (TDD + Debug)
 │   ├── research-report/   # 4 agents, 3 commands, 1 skill, 2 hooks (Iterative research + LaTeX)
 │   ├── long-horizon-impl/ # 9 agents, 4 commands, 1 skill, 2 hooks (Research/Plan/Implement)
@@ -15,7 +15,8 @@ claude-code/
 │   ├── infrastructure-as-code/ # 1 command, 1 skill
 │   ├── claude-md-best-practices/ # 1 skill
 │   ├── ralph-loop/   # Iterative AI loops (3 commands, 1 hook)
-│   └── notify/       # Terminal bell + macOS banner notifications (2 hooks: Notification, Stop)
+│   ├── notify/       # Terminal bell + macOS banner notifications (2 hooks: Notification, Stop)
+│   └── precise-technical-communication/ # 1 skill (precise, auditable technical reporting)
 ├── agents/            # Global subagents (symlinked to ~/.claude/agents/)
 ├── commands/          # 8 shared global commands (symlinked to ~/.claude/commands/)
 ├── docs/              # Python, UV, Docker best practices (symlinked to ~/.claude/docs/)
@@ -85,7 +86,7 @@ No build, no deployment. Runtime dependencies: yq, jq (see Dependencies).
 - `dev-workflow` plugin contains both TDD implementation and debug workflows
 - Cursor mirror (`cursor/`) is TDD-only — missing entire debug workflow (6 commands, 4 agents, 2 skills)
 - VS Code `tasks.json` has dead tasks referencing removed sync scripts and leftover tasks from previous projects
-- Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 10 plugins (9 active + 1 deprecated autonomous-workflow)
+- Two `marketplace.json` files exist: root (for GitHub install) and `claude-code/plugins/` (for local install) — both point to same 11 plugins (10 active + 1 deprecated autonomous-workflow)
 - All matching Stop hooks across all plugins run in **parallel** (official Claude Code behavior). If any hook returns `decision: "block"`, Claude continues — the most restrictive decision wins after all hooks complete. There is no sequential ordering or short-circuit between plugins
 - Do not use agent-type Stop hooks alongside command-type hooks that loop (e.g., TDD gate). The agent fires on every iteration, burning tokens/time and producing competing block reasons that cause infinite loops
 - `research-report` has its own Stop hook iteration engine — it does NOT depend on ralph-loop for iteration

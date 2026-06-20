@@ -95,6 +95,15 @@
       },
       "source": "./claude-code/plugins/notify",
       "category": "productivity"
+    },
+    {
+      "name": "precise-technical-communication",
+      "description": "Standing rules for explaining technical work in plain, exact, auditable language - scope, method, evidence, definitions, assumptions, verification, and limitations",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/precise-technical-communication",
+      "category": "productivity"
     }
   ]
 }
