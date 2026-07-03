@@ -1,9 +1,0 @@
-{
-  "name": "autonomous-workflow",
-  "description": "DEPRECATED — replaced by research-report and long-horizon-impl plugins. Run /autonomous-workflow:help for migration instructions.",
-  "version": "4.0.0",
-  "author": {
-    "name": "jandro"
-  },
-  "keywords": ["deprecated"]
-}

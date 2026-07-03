@@ -7,12 +7,12 @@
   },
   "plugins": [
     {
-      "name": "dev-workflow",
-      "description": "Unified TDD implementation and hypothesis-driven debugging workflows with 12 agents, 18 commands, and automatic context preservation",
+      "name": "core-workflow",
+      "description": "Lean set of commands, skills, and an agent for TDD, debugging, plan review, research rigor, LaTeX reports, codebase understanding, and reviewing collaborators' remote changes",
       "author": {
         "name": "jandro"
       },
-      "source": "./dev-workflow",
+      "source": "./core-workflow",
       "category": "development"
     },
     {
@@ -25,15 +25,6 @@
       "category": "testing"
     },
     {
-      "name": "claude-session-feedback",
-      "description": "Tools for exporting conversation history, reading past sessions, and getting feedback on Claude Code usage",
-      "author": {
-        "name": "jandro"
-      },
-      "source": "./claude-session-feedback",
-      "category": "productivity"
-    },
-    {
       "name": "infrastructure-as-code",
       "description": "Terraform and AWS infrastructure management with safety-first practices",
       "author": {
@@ -41,51 +32,6 @@
       },
       "source": "./infrastructure-as-code",
       "category": "devops"
-    },
-    {
-      "name": "ralph-loop",
-      "description": "Implementation of the Ralph Wiggum technique - continuous self-referential AI loops for interactive iterative development. Run Claude in a while-true loop with the same prompt until task completion.",
-      "author": {
-        "name": "jandro"
-      },
-      "source": "./ralph-loop",
-      "category": "development"
-    },
-    {
-      "name": "claude-md-best-practices",
-      "description": "Guide for writing and maintaining effective CLAUDE.md files",
-      "author": {
-        "name": "jandro"
-      },
-      "source": "./claude-md-best-practices",
-      "category": "documentation"
-    },
-    {
-      "name": "autonomous-workflow",
-      "description": "DEPRECATED — replaced by research-report and long-horizon-impl plugins",
-      "author": {
-        "name": "jandro"
-      },
-      "source": "./autonomous-workflow",
-      "category": "development"
-    },
-    {
-      "name": "research-report",
-      "description": "Autonomous iterative deep research producing a LaTeX report with synthesis, parallel subagents, and strategy rotation",
-      "author": {
-        "name": "jandro"
-      },
-      "source": "./research-report",
-      "category": "development"
-    },
-    {
-      "name": "long-horizon-impl",
-      "description": "Long-running autonomous research, planning, and TDD implementation workflows with LaTeX output, parallel subagents, anti-slop escalation, and multi-day execution",
-      "author": {
-        "name": "jandro"
-      },
-      "source": "./long-horizon-impl",
-      "category": "development"
     },
     {
       "name": "notify",

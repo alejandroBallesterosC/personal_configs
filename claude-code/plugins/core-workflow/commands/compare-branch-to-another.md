@@ -1,12 +1,18 @@
+---
+description: Compare the current git branch against another branch using parallel subagents
+argument-hint: <other-branch>
+allowed-tools: Read, Grep, Glob, Bash, Agent
+---
+
 # Compare Current Git Branch to Another
 
 ## Objective
 
 Compare the current git branch against the branch the user has specified using **parallel subagents** to produce a thorough, multi-angle analysis of all differences between the two branches.
 
-If <OTHER_BRANCH> was not specified by the user in this prompt respond with "Usage: /compare-branch-to-another <OTHER_BRANCH>  You must specify another branch to compare this one to" and stop.
+If `<OTHER_BRANCH>` was not specified by the user in this prompt respond with "Usage: /compare-branch-to-another <OTHER_BRANCH>  You must specify another branch to compare this one to" and stop.
 
-If <OTHER_BRANCH> was specified by the user but doesn't exist "I could not find the branch you wish to compare this one to" and stop.
+If `<OTHER_BRANCH>` was specified by the user but doesn't exist, respond with "I could not find the branch you wish to compare this one to" and stop.
 
 ## IMPORTANT: DO NOT EDIT ANY CODE, CHANGE ANY FILES, OR MAKE ANY GIT ADDITIONS, COMMITS, or PUSHES WHILE CARRYING OUT THESE INSTRUCTIONS.
 
@@ -49,13 +55,11 @@ Store the full diff output — you will include it in each agent prompt so they 
 
 ## STEP 3: LAUNCH 5 PARALLEL ANALYSIS AGENTS
 
-Launch all 5 agents **IN PARALLEL**
+Launch all 5 agents **IN PARALLEL** (single message, multiple Agent tool calls).
 
-Pass each agent the **git context from Step 1**, the **full diff from Step 2**, and its specific focus instructions.
+Pass each agent the **git context from Step 1**, the **full diff from Step 2**, and its specific focus instructions. Use `subagent_type: "Explore"` for Agents 1-3 (exploration-focused) and `subagent_type: "general-purpose"` for Agents 4-5 (review-focused, prompted explicitly to act as a code/risk reviewer).
 
-### Agent 1: Structural & Architectural Impact
-
-Launch this agent with instructions to act as a read-only code explorer focused on structural and architectural analysis.
+### Agent 1: Structural & Architectural Impact (Explore)
 
 ```
 EXPLORATION FOCUS: Structural & Architectural Impact of Branch Differences
@@ -88,9 +92,7 @@ Your analysis tasks:
 Produce a structured report on the structural and architectural differences.
 ```
 
-### Agent 2: Logic & Behavior Changes
-
-Launch this agent with instructions to act as a read-only code explorer focused on behavioral analysis.
+### Agent 2: Logic & Behavior Changes (Explore)
 
 ```
 EXPLORATION FOCUS: Logic & Behavior Changes Between Branches
@@ -119,9 +121,7 @@ Your analysis tasks:
 Produce a structured report explaining the functional and behavioral differences in plain language.
 ```
 
-### Agent 3: Testing & Quality Changes
-
-Launch this agent with instructions to act as a read-only code explorer focused on testing and quality analysis.
+### Agent 3: Testing & Quality Changes (Explore)
 
 ```
 EXPLORATION FOCUS: Testing & Quality Impact of Branch Differences
@@ -149,14 +149,10 @@ Your analysis tasks:
 Produce a structured report on how testing and quality assurance differ between branches.
 ```
 
-### Agent 4: Code Quality Review
-
-Launch this agent with instructions to act as a read-only code reviewer.
+### Agent 4: Code Quality Review (general-purpose)
 
 ```
-REVIEW FOCUS: Code Quality of Branch Differences
-
-You are acting as a code reviewer. Review the differences between two git branches and assess the quality of the changes. Do not edit any files — this is a read-only review.
+You are acting as a code reviewer. Review the differences between two git branches and assess the quality of the changes.
 
 Current branch: [insert current branch]
 Target branch: <OTHER_BRANCH>
@@ -177,17 +173,13 @@ Review the diff for:
 7. CLAUDE.md compliance (if present)
 8. Comment quality — are complex changes explained?
 
-Produce a confidence-scored review (only findings ≥80% confidence) of the code quality in the branch differences.
+Produce a confidence-scored review (only findings >=80% confidence) of the code quality in the branch differences. Do not edit any files — this is a read-only review.
 ```
 
-### Agent 5: Risk & Impact Assessment
-
-Launch this agent with instructions to act as a read-only risk reviewer.
+### Agent 5: Risk & Impact Assessment (general-purpose)
 
 ```
-REVIEW FOCUS: Risk & Impact Assessment of Branch Differences
-
-You are acting as a risk reviewer. Review the differences between two git branches and assess risks and potential impact. Do not edit any files — this is a read-only review.
+You are acting as a risk reviewer. Review the differences between two git branches and assess risks and potential impact.
 
 Current branch: [insert current branch]
 Target branch: <OTHER_BRANCH>
@@ -208,7 +200,7 @@ Assess the changes for:
 7. Concurrency or race condition risks
 8. Error scenarios that may not be handled
 
-Produce a confidence-scored risk assessment (only findings ≥80% confidence) with severity ratings and mitigation recommendations.
+Produce a confidence-scored risk assessment (only findings >=80% confidence) with severity ratings and mitigation recommendations. Do not edit any files — this is a read-only review.
 ```
 
 ---
@@ -240,10 +232,10 @@ Present the report directly to the user (do NOT write to a file unless asked):
 [Synthesized from Agent 3 — test coverage, gaps, quality]
 
 ## Code Quality Assessment
-[Synthesized from Agent 4 — quality findings ≥80% confidence]
+[Synthesized from Agent 4 — quality findings >=80% confidence]
 
 ## Risk Assessment
-[Synthesized from Agent 5 — risks ≥80% confidence with severity]
+[Synthesized from Agent 5 — risks >=80% confidence with severity]
 
 ---
 
@@ -262,4 +254,4 @@ Present the report directly to the user (do NOT write to a file unless asked):
 - Agents use **read-only tools** (no file modifications)
 - The three-dot diff (`<OTHER_BRANCH>...HEAD`) shows changes since the branches diverged, not the total difference
 - If the diff is extremely large, summarize the most impactful changes and note that the full diff was truncated
-- If <OTHER_BRANCH> does not exist as a branch, report the error clearly and suggest checking branch names with `git branch -a`
+- If `<OTHER_BRANCH>` does not exist as a branch, report the error clearly and suggest checking branch names with `git branch -a`

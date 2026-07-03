@@ -15,10 +15,6 @@ cursor/
 │   │   ├── API_REFERENCE.md
 │   │   └── lib/helpers.js
 │   └── .../        # Other skills
-├── subagents/      # Subagent definitions → ~/.cursor/subagents/
-├── hooks/
-│   ├── hooks.json  # Hook configuration → ~/.cursor/hooks.json
-│   └── scripts/    # Hook shell scripts → ~/.cursor/hooks/scripts/
 └── README.md
 ```
 
@@ -32,44 +28,22 @@ This syncs all components to `~/.cursor/` and sets script permissions.
 
 ## Components
 
-### Commands (14)
+### Commands (4)
 
-**TDD Workflow:**
-- `1-start` through `9-review` - Full TDD workflow phases
-- `continue-tdd-workflow` - Resume in-progress workflow
-- `tdd-workflow-help` - Show workflow help
+| Command | Purpose |
+|---------|---------|
+| `answer-question-about-codebase` | Answer a question about this codebase |
+| `answer-question-using-internet-research` | Answer a question using internet research |
+| `understand-repo` | Explore and document codebase understanding |
+| `compare-branch-to-another` | Compare the current branch against another using parallel subagents |
 
-**Ralph Loop:**
-- `ralph-loop` - Start iterative development loop
-- `cancel-ralph` - Cancel active Ralph loop
-- `ralph-help` - Explain Ralph Wiggum technique
-
-### Skills (5)
+### Skills (3)
 
 | Skill | Purpose |
 |-------|---------|
-| `tdd-workflow-guide` | Navigation for TDD workflow phases |
 | `testing` | TDD guidance (RED-GREEN-REFACTOR) |
-| `writing-plans` | Plan creation guidance |
 | `using-git-worktrees` | Git worktree setup |
 | `playwright` | Browser automation (self-contained with runtime) |
-
-### Subagents (7)
-
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `code-explorer` | Sonnet | Deep codebase exploration |
-| `code-architect` | Opus | Technical design |
-| `plan-reviewer` | Opus | Critical plan review |
-| `test-designer` | Opus | RED phase - write failing tests |
-| `implementer` | Opus | GREEN phase - minimal code |
-| `refactorer` | Opus | REFACTOR phase - improve code |
-| `code-reviewer` | Sonnet | Comprehensive review |
-
-### Hooks
-
-- **stop**: Runs scoped tests + verifies workflow state + ralph-loop continuation
-- **sessionStart** (`compact|clear`): Auto-resumes workflow after context reset
 
 ### Playwright Automation
 
@@ -90,25 +64,7 @@ Features:
 | Aspect | Claude Code | Cursor |
 |--------|-------------|--------|
 | Commands | YAML frontmatter supported | Plain markdown only |
-| Hook events | PascalCase (`Stop`) | camelCase (`stop`) |
-| hooks.json | No version field | `"version": 1` required |
-| Hook paths | `${CLAUDE_PLUGIN_ROOT}/...` | `$HOME/.cursor/...` |
-| State files | `.claude/` | `.cursor/` |
-| Hook decision JSON | `{"decision": "block", "reason": "..."}` | `{"continue": false, "agentMessage": "..."}` |
-
-## Ralph Loop Usage
-
-Start an iterative development loop:
-
-```bash
-/ralph-loop "Build a REST API" --max-iterations 20 --completion-promise "API COMPLETE"
-```
-
-The stop hook feeds the same prompt back until:
-- Max iterations reached, OR
-- Completion promise detected: `<promise>API COMPLETE</promise>`
-
-Cancel with `/cancel-ralph`.
+| No plugin prefixes | Commands namespaced by plugin (`/plugin:command`) | Commands invoked directly (`/command`) |
 
 ## Adding New Components
 
@@ -126,8 +82,5 @@ Do something useful.' > commands/my-command.md
 
 ## Notes
 
-- **No plugin prefixes**: Cursor doesn't use plugins, so commands are invoked directly (e.g., `/1-start` not `/tdd-workflow:1-start`)
-- **hooks.json merge**: If `~/.cursor/hooks.json` exists, sync creates a backup and warns you to merge manually
-- **Ralph loop state**: Uses `.cursor/ralph-loop.local.md` (not `.claude/`)
+- **No plugin prefixes**: Cursor doesn't use plugins, so commands are invoked directly (e.g., `/understand-repo` not `/core-workflow:understand-repo`)
 - **Playwright setup**: Run `npm run setup` in `~/.cursor/skills/playwright/` before first use
-- Hook scripts use `$HOME/.cursor/hooks/scripts/` paths (not `${CLAUDE_PLUGIN_ROOT}`)
