@@ -36,36 +36,6 @@
                 "focus": true,
                 "panel": "shared"
             }
-        },
-        {
-            "label": "Setup Claude Code Symlinks",
-            "type": "shell",
-            "command": "${workspaceFolder}/sync-content-scripts/claude-code/setup_symlinks.sh",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared"
-            }
-        },
-        {
-            "label": "Sync Cursor (All Content) to Global",
-            "type": "shell",
-            "command": "${workspaceFolder}/sync-content-scripts/cursor/sync_to_cursor.sh",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared"
-            }
         }
     ],
    "inputs": []

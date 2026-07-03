@@ -4,13 +4,13 @@
 
 ## 1. System Purpose & Domain
 
-Development infrastructure repository for AI-assisted workflows with Claude Code and Cursor IDE. Contains no application code — only Markdown (commands, agents, skills, docs), JSON (configs, manifests), and Shell scripts (hooks, sync). The core domain is a **lean set of Claude Code plugins**: commands are one-shot orchestrations of parallel subagents, and skills are checklists Claude applies directly — no hand-rolled workflow state machines or Stop-hook iteration engines.
+A Claude Code plugin marketplace repository. Contains no application code — only Markdown (commands, agents, skills, docs), JSON (plugin manifests), and Shell scripts (hooks). The repo hosts 5 self-contained plugins, distributed exclusively via the Claude Code plugin marketplace system. It does **not** host global Claude Code configuration (a CLAUDE.md template, global commands/agents/docs symlinked to `~/.claude/`) or an IDE mirror (Cursor) — both were removed; this repo is plugins-only by design.
 
 **Core domain entities:**
-- **Plugins** (5 active): Self-contained packages of commands, agents, skills, hooks
-- **Skills**: Standalone guidance documents (TDD, debugging, plan review, research rigor, LaTeX writing, git worktrees) applied directly within a session
-- **Commands**: Single-pass orchestrations of parallel subagents (codebase understanding, branch comparison, remote-change review, research)
-- **Sync**: Symlinks for Claude Code (`~/.claude/`), copy-based for Cursor (`~/.cursor/`)
+- **Plugins** (5 active): Self-contained packages of commands, agents, skills, hooks, each with its own `.claude-plugin/plugin.json` manifest
+- **Skills**: Standalone guidance documents applied directly within a session (no state machines)
+- **Commands**: Single-pass orchestrations of parallel subagents
+- **Marketplace manifests**: Two `marketplace.json` files (root, for GitHub install; `claude-code/plugins/`, for local install) list the same 5 plugins with different relative `source` paths
 
 ## 2. Technology Stack
 
@@ -18,66 +18,56 @@ Development infrastructure repository for AI-assisted workflows with Claude Code
 |-------|-----------|----------------|
 | Runtime | Claude Code CLI | Anthropic (external) |
 | Plugins | Claude Code Plugin System | plugin.json manifests |
-| Content | Markdown (47 files) | YAML frontmatter conventions |
-| Scripts | Bash (7 files) | POSIX-compatible |
-| Config | JSON (15 files) | Plugin manifests, hooks, MCP |
+| Content | Markdown (33 files) | YAML frontmatter conventions |
+| Scripts | Bash (5 files) | POSIX-compatible, all inside plugin `hooks/` or `.claude/hooks/` |
+| Config | JSON (13 files) | Plugin manifests, hooks |
 | Browser automation | Playwright (`playwright-cli` + `@playwright/test`) | npm global install |
-| IDE mirror | Cursor IDE | Unidirectional sync |
-| MCP servers | context7 (HTTP), fetch (stdio), exa (npx), playwright (npx) | global_mcp_settings.json |
-| Dependencies | pdflatex/MacTeX (optional, `core-workflow`'s `latex-report` skill only) | brew install |
+| Dependencies | pdflatex/MacTeX (optional, `core-workflow`'s `latex-report` skill only), terminal-notifier (optional, `notify`) | brew install |
 
 ## 3. Architecture
 
-### Pattern: Plugin-Based Configuration Infrastructure
+### Pattern: Plugin-Only Marketplace Repository
 
 ```
 personal_configs/
-├── claude-code/                    # Primary source of truth
-│   ├── plugins/ (5 active)
-│   │   ├── core-workflow/          # 6 commands, 6 skills, 1 agent
-│   │   ├── playwright/             # 1 skill (browser automation, CLI-based)
-│   │   ├── infrastructure-as-code/ # 1 command, 1 skill
-│   │   ├── notify/                 # 2 hooks (Notification, Stop)
-│   │   └── precise-technical-communication/ # 1 skill
-│   ├── agents/ (0)                 # Global subagents (symlinked to ~/.claude/agents/) — empty; web-researcher now lives in core-workflow
-│   ├── commands/ (1)               # Global commands (symlinked to ~/.claude/commands/)
-│   ├── docs/ (3)                   # Best practice guides (symlinked to ~/.claude/docs/)
-│   ├── CLAUDE.md                   # Template (symlinked to ~/.claude/CLAUDE.md)
-│   └── global_mcp_settings.json    # MCP config
-├── cursor/                         # Cursor IDE mirror (commands + skills, unidirectional)
-├── sync-content-scripts/           # Symlink setup (Claude Code) + copy sync (Cursor)
+├── claude-code/
+│   └── plugins/ (5 active)
+│       ├── core-workflow/          # 6 commands, 6 skills, 1 agent
+│       ├── playwright/             # 1 skill (browser automation, CLI-based)
+│       ├── infrastructure-as-code/ # 1 command, 1 skill
+│       ├── notify/                 # 2 hooks (Notification, Stop)
+│       └── precise-technical-communication/ # 1 skill + output style
+├── .claude/                        # Project-level Claude Code config (this repo's own session)
+│   ├── commands/review-playwright-plugin.md
+│   ├── hooks/document-learnings.sh
+│   └── settings.json
+├── .vscode/                        # VS Code tasks (some leftover from a prior project)
+├── .github/workflows/              # claude.yml, claude-code-review.yml
 ├── CLAUDE.md                       # This repo's coding standards
 └── docs/CODEBASE.md                # This file
 ```
 
-### Data Flow
+### Marketplace Registration
 
 ```
 Repository (source of truth)
     │
-    ├──[symlinks]──► ~/.claude/ (global config)
-    │   ├── agents/ → claude-code/agents/ (empty)
-    │   ├── commands/ → claude-code/commands/
-    │   ├── docs/ → claude-code/docs/
-    │   └── CLAUDE.md → claude-code/CLAUDE.md
-    │
-    ├──[plugin marketplace]──► Claude Code runtime
-    │   └── 5 registered plugins
-    │
-    └──[sync_to_cursor.sh]──► ~/.cursor/ (IDE config, copy-based)
-        ├── commands/*.md (no YAML frontmatter)
-        └── skills/
+    └──[plugin marketplace]──► Claude Code runtime
+        ├── .claude-plugin/marketplace.json              (root; source: "./claude-code/plugins/<name>")
+        └── claude-code/plugins/.claude-plugin/marketplace.json  (local; source: "./<name>")
 ```
+
+Both marketplace files must be kept in sync manually — same 5 plugin entries, differing only in the `source` path prefix.
 
 ### Hook Architecture
 
-Only `notify` registers hooks in this repo. `core-workflow` has none — its Stop-hook test-gate and iteration-engine equivalents were deliberately dropped in favor of plain-guidance skills (`tdd-discipline`) and native Claude Code capabilities (Plan Mode, TaskCreate/TaskList, the Workflow tool for multi-agent orchestration).
+Only `notify` registers plugin hooks. `core-workflow` deliberately has none — a TDD Stop-hook test-gate and Ralph-loop-style iteration engine were considered and dropped in favor of plain-guidance skills (`tdd-discipline`) and native Claude Code capabilities (Plan Mode, TaskCreate/TaskList, the Workflow tool for multi-agent orchestration).
 
 ```
 Stop Event (on Claude exit attempt) — all matching hooks run in parallel
 ├── notify:
 │   └── cc-notify.sh done               # Terminal bell + macOS banner
-└── .claude/hooks/ (project-level):
+└── .claude/hooks/ (project-level, this repo's own session only):
     └── document-learnings.sh            # Prompt Claude to document insights
 
 Notification Event (permission_prompt|idle_prompt|elicitation_dialog)
@@ -101,27 +91,21 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 ### Hook Interface Contract
 - **Command hooks**: Shell scripts returning exit code 0 (allow) or JSON `{"decision": "block", ...}` (block)
 - **Stop hooks can block**: Returning JSON decision blocks Claude from exiting
-- Only `notify`'s hooks and the project-level `document-learnings.sh` hook are active in this repo; both always exit 0 (never block), except `document-learnings.sh` which can block to prompt documentation.
+- Only `notify`'s hooks and the project-level `document-learnings.sh` hook are active in this repo; `notify`'s always exit 0 (never block), while `document-learnings.sh` can block to prompt documentation.
 
-### Sync Interface Contract
-- **Claude Code**: Symlinks from `~/.claude/` to repo (`setup_symlinks.sh`) for CLAUDE.md, agents/, commands/, docs/. Changes in repo are immediately live.
-- **Cursor**: Copy-based sync (`sync_to_cursor.sh`), unidirectional. Symlinks are unreliable in Cursor due to known bugs with skill/agent discovery after restart.
-- **Plugins do NOT sync**: Installed via marketplace (`/plugin marketplace add` + `/plugin install`)
-
-### State File Contract
-`.plugin-state/` exists at the repo root (gitignored) as a landing spot for any future plugin state, but no currently active plugin writes to it — `core-workflow` is stateless by design (single-pass commands, no cross-session workflow state).
+### Distribution Interface Contract
+- **Plugins install via marketplace only**: `/plugin marketplace add` + `/plugin install`. There is no symlink or copy-based sync mechanism in this repo — that was removed along with the global-config and Cursor-mirror content it used to sync.
 
 ## 5. Key Design Decisions & Tradeoffs
 
 | Decision | Chosen | Alternative | Tradeoff |
 |----------|--------|-------------|----------|
 | Plugin encapsulation | Self-contained dirs with manifests | Flat global commands | Isolation + marketplace distribution vs. more complex installation |
+| Plugins-only repo | Removed global Claude Code config (CLAUDE.md template, global commands/agents/docs) and the Cursor IDE mirror from this repo | Keep global config + IDE mirror alongside plugins | Single clear purpose (a plugin marketplace) and no symlink/sync-script maintenance vs. those configs now need to live and be maintained elsewhere |
 | Condense to one lean plugin | `core-workflow` bundles 6 skills, 6 commands, 1 agent from what were 6 separate plugins | Keep many small plugins | Smaller system-prompt footprint and less to maintain vs. losing some workflow-specific naming/namespacing |
-| Skills over hooks/state machines | Checklists applied directly by the model each time | Stop-hook gates + YAML state files + phase commands | Simpler, no external deps (yq/jq), no infinite-loop risk between competing hooks vs. no hard enforcement — relies on the model actually applying the skill |
-| Drop TDD Stop-hook gate | Plain `tdd-discipline` skill guidance | Hook that blocks session exit until tests pass | No forced verification gate vs. no hook-ordering conflicts, no yq/jq dependency, works even if the model forgets once |
+| Skills over hooks/state machines | Checklists applied directly by the model each time | Stop-hook gates + YAML state files + phase commands | Simpler, no external deps, no infinite-loop risk between competing hooks vs. no hard enforcement — relies on the model actually applying the skill |
+| Drop TDD Stop-hook gate | Plain `tdd-discipline` skill guidance | Hook that blocks session exit until tests pass | No forced verification gate vs. no hook-ordering conflicts, works even if the model forgets once |
 | Drop Ralph-loop / hand-rolled iteration engines | Rely on native Claude Code capabilities (Plan Mode, TaskCreate/TaskList, the Workflow tool) for multi-step or long-running work | Bespoke bash while-loop Stop hooks per plugin | Less custom scaffolding to maintain vs. losing the single-session transcript-persistence guarantee those hooks provided |
-| Symlinks for Claude Code | Symlinks to repo dirs | Copy-based sync scripts | Instant sync, single source of truth vs. breaks if repo moves |
-| Cursor mirror | Separate adapted copy | Shared source with adapters | Simpler sync script vs. files to maintain in parallel |
 
 ## 6. Code Quality & Patterns
 
@@ -132,8 +116,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 4. **Announce-at-start convention**: Skills like `tdd-discipline`, `structured-debug`, and `using-git-worktrees` announce activation at the start of use
 
 ### Shell Script Quality
-- 7 scripts (sync scripts + notify's hook script), using `set -euo pipefail` where applicable
-- Proper quoting, `git rev-parse --show-toplevel` for repo root detection where relevant
+- 5 scripts total: `notify`'s hook script and the project-level `document-learnings.sh`, plus supporting `.vscode/scripts/` shell scripts unrelated to plugins
 - Non-fatal exits (exit 0) for optional features
 
 ### No Linting/Formatting Config
@@ -179,26 +162,27 @@ Terminal bell (BEL) and macOS banner notifications via terminal-notifier (with o
 
 - **playwright**: Browser automation via `playwright-cli` (interactive) and `@playwright/test` (CI). Skill-only plugin — no commands, agents, or hooks
 - **infrastructure-as-code**: 1 command + 1 skill for Terraform/AWS
-- **precise-technical-communication**: 1 skill for plain, exact, auditable technical writing (plus an optional output style, distributed outside the plugin's skill directory)
+- **precise-technical-communication**: 1 skill for plain, exact, auditable technical writing, plus an optional output style distributed outside the plugin's skill directory
 
-## 8. Cursor Mirror
+## 8. Removed Content (Historical Note)
 
-The Cursor mirror at `cursor/` was trimmed alongside the Claude Code plugin condensation: the TDD workflow (9 phase commands), Ralph loop (3 commands + Stop hook), 7 TDD-specific subagents, the `tdd-workflow-guide` skill, `writing-plans` skill, and all hooks (`hooks.json` + scripts) were removed, since their Claude Code counterparts (`dev-workflow`, `ralph-loop`) no longer exist.
+This repo previously also hosted:
+- **Global Claude Code configuration**: a CLAUDE.md template, global `commands/`, `agents/`, and `docs/` directories, symlinked to `~/.claude/` via `sync-content-scripts/claude-code/setup_symlinks.sh`
+- **A Cursor IDE mirror** (`cursor/`): commands and skills copy-synced to `~/.cursor/` via `sync-content-scripts/cursor/sync_to_cursor.sh`
+- **Six additional plugins** (`dev-workflow`, `research-report`, `long-horizon-impl`, `ralph-loop`, `claude-session-feedback`, `claude-md-best-practices`) and an already-deprecated `autonomous-workflow`, condensed into `core-workflow` and dropped for reasons documented in git history around 2026-07-03
 
-**Remaining in Cursor**: 4 commands (`answer-question-about-codebase`, `answer-question-using-internet-research`, `understand-repo`, `compare-branch-to-another`) and 3 skills (`testing`, `using-git-worktrees`, `playwright`). Cursor has no plugin system, so these are plain files with no YAML frontmatter, synced by copy rather than symlink.
+All of the above were removed. This repo is now scoped exclusively to the plugin marketplace.
 
-## 9. VS Code Tasks
+## 9. VS Code Tasks and GitHub Workflows
 
-`.vscode/tasks.json` predates this condensation and was not in scope for it — it may still contain tasks referencing sync scripts or prior-project leftovers. Worth a separate audit if VS Code task accuracy matters.
+`.vscode/tasks.json` retains two tasks (`Compile & Run Current File`, `Run App Start Script`) left over from a prior, unrelated project — out of scope for this repo's plugin marketplace purpose. `.github/workflows/` has `claude.yml` and `claude-code-review.yml`; their current activation status was not verified as part of this pass.
 
 ## 10. Open Questions
 
-- [ ] Should the Cursor mirror gain a `core-workflow`-equivalent set of skills (e.g. `structured-debug`, `adversarial-plan-review`) now that Claude Code has them?
-- [ ] Should `.vscode/tasks.json` be audited for dead tasks now that the plugin/sync landscape has changed?
+- [ ] Should `.vscode/tasks.json`'s leftover unrelated tasks be removed?
 - [ ] Should GitHub Actions workflows (`claude.yml`, `claude-code-review.yml`) be reviewed for currency?
-- [ ] Is `.plugin-state/` (currently unused) still worth keeping as a documented convention, or should it be removed until a plugin actually needs it?
+- [ ] Where do the removed global Claude Code configuration and Cursor mirror now live, and should this doc cross-reference that location?
 
 ## 11. Ambiguities
 
-- **Cursor mirror maintenance**: All adaptations baked into `cursor/` directory. Adding skills requires creating adapted copies, not modifying the sync script. Unclear if Cursor should track `core-workflow`'s newer skills (`adversarial-plan-review`, `research-methodology`, `latex-report`).
-- **Symlink dependency**: Claude Code symlinks break if the repo is moved. Re-run `setup_symlinks.sh` after moving.
+- **No sync mechanism remains**: any future global-config or IDE-mirror needs must be solved outside this repo; there is no symlink or copy-based sync script to repurpose.

@@ -61,7 +61,6 @@ Thoroughly explore the playwright plugin at `claude-code/plugins/playwright/`:
 Explore dependencies and related plugins that playwright relies on:
 - Any mentions of skills, plugins, mcps, agents, or hooks that are external to the plugin but used in the plugin
 - Other plugins in `claude-code/plugins/` that interact with playwright
-- Shared components in `claude-code/commands/`
 - MCP server configurations that support the workflow
 - How plugins interconnect
 - Shared patterns across plugins
