@@ -1,0 +1,9 @@
+{
+  "name": "clear-writing",
+  "description": "Write and communicate in a clear, plain style with no slop.",
+  "version": "1.0.0",
+  "author": {
+    "name": "jandro"
+  },
+  "keywords": ["clear", "writing", "communication", "prose", "report", "plain", "style", "no slop"]
+}

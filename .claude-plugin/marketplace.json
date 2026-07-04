@@ -16,6 +16,15 @@
       "category": "development"
     },
     {
+      "name": "clear-writing",
+      "description": "Write and communicate in a clear, plain style with no slop.",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/clear-writing",
+      "category": "productivity"
+    },
+    {
       "name": "playwright",
       "description": "Browser automation with Playwright - test pages, fill forms, take screenshots, validate UX, and automate any browser task",
       "author": {
