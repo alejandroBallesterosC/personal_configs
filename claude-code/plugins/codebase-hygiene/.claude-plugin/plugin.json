@@ -1,0 +1,16 @@
+{
+  "name": "codebase-hygiene",
+  "version": "1.0.0",
+  "description": "Lean set of skills and hooks for keeping a codebase well organized, well documented, and clean.",
+  "author": {
+    "name": "jandro"
+  },
+  "keywords": [
+    "clean",
+    "documentation",
+    "skills",
+    "docs",
+    "repo",
+    "hygiene"
+  ]
+}

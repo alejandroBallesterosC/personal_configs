@@ -1,16 +1,16 @@
 # Personal Configs - Codebase Analysis
 
-> Last updated: 2026-07-03
+> Last updated: 2026-07-07
 
 ## 1. System Purpose & Domain
 
-A Claude Code plugin marketplace repository. Contains no application code — only Markdown (commands, agents, skills, docs), JSON (plugin manifests), and Shell scripts (hooks). The repo hosts 5 self-contained plugins, distributed exclusively via the Claude Code plugin marketplace system. It does **not** host global Claude Code configuration (a CLAUDE.md template, global commands/agents/docs symlinked to `~/.claude/`) or an IDE mirror (Cursor) — both were removed; this repo is plugins-only by design.
+A Claude Code plugin marketplace repository. Contains no application code — only Markdown (commands, agents, skills, docs), JSON (plugin manifests), and Shell scripts (hooks). The repo hosts 8 self-contained plugins, distributed exclusively via the Claude Code plugin marketplace system. It does **not** host global Claude Code configuration (a CLAUDE.md template, global commands/agents/docs symlinked to `~/.claude/`) or an IDE mirror (Cursor) — both were removed; this repo is plugins-only by design.
 
 **Core domain entities:**
-- **Plugins** (5 active): Self-contained packages of commands, agents, skills, hooks, each with its own `.claude-plugin/plugin.json` manifest
+- **Plugins** (8 active): Self-contained packages of commands, agents, skills, hooks, each with its own `.claude-plugin/plugin.json` manifest
 - **Skills**: Standalone guidance documents applied directly within a session (no state machines)
 - **Commands**: Single-pass orchestrations of parallel subagents
-- **Marketplace manifests**: Two `marketplace.json` files (root, for GitHub install; `claude-code/plugins/`, for local install) list the same 5 plugins with different relative `source` paths
+- **Marketplace manifest**: A single `marketplace.json` at the repo root (`.claude-plugin/marketplace.json`) lists all plugins with `source` paths relative to the repo root
 
 ## 2. Technology Stack
 
@@ -18,9 +18,9 @@ A Claude Code plugin marketplace repository. Contains no application code — on
 |-------|-----------|----------------|
 | Runtime | Claude Code CLI | Anthropic (external) |
 | Plugins | Claude Code Plugin System | plugin.json manifests |
-| Content | Markdown (33 files) | YAML frontmatter conventions |
-| Scripts | Bash (5 files) | POSIX-compatible, all inside plugin `hooks/` or `.claude/hooks/` |
-| Config | JSON (13 files) | Plugin manifests, hooks |
+| Content | Markdown | YAML frontmatter conventions |
+| Scripts | Bash | POSIX-compatible, inside plugin `hooks/` (and `.claude/hooks/` for this repo's own session); `codebase-hygiene` ships hook smoke tests |
+| Config | JSON | Plugin manifests, hooks |
 | Browser automation | Playwright (`playwright-cli` + `@playwright/test`) | npm global install |
 | Dependencies | pdflatex/MacTeX (optional, `core-workflow`'s `latex-report` skill only), terminal-notifier (optional, `notify`) | brew install |
 
@@ -31,12 +31,16 @@ A Claude Code plugin marketplace repository. Contains no application code — on
 ```
 personal_configs/
 ├── claude-code/
-│   └── plugins/ (5 active)
+│   └── plugins/ (8 active)
 │       ├── core-workflow/          # 6 commands, 6 skills, 1 agent
+│       ├── clear-writing/          # 1 skill (clear, plain-style prose)
 │       ├── playwright/             # 1 skill (browser automation, CLI-based)
 │       ├── infrastructure-as-code/ # 1 command, 1 skill
 │       ├── notify/                 # 2 hooks (Notification, Stop)
-│       └── precise-technical-communication/ # 1 skill + output style
+│       ├── precise-technical-communication/ # 1 skill + output style
+│       ├── codebase-hygiene/       # 2 skills + 1 PreToolUse hook (with smoke tests)
+│       └── python-code-quality/    # 1 skill (Python code-quality principles)
+├── .claude-plugin/                 # Marketplace manifest (marketplace.json)
 ├── .claude/                        # Project-level Claude Code config (this repo's own session)
 │   ├── commands/review-playwright-plugin.md
 │   ├── hooks/document-learnings.sh
@@ -53,17 +57,21 @@ personal_configs/
 Repository (source of truth)
     │
     └──[plugin marketplace]──► Claude Code runtime
-        ├── .claude-plugin/marketplace.json              (root; source: "./claude-code/plugins/<name>")
-        └── claude-code/plugins/.claude-plugin/marketplace.json  (local; source: "./<name>")
+        └── .claude-plugin/marketplace.json   (root; source: "./claude-code/plugins/<name>")
 ```
 
-Both marketplace files must be kept in sync manually — same 5 plugin entries, differing only in the `source` path prefix.
+A single marketplace manifest at the repo root lists all 8 plugins. Install from GitHub or from a local clone by pointing `/plugin marketplace add` at the repo root.
 
 ### Hook Architecture
 
-Only `notify` registers plugin hooks. `core-workflow` deliberately has none — a TDD Stop-hook test-gate and Ralph-loop-style iteration engine were considered and dropped in favor of plain-guidance skills (`tdd-discipline`) and native Claude Code capabilities (Plan Mode, TaskCreate/TaskList, the Workflow tool for multi-agent orchestration).
+Two plugins register hooks: `notify` (Stop, Notification) and `codebase-hygiene` (PreToolUse). `core-workflow` deliberately has none — a TDD Stop-hook test-gate and Ralph-loop-style iteration engine were considered and dropped in favor of plain-guidance skills (`tdd-discipline`) and native Claude Code capabilities (Plan Mode, TaskCreate/TaskList, the Workflow tool for multi-agent orchestration).
 
 ```
+PreToolUse Event (before Bash / GitHub MCP tool calls)
+└── codebase-hygiene:
+    └── pre-git-documentation-check.sh   # Block git/GitHub commit & PR mutations
+                                         # until the documentation contract holds
+
 Stop Event (on Claude exit attempt) — all matching hooks run in parallel
 ├── notify:
 │   └── cc-notify.sh done               # Terminal bell + macOS banner
@@ -74,6 +82,8 @@ Notification Event (permission_prompt|idle_prompt|elicitation_dialog)
 └── notify:
     └── cc-notify.sh input              # Terminal bell + macOS banner
 ```
+
+`codebase-hygiene`'s guard resolves the repo being committed to (the working directory's git toplevel), enforces root `AGENTS.md`/`CLAUDE.md` pairing and any files listed in a repo-root `.documentation-check` manifest, then reminds once per change that all docs must be current before allowing the unchanged diff on the next attempt. It requires `jq` and only acts inside a git work tree.
 
 **Note**: All matching Stop hooks across all plugins run in **parallel** (official Claude Code behavior). The most restrictive decision wins after all hooks complete.
 
@@ -91,7 +101,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 ### Hook Interface Contract
 - **Command hooks**: Shell scripts returning exit code 0 (allow) or JSON `{"decision": "block", ...}` (block)
 - **Stop hooks can block**: Returning JSON decision blocks Claude from exiting
-- Only `notify`'s hooks and the project-level `document-learnings.sh` hook are active in this repo; `notify`'s always exit 0 (never block), while `document-learnings.sh` can block to prompt documentation.
+- `notify`'s hooks, `codebase-hygiene`'s PreToolUse guard, and the project-level `document-learnings.sh` hook are the active hooks. `notify`'s always exit 0 (never block); `codebase-hygiene`'s guard and `document-learnings.sh` can block to enforce/prompt documentation.
 
 ### Distribution Interface Contract
 - **Plugins install via marketplace only**: `/plugin marketplace add` + `/plugin install`. There is no symlink or copy-based sync mechanism in this repo — that was removed along with the global-config and Cursor-mirror content it used to sync.
@@ -158,8 +168,25 @@ Terminal bell (BEL) and macOS banner notifications via terminal-notifier (with o
 
 **Dependencies**: `terminal-notifier` (optional, `brew install terminal-notifier`; falls back to osascript).
 
+### codebase-hygiene — Documentation & Repo Hygiene
+
+**Components**: 2 skills, 1 PreToolUse hook (with smoke tests)
+
+Keeps a codebase organized, evergreen, and documented. The `codebase-hygiene` skill is an umbrella hygiene pass (docs current, `AGENTS.md`/`CLAUDE.md` paired, repo organized, names evergreen); the `agents-md-improver` skill audits and improves agent instruction files and repo documentation. The `pre-git-documentation-check` hook is a PreToolUse guard that blocks git/GitHub commit and PR mutations until the documentation contract holds.
+
+Repo-specific required docs are declared per-repo in a root `.documentation-check` manifest (`path|description` per line; `#` comments and blank lines ignored), read by both the skill and the hook. With no manifest, only the always-on `AGENTS.md`/`CLAUDE.md` pairing and general documentation-currency checks apply.
+
+**Dependencies**: `jq` (required by the hook; blocks with an explanatory message if missing), `git` (the hook only acts inside a work tree).
+
+### python-code-quality — Python Code Quality
+
+**Components**: 1 skill
+
+Python-specific code-quality principles: verification-first, runtime-validated (Pydantic at boundaries), legible artifacts, with anti-overengineering guardrails. Covers contract-driven design, golden/expect tests, deleting dead code from evidence, and the rejected anti-patterns (e.g. static type-checker CI gates that buy no runtime guarantee).
+
 ### Other Plugins
 
+- **clear-writing**: 1 skill for clear, plain-style prose with no slop, plus `references/` (examples, banned phrases, banned structures)
 - **playwright**: Browser automation via `playwright-cli` (interactive) and `@playwright/test` (CI). Skill-only plugin — no commands, agents, or hooks
 - **infrastructure-as-code**: 1 command + 1 skill for Terraform/AWS
 - **precise-technical-communication**: 1 skill for plain, exact, auditable technical writing, plus an optional output style distributed outside the plugin's skill directory

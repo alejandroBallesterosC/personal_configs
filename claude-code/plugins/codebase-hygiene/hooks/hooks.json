@@ -1,0 +1,16 @@
+{
+  "description": "Documentation pre-commit guard: before any git/GitHub commit or PR mutation, enforce that repo documentation is current and AGENTS.md/CLAUDE.md files are correctly paired",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|mcp__github__.*|github.*|GitHub.*|gh",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-git-documentation-check.sh --provider claude"
+          }
+        ]
+      }
+    ]
+  }
+}

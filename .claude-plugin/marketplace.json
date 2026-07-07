@@ -59,6 +59,24 @@
       },
       "source": "./claude-code/plugins/precise-technical-communication",
       "category": "productivity"
+    },
+    {
+      "name": "codebase-hygiene",
+      "description": "Skills and a pre-commit hook for keeping a codebase organized, evergreen, and documented, with AGENTS.md/CLAUDE.md pairing and an optional per-repo .documentation-check manifest",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/codebase-hygiene",
+      "category": "development"
+    },
+    {
+      "name": "python-code-quality",
+      "description": "Python code-quality principles: verification-first, runtime-validated (Pydantic at boundaries), legible artifacts, with anti-overengineering guardrails",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/python-code-quality",
+      "category": "development"
     }
   ]
 }
