@@ -77,6 +77,15 @@
       },
       "source": "./claude-code/plugins/python-code-quality",
       "category": "development"
+    },
+    {
+      "name": "export-to-obsidian",
+      "description": "User-invoked skill to export the current Claude Code session transcript (full or last N turns) as Markdown into an Obsidian vault, with a secure remote-to-local pull path",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/export-to-obsidian",
+      "category": "productivity"
     }
   ]
 }

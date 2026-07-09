@@ -1,12 +1,12 @@
 # Personal Configs
 
-Claude Code plugin marketplace repository. Contains 8 plugins (Core Workflow, Clear Writing, Playwright, Infrastructure-as-Code, Notify, Precise Technical Communication, Codebase Hygiene, Python Code Quality). No global Claude Code configuration (CLAUDE.md template, global commands/agents/docs) lives here — those are maintained elsewhere and this repo installs only via the plugin system.
+Claude Code plugin marketplace repository. Contains 9 plugins (Core Workflow, Clear Writing, Playwright, Infrastructure-as-Code, Notify, Precise Technical Communication, Codebase Hygiene, Python Code Quality, Export to Obsidian). No global Claude Code configuration (CLAUDE.md template, global commands/agents/docs) lives here — those are maintained elsewhere and this repo installs only via the plugin system.
 
 ## Architecture
 
 ```
 claude-code/
-└── plugins/           # 8 encapsulated plugins (installed via marketplace)
+└── plugins/           # 9 encapsulated plugins (installed via marketplace)
     ├── core-workflow/  # 6 commands, 6 skills, 1 agent (TDD, debugging, plan review, research rigor, LaTeX reports, codebase understanding, remote-change review)
     ├── clear-writing/  # 1 skill (clear, plain-style prose)
     ├── playwright/     # Browser automation (1 skill, token-efficient CLI)
@@ -14,7 +14,8 @@ claude-code/
     ├── notify/         # Terminal bell + macOS banner notifications (2 hooks: Notification, Stop)
     ├── precise-technical-communication/ # 1 skill (precise, auditable technical reporting)
     ├── codebase-hygiene/ # 2 skills + 1 PreToolUse hook (documentation currency, AGENTS.md/CLAUDE.md pairing, .documentation-check manifest)
-    └── python-code-quality/ # 1 skill (Python code-quality principles)
+    ├── python-code-quality/ # 1 skill (Python code-quality principles)
+    └── export-to-obsidian/ # 1 user-only skill + Python renderer + bash export/pull scripts (session transcript -> Obsidian vault)
 CLAUDE.md          # This file
 docs/CODEBASE.md   # Repo analysis
 ```

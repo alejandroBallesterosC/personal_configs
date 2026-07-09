@@ -4,10 +4,10 @@
 
 ## 1. System Purpose & Domain
 
-A Claude Code plugin marketplace repository. Contains no application code — only Markdown (commands, agents, skills, docs), JSON (plugin manifests), and Shell scripts (hooks). The repo hosts 8 self-contained plugins, distributed exclusively via the Claude Code plugin marketplace system. It does **not** host global Claude Code configuration (a CLAUDE.md template, global commands/agents/docs symlinked to `~/.claude/`) or an IDE mirror (Cursor) — both were removed; this repo is plugins-only by design.
+A Claude Code plugin marketplace repository. Contains almost no application code — only Markdown (commands, agents, skills, docs), JSON (plugin manifests), Shell scripts (hooks and CLI helpers), and one Python transcript renderer. The repo hosts 9 self-contained plugins, distributed exclusively via the Claude Code plugin marketplace system. It does **not** host global Claude Code configuration (a CLAUDE.md template, global commands/agents/docs symlinked to `~/.claude/`) or an IDE mirror (Cursor) — both were removed; this repo is plugins-only by design.
 
 **Core domain entities:**
-- **Plugins** (8 active): Self-contained packages of commands, agents, skills, hooks, each with its own `.claude-plugin/plugin.json` manifest
+- **Plugins** (9 active): Self-contained packages of commands, agents, skills, hooks, each with its own `.claude-plugin/plugin.json` manifest
 - **Skills**: Standalone guidance documents applied directly within a session (no state machines)
 - **Commands**: Single-pass orchestrations of parallel subagents
 - **Marketplace manifest**: A single `marketplace.json` at the repo root (`.claude-plugin/marketplace.json`) lists all plugins with `source` paths relative to the repo root
@@ -31,7 +31,7 @@ A Claude Code plugin marketplace repository. Contains no application code — on
 ```
 personal_configs/
 ├── claude-code/
-│   └── plugins/ (8 active)
+│   └── plugins/ (9 active)
 │       ├── core-workflow/          # 6 commands, 6 skills, 1 agent
 │       ├── clear-writing/          # 1 skill (clear, plain-style prose)
 │       ├── playwright/             # 1 skill (browser automation, CLI-based)
@@ -39,7 +39,8 @@ personal_configs/
 │       ├── notify/                 # 2 hooks (Notification, Stop)
 │       ├── precise-technical-communication/ # 1 skill + output style
 │       ├── codebase-hygiene/       # 2 skills + 1 PreToolUse hook (with smoke tests)
-│       └── python-code-quality/    # 1 skill (Python code-quality principles)
+│       ├── python-code-quality/    # 1 skill (Python code-quality principles)
+│       └── export-to-obsidian/     # 1 user-only skill + Python renderer + bash export/pull scripts (with tests)
 ├── .claude-plugin/                 # Marketplace manifest (marketplace.json)
 ├── .claude/                        # Project-level Claude Code config (this repo's own session)
 │   ├── commands/review-playwright-plugin.md
@@ -60,7 +61,7 @@ Repository (source of truth)
         └── .claude-plugin/marketplace.json   (root; source: "./claude-code/plugins/<name>")
 ```
 
-A single marketplace manifest at the repo root lists all 8 plugins. Install from GitHub or from a local clone by pointing `/plugin marketplace add` at the repo root.
+A single marketplace manifest at the repo root lists all 9 plugins. Install from GitHub or from a local clone by pointing `/plugin marketplace add` at the repo root.
 
 ### Hook Architecture
 
@@ -183,6 +184,18 @@ Repo-specific required docs are declared per-repo in a root `.documentation-chec
 **Components**: 1 skill
 
 Python-specific code-quality principles: verification-first, runtime-validated (Pydantic at boundaries), legible artifacts, with anti-overengineering guardrails. Covers contract-driven design, golden/expect tests, deleting dead code from evidence, and the rejected anti-patterns (e.g. static type-checker CI gates that buy no runtime guarantee).
+
+### export-to-obsidian — Session Transcript Export
+
+**Components**: 1 user-only skill, a Python renderer, bash export/pull scripts, renderer tests
+
+Exports the current Claude Code session's transcript (full, or last N turns) as Markdown into an Obsidian vault. The skill sets `disable-model-invocation: true`, so it is invocable only by the user typing `/export-to-obsidian:export-to-obsidian [N]` — Claude cannot self-invoke it (its description is not even loaded into Claude's context).
+
+- **Renderer** (`render_transcript.py`, Python 3 stdlib): locates the current session's JSONL by **session identity** — globbing `~/.claude/projects/*/` for `<CLAUDE_SESSION_ID>.jsonl` — rather than reconstructing the path from the cwd, because the project-dir slug is lossy (`/`, `_`, `.`, spaces all collapse to `-`) and branch-derived for git worktrees. Groups lines into turns (a genuine `user` prompt is a string-content, non-`isMeta`, non-`tool_result` line) and renders tool calls/results/thinking as collapsible `<details>` blocks.
+- **Entry point** (`export.sh`, bash): detects local vs. remote (SSH env vars + process-ancestry fallback). Local writes to `$CLAUDE_CODE_OBSIDIAN_EXPORT_PATH/claude-code-transcripts/`; remote stages the file and prints a local-pull command.
+- **Local puller** (`local-puller/cc-obsidian-pull.sh`, installed on the user's Mac): shows an `osascript` Allow/Deny dialog, then `rsync`/`scp`s the staged file from the dev box into the vault using the user's existing local→remote SSH credentials. The remote box is given no inbound path to the local machine — the transfer is local-initiated and per-invocation-approved by design.
+
+**Dependencies**: `python3` (renderer); `rsync`/`scp`+`ssh` and `osascript` (local pull, macOS). `CLAUDE_CODE_OBSIDIAN_EXPORT_PATH` points at the vault.
 
 ### Other Plugins
 
