@@ -1,0 +1,16 @@
+{
+  "name": "conceptual-thought-partner",
+  "version": "1.0.0",
+  "description": "A Claude Fable subagent that acts as a senior engineering and research thought partner - stress-tests approaches, reviews architecture, and reasons through ambiguous problems conversationally, without ever doing implementation work",
+  "author": {
+    "name": "jandro"
+  },
+  "keywords": [
+    "thought-partner",
+    "architecture-review",
+    "sparring",
+    "conceptual",
+    "mentorship",
+    "fable"
+  ]
+}

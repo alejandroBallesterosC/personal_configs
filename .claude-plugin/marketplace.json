@@ -86,6 +86,15 @@
       },
       "source": "./claude-code/plugins/export-to-obsidian",
       "category": "productivity"
+    },
+    {
+      "name": "conceptual-thought-partner",
+      "description": "A Claude Fable subagent that acts as a senior engineering and research thought partner - stress-tests approaches, reviews architecture, and reasons through ambiguous problems conversationally, without ever doing implementation work",
+      "author": {
+        "name": "jandro"
+      },
+      "source": "./claude-code/plugins/conceptual-thought-partner",
+      "category": "development"
     }
   ]
 }

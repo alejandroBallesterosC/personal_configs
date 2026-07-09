@@ -1,13 +1,13 @@
 # Personal Development Configurations
 
-A Claude Code plugin marketplace. Contains 9 plugins, installed via the plugin system — no global Claude Code configuration or IDE sync lives in this repo.
+A Claude Code plugin marketplace. Contains 10 plugins, installed via the plugin system — no global Claude Code configuration or IDE sync lives in this repo.
 
 ## Repository Structure
 
 ```
 personal_configs/
 ├── claude-code/
-│   └── plugins/                     # 9 encapsulated workflow plugins
+│   └── plugins/                     # 10 encapsulated workflow plugins
 │       ├── core-workflow/           # 6 commands, 6 skills, 1 agent (TDD, debugging, plan review, research rigor, LaTeX reports, codebase understanding, remote-change review)
 │       ├── clear-writing/           # 1 skill (clear, plain-style prose)
 │       ├── playwright/              # Browser automation (1 skill, token-efficient CLI)
@@ -16,12 +16,14 @@ personal_configs/
 │       ├── precise-technical-communication/ # 1 skill
 │       ├── codebase-hygiene/        # 2 skills + 1 PreToolUse hook (documentation currency & AGENTS.md/CLAUDE.md pairing)
 │       ├── python-code-quality/     # 1 skill (Python code-quality principles)
-│       └── export-to-obsidian/      # 1 user-only skill + Python/bash scripts (session transcript -> Obsidian vault)
+│       ├── export-to-obsidian/      # 1 user-only skill + Python/bash scripts (session transcript -> Obsidian vault)
+│       └── conceptual-thought-partner/ # 1 Fable subagent (conceptual sparring/architecture review; never implements)
 ├── .claude-plugin/                  # Marketplace manifest (marketplace.json)
 ├── .vscode/                         # VS Code tasks
 ├── docs/
 │   └── CODEBASE.md                  # Comprehensive codebase analysis
-└── CLAUDE.md                        # Project-specific instructions
+├── AGENTS.md                        # Canonical shared agent instructions (source of truth)
+└── CLAUDE.md                        # Import-only wrapper: @AGENTS.md
 ```
 
 ## Core Plugin: Core Workflow
@@ -58,6 +60,7 @@ See `claude-code/plugins/core-workflow/README.md` for full details.
 | **codebase-hygiene** | Keep docs current & agent instruction files paired; pre-commit documentation guard | 2 skills, 1 PreToolUse hook |
 | **python-code-quality** | Python code-quality principles (Pydantic at boundaries, anti-overengineering) | 1 skill |
 | **export-to-obsidian** | User-invoked export of the current session transcript (full or last N turns) to an Obsidian vault, with a secure remote→local pull | 1 user-only skill + scripts |
+| **conceptual-thought-partner** | Senior engineering/research thought partner on Claude Fable — stress-tests approaches and architecture conversationally; read-only, never implements | 1 Fable subagent |
 
 ## Installation
 
@@ -82,6 +85,7 @@ Then install plugins:
 /plugin install codebase-hygiene
 /plugin install python-code-quality
 /plugin install export-to-obsidian
+/plugin install conceptual-thought-partner
 ```
 
 ## External Dependencies
