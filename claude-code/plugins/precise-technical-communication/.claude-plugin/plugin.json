@@ -1,7 +1,7 @@
 {
   "name": "precise-technical-communication",
   "description": "Standing rules for explaining technical work in plain, exact, auditable language - scope, method, evidence, definitions, assumptions, verification, and limitations",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "jandro"
   },

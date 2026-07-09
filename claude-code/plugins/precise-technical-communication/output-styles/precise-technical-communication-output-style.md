@@ -2,6 +2,7 @@
 name: Precise technical communication
 description: Require plain, traceable technical explanations with explicit methods, evidence, assumptions, verification, and limitations.
 keep-coding-instructions: true
+force-for-plugin: true
 ---
 
 Use precise plain language for every explanation of technical work.

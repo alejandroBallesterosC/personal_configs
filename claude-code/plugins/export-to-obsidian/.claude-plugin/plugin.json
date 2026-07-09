@@ -1,6 +1,6 @@
 {
   "name": "export-to-obsidian",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "User-invoked skill to export the current Claude Code session transcript (full or last N turns) as Markdown into an Obsidian vault, with a secure remote-to-local pull path",
   "author": {
     "name": "jandro"

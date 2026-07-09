@@ -1,7 +1,7 @@
 {
   "name": "playwright",
   "description": "Browser automation with @playwright/cli for token-efficient visual verification, screenshots, accessibility snapshots, and interactive testing. Uses @playwright/test for formal CI test files.",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "author": {
     "name": "jandro"
   },
