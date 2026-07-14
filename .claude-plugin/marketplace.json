@@ -79,12 +79,12 @@
       "category": "development"
     },
     {
-      "name": "export-to-obsidian",
-      "description": "User-invoked skill to export the current Claude Code session transcript (full or last N turns) as Markdown into an Obsidian vault, with a secure remote-to-local pull path",
+      "name": "export-to-clipboard",
+      "description": "User-invoked skill to export the current Claude Code session transcript (full or last N turns) as Markdown, writing to a local Obsidian vault or copying to the clipboard via OSC 52 when run remotely",
       "author": {
         "name": "jandro"
       },
-      "source": "./claude-code/plugins/export-to-obsidian",
+      "source": "./claude-code/plugins/export-to-clipboard",
       "category": "productivity"
     },
     {

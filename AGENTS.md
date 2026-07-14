@@ -1,6 +1,6 @@
 # Personal Configs
 
-Claude Code plugin marketplace repository. Contains 10 plugins (Core Workflow, Clear Writing, Playwright, Infrastructure-as-Code, Notify, Precise Technical Communication, Codebase Hygiene, Python Code Quality, Export to Obsidian, Conceptual Thought Partner). No global Claude Code configuration (CLAUDE.md template, global commands/agents/docs) lives here — those are maintained elsewhere and this repo installs only via the plugin system.
+Claude Code plugin marketplace repository. Contains 10 plugins (Core Workflow, Clear Writing, Playwright, Infrastructure-as-Code, Notify, Precise Technical Communication, Codebase Hygiene, Python Code Quality, Export to Clipboard, Conceptual Thought Partner). No global Claude Code configuration (CLAUDE.md template, global commands/agents/docs) lives here — those are maintained elsewhere and this repo installs only via the plugin system.
 
 ## Architecture
 
@@ -15,7 +15,7 @@ claude-code/
     ├── precise-technical-communication/ # 1 skill (precise, auditable technical reporting)
     ├── codebase-hygiene/ # 2 skills + 1 PreToolUse hook (documentation currency, AGENTS.md/CLAUDE.md pairing, .documentation-check manifest)
     ├── python-code-quality/ # 1 skill (Python code-quality principles)
-    ├── export-to-obsidian/ # 1 user-only skill + Python renderer + bash export/pull scripts (session transcript -> Obsidian vault)
+    ├── export-to-clipboard/ # 1 user-only skill + Python renderer + bash export script (session transcript -> Obsidian vault, OSC 52 clipboard copy when remote)
     └── conceptual-thought-partner/ # 1 Fable subagent (conceptual sparring, architecture review; never implements)
 AGENTS.md          # This file (canonical shared instructions; CLAUDE.md imports it)
 docs/CODEBASE.md   # Repo analysis

@@ -40,7 +40,7 @@ personal_configs/
 │       ├── precise-technical-communication/ # 1 skill + output style
 │       ├── codebase-hygiene/       # 2 skills + 1 PreToolUse hook (with smoke tests)
 │       ├── python-code-quality/    # 1 skill (Python code-quality principles)
-│       ├── export-to-obsidian/     # 1 user-only skill + Python renderer + bash export/pull scripts (with tests)
+│       ├── export-to-clipboard/    # 1 user-only skill + Python renderer + bash export script (with tests)
 │       └── conceptual-thought-partner/ # 1 Fable subagent (conceptual sparring/architecture review; never implements)
 ├── .claude-plugin/                 # Marketplace manifest (marketplace.json)
 ├── .claude/                        # Project-level Claude Code config (this repo's own session)
@@ -187,17 +187,16 @@ Repo-specific required docs are declared per-repo in a root `.documentation-chec
 
 Python-specific code-quality principles: verification-first, runtime-validated (Pydantic at boundaries), legible artifacts, with anti-overengineering guardrails. Covers contract-driven design, golden/expect tests, deleting dead code from evidence, and the rejected anti-patterns (e.g. static type-checker CI gates that buy no runtime guarantee).
 
-### export-to-obsidian — Session Transcript Export
+### export-to-clipboard — Session Transcript Export
 
-**Components**: 1 user-only skill, a Python renderer, bash export/pull scripts, renderer tests
+**Components**: 1 user-only skill, a Python renderer, a bash export script, renderer tests
 
-Exports the current Claude Code session's transcript (full, or last N turns) as Markdown into an Obsidian vault. The skill sets `disable-model-invocation: true`, so it is invocable only by the user typing `/export-to-obsidian:export-to-obsidian [N]` — Claude cannot self-invoke it (its description is not even loaded into Claude's context).
+Exports the current Claude Code session's transcript (full, or last N turns) as Markdown into an Obsidian vault when local, or to the clipboard when remote. The skill sets `disable-model-invocation: true`, so it is invocable only by the user typing `/export-to-clipboard:export-to-clipboard [N]` — Claude cannot self-invoke it (its description is not even loaded into Claude's context).
 
 - **Renderer** (`render_transcript.py`, Python 3 stdlib): locates the current session's JSONL by **session identity** — globbing `~/.claude/projects/*/` for `<CLAUDE_SESSION_ID>.jsonl` — rather than reconstructing the path from the cwd, because the project-dir slug is lossy (`/`, `_`, `.`, spaces all collapse to `-`) and branch-derived for git worktrees. Groups lines into turns (a genuine `user` prompt is a string-content, non-`isMeta`, non-`tool_result` line) and renders tool calls/results/thinking as collapsible `<details>` blocks.
-- **Entry point** (`export.sh`, bash): detects local vs. remote (SSH env vars + process-ancestry fallback). Local writes to `$CLAUDE_CODE_OBSIDIAN_EXPORT_PATH/claude-code-transcripts/`; remote stages the file and prints a local-pull command.
-- **Local puller** (`local-puller/cc-obsidian-pull.sh`, installed on the user's Mac): shows an `osascript` Allow/Deny dialog, then `rsync`/`scp`s the staged file from the dev box into the vault using the user's existing local→remote SSH credentials. The remote box is given no inbound path to the local machine — the transfer is local-initiated and per-invocation-approved by design.
+- **Entry point** (`export.sh`, bash): detects local vs. remote (SSH env vars + process-ancestry fallback). Local writes to `$CLAUDE_CODE_OBSIDIAN_EXPORT_PATH/claude-code-transcripts/`. Remote copies the rendered Markdown to the user's local clipboard via an OSC 52 escape sequence (the same mechanism the built-in `/copy` command uses), written directly to the pty device backing the `claude` process (found by walking process ancestry, since a Bash-tool subprocess has no controlling terminal of its own). This requires `set-clipboard on` and `allow-passthrough on` on the *live* tmux server — checked before writing, since tmux does not hot-reload `~/.tmux.conf` — and requires the pane to be focused at write time, a failure mode the script cannot detect (tmux deliberately withholds clipboard-set from unfocused panes; see [tmux#3793](https://github.com/tmux/tmux/issues/3793)).
 
-**Dependencies**: `python3` (renderer); `rsync`/`scp`+`ssh` and `osascript` (local pull, macOS). `CLAUDE_CODE_OBSIDIAN_EXPORT_PATH` points at the vault.
+**Dependencies**: `python3` (renderer); `tmux` with `set-clipboard`/`allow-passthrough` on, and an OSC 52-capable local terminal (e.g. Ghostty, iTerm2) for the remote clipboard copy. `CLAUDE_CODE_OBSIDIAN_EXPORT_PATH` points at the vault.
 
 ### Other Plugins
 

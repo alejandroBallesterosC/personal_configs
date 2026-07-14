@@ -16,7 +16,7 @@ personal_configs/
 │       ├── precise-technical-communication/ # 1 skill
 │       ├── codebase-hygiene/        # 2 skills + 1 PreToolUse hook (documentation currency & AGENTS.md/CLAUDE.md pairing)
 │       ├── python-code-quality/     # 1 skill (Python code-quality principles)
-│       ├── export-to-obsidian/      # 1 user-only skill + Python/bash scripts (session transcript -> Obsidian vault)
+│       ├── export-to-clipboard/     # 1 user-only skill + Python/bash scripts (session transcript -> Obsidian vault, or clipboard when remote)
 │       └── conceptual-thought-partner/ # 1 Fable subagent (conceptual sparring/architecture review; never implements)
 ├── .claude-plugin/                  # Marketplace manifest (marketplace.json)
 ├── .vscode/                         # VS Code tasks
@@ -59,7 +59,7 @@ See `claude-code/plugins/core-workflow/README.md` for full details.
 | **notify** | Terminal bell + macOS banner notifications | 2 hooks (Notification, Stop) |
 | **codebase-hygiene** | Keep docs current & agent instruction files paired; pre-commit documentation guard | 2 skills, 1 PreToolUse hook |
 | **python-code-quality** | Python code-quality principles (Pydantic at boundaries, anti-overengineering) | 1 skill |
-| **export-to-obsidian** | User-invoked export of the current session transcript (full or last N turns) to an Obsidian vault, with a secure remote→local pull | 1 user-only skill + scripts |
+| **export-to-clipboard** | User-invoked export of the current session transcript (full or last N turns) to an Obsidian vault, or to the clipboard via OSC 52 when running remotely | 1 user-only skill + scripts |
 | **conceptual-thought-partner** | Senior engineering/research thought partner on Claude Fable — stress-tests approaches and architecture conversationally; read-only, never implements | 1 Fable subagent |
 
 ## Installation
@@ -84,7 +84,7 @@ Then install plugins:
 /plugin install notify
 /plugin install codebase-hygiene
 /plugin install python-code-quality
-/plugin install export-to-obsidian
+/plugin install export-to-clipboard
 /plugin install conceptual-thought-partner
 ```
 
