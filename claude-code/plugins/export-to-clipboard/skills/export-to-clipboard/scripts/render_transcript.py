@@ -22,6 +22,7 @@ of ``tool_result`` blocks).
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -200,11 +201,56 @@ def _stringify(content) -> str:
     return str(content)
 
 
+_COMMAND_NAME_RE = re.compile(r"<command-name>(.*?)</command-name>", re.DOTALL)
+_COMMAND_ARGS_RE = re.compile(r"<command-args>(.*?)</command-args>", re.DOTALL)
+
+
+def _humanize_prompt_text(text: str) -> str:
+    """Reformat a slash-command invocation's raw XML into a readable line.
+
+    The CLI records a slash-command prompt (e.g. ``/goal some text``) as
+    ``<command-name>``, ``<command-message>``, and ``<command-args>`` tags
+    (in either order — plugin-namespaced commands emit ``<command-message>``
+    first, built-ins emit ``<command-name>`` first) rather than as the plain
+    text the user typed. Left as-is, that XML is quoted verbatim into the
+    blockquote and reads as raw tags instead of the command the user ran.
+    """
+    stripped = text.strip()
+    name_match = _COMMAND_NAME_RE.search(stripped)
+    if not name_match or not stripped.startswith("<command-"):
+        return text
+    name = name_match.group(1).strip()
+    args_match = _COMMAND_ARGS_RE.search(stripped)
+    command_args = args_match.group(1).strip() if args_match else ""
+    # command_args can be a short literal (a path, a model name) or a long prose
+    # argument (e.g. /goal's freeform instructions) — render as plain typed text
+    # either way, since that is what the user actually typed at the prompt.
+    return f"{name} {command_args}" if command_args else name
+
+
 def _truncate(text: str) -> str:
     if len(text) <= _TOOL_RESULT_LIMIT:
         return text
     omitted = len(text) - _TOOL_RESULT_LIMIT
     return text[:_TOOL_RESULT_LIMIT] + f"\n… [{omitted} more characters truncated]"
+
+
+def _callout(kind: str, title: str, body: str, collapsed: bool = True) -> str:
+    """Render an Obsidian callout: a foldable blockquote box.
+
+    Callouts are used instead of raw ``<details>`` HTML because CommonMark's
+    raw-HTML-block rule ends a block like ``<details>`` at the first blank line
+    inside it — which nested fenced code always introduces — leaving the
+    fenced code and the closing tag to fall through as literal, unrendered
+    text. A blockquote has no such rule: every line (blank ones included) just
+    needs a leading ``>`` to stay part of the block, so nested fenced code
+    renders correctly.
+    """
+    marker = "-" if collapsed else "+"
+    lines = [f"> [!{kind}]{marker} {title}", ">"]
+    for body_line in body.splitlines():
+        lines.append(f"> {body_line}" if body_line else ">")
+    return "\n".join(lines)
 
 
 def _render_assistant_block(block: dict) -> str | None:
@@ -216,25 +262,21 @@ def _render_assistant_block(block: dict) -> str | None:
         thinking = block.get("thinking", "").strip()
         if not thinking:
             return None
-        return f"<details>\n<summary>Thinking</summary>\n\n{thinking}\n\n</details>"
+        return _callout("quote", "Thinking", thinking)
     if btype == "tool_use":
         name = block.get("name", "tool")
         tool_input = block.get("input", {})
         pretty = json.dumps(tool_input, indent=2, ensure_ascii=False)
-        return (
-            f"<details>\n<summary>🛠️ Tool call: <code>{name}</code></summary>\n\n"
-            f"{_fence(pretty, 'json')}\n\n</details>"
-        )
+        return _callout("abstract", f"🛠️ Tool call: {name}", _fence(pretty, "json"))
     return None
 
 
 def _render_tool_result(block: dict) -> str:
     is_error = block.get("is_error")
-    label = "❌ Tool result (error)" if is_error else "Tool result"
+    kind = "failure" if is_error else "success"
+    label = "Tool result (error)" if is_error else "Tool result"
     body = _truncate(_stringify(block.get("content", "")).rstrip())
-    return (
-        f"<details>\n<summary>{label}</summary>\n\n{_fence(body)}\n\n</details>"
-    )
+    return _callout(kind, label, _fence(body))
 
 
 def _render_event(obj: dict) -> list[str]:
@@ -285,7 +327,9 @@ def render_markdown(turns: list[dict], transcript_path: Path, note: str | None =
         lines.append(heading)
         lines.append("")
 
-        prompt_text = _stringify(prompt.get("message", {}).get("content", "")).strip()
+        prompt_text = _humanize_prompt_text(
+            _stringify(prompt.get("message", {}).get("content", "")).strip()
+        )
         lines.append("**User:**")
         lines.append("")
         for prompt_line in prompt_text.splitlines() or [""]:

@@ -143,7 +143,7 @@ class RenderingTests(unittest.TestCase):
         self.assertIn("q4", md)
         self.assertNotIn("q0", md)
 
-    def test_tool_call_and_result_render_as_details(self):
+    def test_tool_call_and_result_render_as_callouts(self):
         path = write_jsonl(
             [
                 user_prompt("run it"),
@@ -154,7 +154,9 @@ class RenderingTests(unittest.TestCase):
         turns = rt.load_turns(path)
         md = rt.render_markdown(turns, path)
         path.unlink()
-        self.assertIn("<details>", md)
+        self.assertIn("> [!abstract]-", md)
+        self.assertIn("> [!success]-", md)
+        self.assertNotIn("<details>", md)
         self.assertIn("Tool call", md)
         self.assertIn("Bash", md)
         self.assertIn("output here", md)
@@ -196,6 +198,59 @@ class RenderingTests(unittest.TestCase):
         md = rt.render_markdown(turns, path)
         path.unlink()
         self.assertIn("````", md)  # fence widened to 4+ backticks
+
+    def test_slash_command_invocation_humanized(self):
+        # The CLI records a slash-command prompt as raw XML rather than the text the
+        # user typed; it must render as a readable command line, not literal tags.
+        path = write_jsonl(
+            [
+                user_prompt(
+                    "<command-name>/goal</command-name>\n            "
+                    "<command-message>goal</command-message>\n            "
+                    "<command-args>improve the reward function</command-args>"
+                ),
+            ]
+        )
+        turns = rt.load_turns(path)
+        md = rt.render_markdown(turns, path)
+        path.unlink()
+        self.assertNotIn("<command-name>", md)
+        self.assertNotIn("<command-args>", md)
+        self.assertIn("/goal improve the reward function", md)
+
+    def test_slash_command_invocation_with_message_first_humanized(self):
+        # Plugin-namespaced commands emit <command-message> before <command-name>;
+        # the humanizer must not assume a fixed tag order.
+        path = write_jsonl(
+            [
+                user_prompt(
+                    "<command-message>core-workflow:readonly</command-message>\n"
+                    "<command-name>/core-workflow:readonly</command-name>\n"
+                    "<command-args>what is the reward function?</command-args>"
+                ),
+            ]
+        )
+        turns = rt.load_turns(path)
+        md = rt.render_markdown(turns, path)
+        path.unlink()
+        self.assertNotIn("<command-name>", md)
+        self.assertIn("/core-workflow:readonly what is the reward function?", md)
+
+    def test_slash_command_invocation_without_args_humanized(self):
+        path = write_jsonl(
+            [
+                user_prompt(
+                    "<command-name>/clear</command-name>\n            "
+                    "<command-message>clear</command-message>\n            "
+                    "<command-args></command-args>"
+                ),
+            ]
+        )
+        turns = rt.load_turns(path)
+        md = rt.render_markdown(turns, path)
+        path.unlink()
+        self.assertNotIn("<command-name>", md)
+        self.assertIn("> /clear", md)
 
     def test_truncation(self):
         big = "x" * (rt._TOOL_RESULT_LIMIT + 500)

@@ -1,6 +1,6 @@
 {
   "name": "export-to-clipboard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "User-invoked skill to export the current Claude Code session transcript (full or last N turns) as Markdown, writing to a local Obsidian vault or copying to the clipboard via OSC 52 when run remotely",
   "author": {
     "name": "jandro"
