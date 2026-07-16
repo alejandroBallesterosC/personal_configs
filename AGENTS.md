@@ -26,6 +26,7 @@ docs/CODEBASE.md   # Repo analysis
 - **Plugin structure**: Each plugin has `commands/`, `agents/`, `skills/`, optional `hooks/`
 - **Agent YAML frontmatter**: Defines `name`, `description`, `model` (`inherit`|`sonnet`|`opus`|`haiku`|`fable`|full model ID), optional `color` and `tools`
 - **Skill activation**: Skills auto-activate when context matches their description
+- **Version bumping**: Any time a change is made to a Claude Code plugin you MUST bump (increase) the version number in the plugin's `plugin.json` so that it registers as having been updated
 - **Hooks**: Event-driven automation — `notify` uses Stop/Notification hooks; `codebase-hygiene` uses a PreToolUse hook to guard commits
 - **Project-level hooks** (`.claude/hooks/`): `document-learnings.sh` Stop hook prompts Claude to document architectural decisions and insights after implementation work
 
