@@ -1,5 +1,7 @@
 ---
-description: Understand a codebase in a single pass using parallel subagents
+name: understand-repo
+description: Understand a codebase in a single pass using parallel subagents. User-invoked only.
+disable-model-invocation: true
 allowed-tools: Read, Grep, Glob, Bash, Agent
 ---
 

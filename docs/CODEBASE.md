@@ -32,7 +32,7 @@ A Claude Code plugin marketplace repository. Contains almost no application code
 personal_configs/
 ├── claude-code/
 │   └── plugins/ (10 active)
-│       ├── core-workflow/          # 6 commands, 6 skills, 1 agent
+│       ├── core-workflow/          # 12 skills (6 user-invoked, 6 auto-activating), 1 agent
 │       ├── clear-writing/          # 1 skill (clear, plain-style prose)
 │       ├── playwright/             # 1 skill (browser automation, CLI-based)
 │       ├── infrastructure-as-code/ # 1 command, 1 skill
@@ -115,7 +115,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 |----------|--------|-------------|----------|
 | Plugin encapsulation | Self-contained dirs with manifests | Flat global commands | Isolation + marketplace distribution vs. more complex installation |
 | Plugins-only repo | Removed global Claude Code config (CLAUDE.md template, global commands/agents/docs) and the Cursor IDE mirror from this repo | Keep global config + IDE mirror alongside plugins | Single clear purpose (a plugin marketplace) and no symlink/sync-script maintenance vs. those configs now need to live and be maintained elsewhere |
-| Condense to one lean plugin | `core-workflow` bundles 6 skills, 6 commands, 1 agent from what were 6 separate plugins | Keep many small plugins | Smaller system-prompt footprint and less to maintain vs. losing some workflow-specific naming/namespacing |
+| Condense to one lean plugin | `core-workflow` bundles 12 skills (6 auto-activating, 6 user-invoked) and 1 agent from what were 6 separate plugins | Keep many small plugins | Smaller system-prompt footprint and less to maintain vs. losing some workflow-specific naming/namespacing |
 | Skills over hooks/state machines | Checklists applied directly by the model each time | Stop-hook gates + YAML state files + phase commands | Simpler, no external deps, no infinite-loop risk between competing hooks vs. no hard enforcement — relies on the model actually applying the skill |
 | Drop TDD Stop-hook gate | Plain `tdd-discipline` skill guidance | Hook that blocks session exit until tests pass | No forced verification gate vs. no hook-ordering conflicts, works even if the model forgets once |
 | Drop Ralph-loop / hand-rolled iteration engines | Rely on native Claude Code capabilities (Plan Mode, TaskCreate/TaskList, the Workflow tool) for multi-step or long-running work | Bespoke bash while-loop Stop hooks per plugin | Less custom scaffolding to maintain vs. losing the single-session transcript-persistence guarantee those hooks provided |
@@ -125,7 +125,7 @@ Each plugin is self-contained in `.claude-plugin/plugin.json`:
 ### Conventions Enforced
 1. **ABOUTME comments**: Code files start with 2-line `# ABOUTME:` comments where applicable
 2. **YAML frontmatter**: Commands, agents, skills all use structured YAML headers
-3. **Read-only commands**: All `core-workflow` commands explicitly forbid file edits, commits, and pushes
+3. **Read-only orchestration skills**: All `core-workflow` user-invoked skills explicitly forbid file edits, commits, and pushes
 4. **Announce-at-start convention**: Skills like `tdd-discipline`, `structured-debug`, and `using-git-worktrees` announce activation at the start of use
 
 ### Shell Script Quality
@@ -139,11 +139,11 @@ By design — repo contains only Markdown, JSON, and Bash (no application code t
 
 ### core-workflow (v1.0.0) — TDD, Debugging, Plan Review, Research, LaTeX, Codebase Understanding
 
-**Components**: 6 commands, 6 skills, 1 agent, no hooks
+**Components**: 12 skills (6 user-invoked, 6 auto-activating), 1 agent, no hooks
 
-**Commands**:
-| Command | Purpose |
-|---------|---------|
+**User-invoked skills** (`disable-model-invocation: true` — run only when typed as a slash command, never auto-triggered):
+| Skill | Purpose |
+|-------|---------|
 | `readonly` | Run a prompt in read-only mode |
 | `research` | Wave-based parallel `web-researcher` internet research |
 | `understand-repo` | Single-pass codebase understanding: 5 parallel `Explore` agents (System Purpose, Tech Stack, Architecture, Boundaries, Design Decisions), synthesized into an architecture diagram + prioritized reading list |
@@ -151,7 +151,7 @@ By design — repo contains only Markdown, JSON, and Bash (no application code t
 | `explain-all-changes-since` | Fetches all remote branches, filters commits by collaborators (excluding the current user) since a date/time, summarizes via parallel agents |
 | `explain-branch-changes-since` | Same, scoped to the current branch's upstream, accepts a date/time or commit hash |
 
-**Skills**:
+**Auto-activating skills**:
 | Skill | Purpose |
 |-------|---------|
 | `tdd-discipline` | RED/GREEN/REFACTOR guidance, real-APIs-over-mocks rule, boundary testing |
@@ -161,7 +161,7 @@ By design — repo contains only Markdown, JSON, and Bash (no application code t
 | `research-methodology` | Evidence rigor discipline — what a source proves vs. asserts, gap ratings, overstatement audits |
 | `latex-report` | Argument-driven LaTeX report structure, single-voice writing discipline, pdflatex/bibtex compile pipeline (bundles `report-template.tex` and `voice-guide-template.md` as reference files) |
 
-**Agent**: `web-researcher` — internet research specialist, used by `/research`.
+**Agent**: `web-researcher` — internet research specialist, used by `/core-workflow:research`.
 
 ### notify — Terminal Notifications
 

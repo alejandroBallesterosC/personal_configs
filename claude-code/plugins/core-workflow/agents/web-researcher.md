@@ -86,6 +86,6 @@ Produce a structured report:
 
 When multiple instances research different focuses simultaneously:
 - Each instance focuses on its assigned area
-- Findings will be synthesized by the orchestrating command
+- Findings will be synthesized by the orchestrating skill
 - Some overlap is acceptable and often valuable
 - Don't assume other instances will cover something

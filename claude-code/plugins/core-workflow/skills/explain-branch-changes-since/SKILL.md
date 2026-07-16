@@ -1,5 +1,7 @@
 ---
-description: Summarize changes pushed by collaborators to the remote version of your current branch since a date/time or commit
+name: explain-branch-changes-since
+description: Summarize changes pushed by collaborators to the remote version of your current branch since a date/time or commit. User-invoked only.
+disable-model-invocation: true
 argument-hint: <date-time-or-commit-hash> [timezone]
 allowed-tools: Read, Grep, Glob, Bash, Agent
 ---
@@ -14,7 +16,7 @@ Fetch the remote tracking branch of the branch you currently have checked out, a
 
 The user's arguments are: **$ARGUMENTS**
 
-- If no cutoff was provided (neither a date/time nor a commit hash), respond with "Usage: /explain-branch-changes-since <date-time-or-commit-hash> [timezone]  You must specify a cutoff." and stop.
+- If no cutoff was provided (neither a date/time nor a commit hash), respond with "Usage: /core-workflow:explain-branch-changes-since <date-time-or-commit-hash> [timezone]  You must specify a cutoff." and stop.
 - Determine whether the cutoff is a commit hash or a date/time:
   - If it resolves via `git cat-file -e <cutoff>^{commit}`, treat it as a commit hash.
   - Otherwise treat it as a date/time. If a timezone was also provided, use it; if not, **assume Eastern Time (America/New_York)** — use the IANA timezone name so daylight saving is handled automatically.
@@ -59,7 +61,7 @@ git diff --name-status <oldest-qualifying-commit>^..@{upstream}
 
 ## STEP 4: LAUNCH PARALLEL ANALYSIS AGENTS
 
-Launch agents in parallel (single message, multiple Agent tool calls) mirroring the `/compare-branch-to-another` structure, scoped to just the qualifying commits:
+Launch agents in parallel (single message, multiple Agent tool calls) mirroring the `/core-workflow:compare-branch-to-another` structure, scoped to just the qualifying commits:
 
 - **Agent 1** (`subagent_type: "Explore"`) — Structural & Architectural Impact: what files/modules are touched, categorize by type, dependency changes.
 - **Agent 2** (`subagent_type: "Explore"`) — Logic & Behavior Changes: what the changes actually do, new/removed behavior, API/contract changes.
@@ -100,6 +102,6 @@ Give every agent the qualifying commit list (author, date, subject) and the full
 
 ## IMPORTANT NOTES
 
-- This command is strictly read-only: no checkout, no merge, no push, no file edits.
+- This skill is strictly read-only: no checkout, no merge, no push, no file edits.
 - If the diff is extremely large, summarize the most impactful changes and note truncation.
 - If a commit's author name/email doesn't clearly match or exclude the current user, err on the side of including it and flag the ambiguity rather than silently dropping it.

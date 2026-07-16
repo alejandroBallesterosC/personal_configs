@@ -1,13 +1,15 @@
 # core-workflow
 
-A lean set of commands, skills, and an agent for the day-to-day work that still benefits from a bit of structure: TDD, debugging, plan review, research rigor, LaTeX reports, understanding a codebase, and reviewing what collaborators have pushed.
+A lean set of skills and an agent for the day-to-day work that still benefits from a bit of structure: TDD, debugging, plan review, research rigor, LaTeX reports, understanding a codebase, and reviewing what collaborators have pushed.
 
-No hooks. No workflow state machines. Skills are checklists Claude applies directly; commands are one-shot orchestrations of parallel subagents.
+No hooks. No workflow state machines. Auto-activating skills are checklists Claude applies directly; user-invoked skills are one-shot orchestrations of parallel subagents that only run when you type their slash command.
 
-## Commands
+## User-invoked skills
 
-| Command | Purpose |
-|---------|---------|
+These skills are invoked by typing their slash command and never trigger on their own (`disable-model-invocation: true`). All are read-only: no file edits, no commits, no pushes.
+
+| Skill | Purpose |
+|-------|---------|
 | `/core-workflow:readonly <prompt>` | Run a prompt in read-only mode (no file edits, no git changes) |
 | `/core-workflow:research <topic>` | Thorough internet research via waves of parallel `web-researcher` subagents |
 | `/core-workflow:understand-repo` | Single-pass codebase understanding: 5 parallel explorers, an architecture diagram, and a prioritized reading list |
@@ -15,9 +17,9 @@ No hooks. No workflow state machines. Skills are checklists Claude applies direc
 | `/core-workflow:explain-all-changes-since <date-time> [timezone]` | Fetch all remote branches and summarize what collaborators (not you) pushed since a cutoff |
 | `/core-workflow:explain-branch-changes-since <date-time-or-commit> [timezone]` | Fetch your branch's upstream and summarize what collaborators pushed to it since a cutoff |
 
-All commands are read-only: no file edits, no commits, no pushes.
+## Auto-activating skills
 
-## Skills
+These activate automatically when the request matches their description, or can be invoked directly.
 
 | Skill | Purpose |
 |-------|---------|
@@ -28,11 +30,9 @@ All commands are read-only: no file edits, no commits, no pushes.
 | `research-methodology` | Evidence rigor discipline — what a source proves vs. asserts, gap ratings, overstatement audits |
 | `latex-report` | Argument-driven LaTeX report structure, single-voice writing discipline, and the pdflatex/bibtex compile pipeline |
 
-Skills activate automatically when the request matches their description, or can be invoked directly.
-
 ## Agent
 
-- `web-researcher` — internet research specialist used by `/research`, spawnable standalone for parallel research tasks.
+- `web-researcher` — internet research specialist used by `/core-workflow:research`, spawnable standalone for parallel research tasks.
 
 ## Dependencies
 

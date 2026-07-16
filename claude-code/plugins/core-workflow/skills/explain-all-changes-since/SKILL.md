@@ -1,5 +1,7 @@
 ---
-description: Summarize all changes pushed by collaborators across every remote branch since a given date/time
+name: explain-all-changes-since
+description: Summarize all changes pushed by collaborators across every remote branch since a given date/time. User-invoked only.
+disable-model-invocation: true
 argument-hint: <date-time> [timezone]
 allowed-tools: Read, Grep, Glob, Bash, Agent
 ---
@@ -14,7 +16,7 @@ Fetch every remote branch and synthesize what other collaborators (not you) have
 
 The user's arguments are: **$ARGUMENTS**
 
-- If no date/time was provided, respond with "Usage: /explain-all-changes-since <date-time> [timezone]  You must specify a cutoff date/time." and stop.
+- If no date/time was provided, respond with "Usage: /core-workflow:explain-all-changes-since <date-time> [timezone]  You must specify a cutoff date/time." and stop.
 - If a timezone was provided, use it. If none was provided, **assume Eastern Time (America/New_York)** — use the IANA timezone name (not a fixed UTC offset) so daylight saving is handled automatically.
 - Confirm a remote is configured: `git remote -v`. If empty, respond with "No git remote is configured for this repository." and stop.
 
@@ -97,6 +99,6 @@ Combine all agents' reports into one response to the user:
 
 ## IMPORTANT NOTES
 
-- This command is strictly read-only: no checkout, no merge, no push, no file edits.
+- This skill is strictly read-only: no checkout, no merge, no push, no file edits.
 - If the diff for a branch is extremely large, note that it was summarized rather than fully analyzed line-by-line.
 - If a commit's author name/email doesn't clearly match or exclude the current user (e.g. multiple emails), err on the side of including it and note the ambiguity in the report rather than silently dropping it.

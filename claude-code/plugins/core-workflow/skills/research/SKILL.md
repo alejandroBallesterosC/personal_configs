@@ -1,5 +1,7 @@
 ---
-description: Conduct thorough internet research on a topic using waves of parallel subagents
+name: research
+description: Conduct thorough internet research on a topic using waves of parallel subagents. User-invoked only.
+disable-model-invocation: true
 argument-hint: <question or topic to research>
 allowed-tools: Agent, Read
 ---

@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "core-workflow",
-      "description": "Lean set of commands, skills, and an agent for TDD, debugging, plan review, research rigor, LaTeX reports, codebase understanding, and reviewing collaborators' remote changes",
+      "description": "Lean set of skills and an agent for TDD, debugging, plan review, research rigor, LaTeX reports, codebase understanding, and reviewing collaborators' remote changes",
       "author": {
         "name": "jandro"
       },

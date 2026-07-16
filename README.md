@@ -8,7 +8,7 @@ A Claude Code plugin marketplace. Contains 10 plugins, installed via the plugin 
 personal_configs/
 ├── claude-code/
 │   └── plugins/                     # 10 encapsulated workflow plugins
-│       ├── core-workflow/           # 6 commands, 6 skills, 1 agent (TDD, debugging, plan review, research rigor, LaTeX reports, codebase understanding, remote-change review)
+│       ├── core-workflow/           # 12 skills (6 user-invoked, 6 auto-activating), 1 agent (TDD, debugging, plan review, research rigor, LaTeX reports, codebase understanding, remote-change review)
 │       ├── clear-writing/           # 1 skill (clear, plain-style prose)
 │       ├── playwright/              # Browser automation (1 skill, token-efficient CLI)
 │       ├── infrastructure-as-code/  # 1 command, 1 skill
@@ -30,9 +30,9 @@ personal_configs/
 
 ### `claude-code/plugins/core-workflow/`
 
-A lean set of commands, skills, and an agent for TDD, debugging, plan review, research rigor, LaTeX reports, understanding a codebase, and reviewing what collaborators have pushed. No hooks, no workflow state machines — skills are checklists applied directly, commands are one-shot orchestrations of parallel subagents.
+A lean set of skills and an agent for TDD, debugging, plan review, research rigor, LaTeX reports, understanding a codebase, and reviewing what collaborators have pushed. No hooks, no workflow state machines — auto-activating skills are checklists applied directly, user-invoked skills are one-shot orchestrations of parallel subagents that run only when you type their slash command.
 
-**Commands:**
+**User-invoked skills** (typed as slash commands; never auto-trigger):
 ```bash
 /core-workflow:readonly <prompt>                                       # Run a prompt in read-only mode
 /core-workflow:research <topic>                                        # Thorough internet research via parallel web-researcher subagents
@@ -42,9 +42,9 @@ A lean set of commands, skills, and an agent for TDD, debugging, plan review, re
 /core-workflow:explain-branch-changes-since <date-time-or-commit> [timezone]  # Summarize collaborators' pushes to your branch's upstream since a cutoff
 ```
 
-**Skills:** `tdd-discipline`, `structured-debug`, `using-git-worktrees`, `adversarial-plan-review`, `research-methodology`, `latex-report`
+**Auto-activating skills:** `tdd-discipline`, `structured-debug`, `using-git-worktrees`, `adversarial-plan-review`, `research-methodology`, `latex-report`
 
-**Agent:** `web-researcher` — internet research specialist used by `/research`
+**Agent:** `web-researcher` — internet research specialist used by `/core-workflow:research`
 
 See `claude-code/plugins/core-workflow/README.md` for full details.
 

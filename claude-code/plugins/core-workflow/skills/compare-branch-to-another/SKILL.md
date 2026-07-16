@@ -1,5 +1,7 @@
 ---
-description: Compare the current git branch against another branch using parallel subagents
+name: compare-branch-to-another
+description: Compare the current git branch against another branch using parallel subagents. User-invoked only.
+disable-model-invocation: true
 argument-hint: <other-branch>
 allowed-tools: Read, Grep, Glob, Bash, Agent
 ---
@@ -10,7 +12,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 Compare the current git branch against the branch the user has specified using **parallel subagents** to produce a thorough, multi-angle analysis of all differences between the two branches.
 
-If `<OTHER_BRANCH>` was not specified by the user in this prompt respond with "Usage: /compare-branch-to-another <OTHER_BRANCH>  You must specify another branch to compare this one to" and stop.
+If `<OTHER_BRANCH>` was not specified by the user in this prompt respond with "Usage: /core-workflow:compare-branch-to-another <OTHER_BRANCH>  You must specify another branch to compare this one to" and stop.
 
 If `<OTHER_BRANCH>` was specified by the user but doesn't exist, respond with "I could not find the branch you wish to compare this one to" and stop.
 

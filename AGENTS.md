@@ -7,7 +7,7 @@ Claude Code plugin marketplace repository. Contains 10 plugins (Core Workflow, C
 ```
 claude-code/
 └── plugins/           # 10 encapsulated plugins (installed via marketplace)
-    ├── core-workflow/  # 6 commands, 6 skills, 1 agent (TDD, debugging, plan review, research rigor, LaTeX reports, codebase understanding, remote-change review)
+    ├── core-workflow/  # 12 skills (6 user-invoked, 6 auto-activating), 1 agent (TDD, debugging, plan review, research rigor, LaTeX reports, codebase understanding, remote-change review)
     ├── clear-writing/  # 1 skill (clear, plain-style prose)
     ├── playwright/     # Browser automation (1 skill, token-efficient CLI)
     ├── infrastructure-as-code/ # 1 command, 1 skill
