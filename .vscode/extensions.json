@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "devin-ai-integration.devin-pyright",
+    "anysphere.cursorpyright",
+    "charliermarsh.ruff"
+  ]
+}

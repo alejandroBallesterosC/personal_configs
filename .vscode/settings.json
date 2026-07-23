@@ -1,19 +1,23 @@
 {
-  "python.venvPath": "${workspaceFolder}",
-  "python.venvFolders": [
-    "backend/",
-    "notebooks/"
-  ],
+  "python.venvPath": "${workspaceFolder}/api/.venv/bin/python",
   "python.terminal.activateEnvironment": false,
   "python.terminal.activateEnvInCurrentTerminal": false,
-  "python.analysis.autoSearchPaths": true,
-  "python.analysis.extraPaths": [
-    "${workspaceFolder}/backend/.venv/lib/python3.11/site-packages",
-    "${workspaceFolder}/notebooks/.venv/lib/python3.11/site-packages",
-  ],
   "files.exclude": {
     "**/__pycache__": true,
     "**/*.pyc": true,
     "**/.pytest_cache": true
+  },
+  "cursorpyright.analysis.autoSearchPaths": true,
+  "cursorpyright.analysis.extraPaths": [
+    "${workspaceFolder}/backend/.venv/lib/python3.11/site-packages",
+    "${workspaceFolder}/notebooks/.venv/lib/python3.11/site-packages"
+  ],
+    "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
   }
 }
