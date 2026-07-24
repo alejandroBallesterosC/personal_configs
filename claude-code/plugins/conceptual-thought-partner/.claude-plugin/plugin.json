@@ -1,7 +1,7 @@
 {
   "name": "conceptual-thought-partner",
-  "version": "1.0.0",
-  "description": "A Claude Fable subagent that acts as a senior engineering and research thought partner - stress-tests approaches, reviews architecture, and reasons through ambiguous problems conversationally, without ever doing implementation work",
+  "version": "1.2.0",
+  "description": "A senior engineering and research thought partner - stress-tests approaches, reviews architecture, and reasons through ambiguous problems conversationally, without ever doing implementation work. Provides a one-shot subagent and an interactive, user-invoked think skill for multi-turn discussion in a branched session that ends by writing a handoff document",
   "author": {
     "name": "jandro"
   },

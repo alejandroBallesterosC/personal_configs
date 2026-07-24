@@ -16,7 +16,7 @@ claude-code/
     ├── codebase-hygiene/ # 2 skills + 1 PreToolUse hook (documentation currency, AGENTS.md/CLAUDE.md pairing, .documentation-check manifest)
     ├── python-code-quality/ # 1 skill (Python code-quality principles)
     ├── export-to-clipboard/ # 1 user-only skill + Python renderer + bash export script (session transcript -> Obsidian vault, OSC 52 clipboard copy when remote)
-    └── conceptual-thought-partner/ # 1 Fable subagent (conceptual sparring, architecture review; never implements)
+    └── conceptual-thought-partner/ # 1 Fable subagent + 1 user-invoked skill (conceptual sparring, architecture review, interactive multi-turn discussion with handoff doc; never implements)
 AGENTS.md          # This file (canonical shared instructions; CLAUDE.md imports it)
 docs/CODEBASE.md   # Repo analysis
 ```

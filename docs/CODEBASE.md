@@ -41,7 +41,7 @@ personal_configs/
 │       ├── codebase-hygiene/       # 2 skills + 1 PreToolUse hook (with smoke tests)
 │       ├── python-code-quality/    # 1 skill (Python code-quality principles)
 │       ├── export-to-clipboard/    # 1 user-only skill + Python renderer + bash export script (with tests)
-│       └── conceptual-thought-partner/ # 1 Fable subagent (conceptual sparring/architecture review; never implements)
+│       └── conceptual-thought-partner/ # 1 Fable subagent + 1 user-invoked skill (conceptual sparring/architecture review, interactive multi-turn discussion; never implements)
 ├── .claude-plugin/                 # Marketplace manifest (marketplace.json)
 ├── .claude/                        # Project-level Claude Code config (this repo's own session)
 │   ├── commands/review-playwright-plugin.md
@@ -204,7 +204,7 @@ Exports the current Claude Code session's transcript (full, or last N turns) as 
 - **playwright**: Browser automation via `playwright-cli` (interactive) and `@playwright/test` (CI). Skill-only plugin — no commands, agents, or hooks
 - **infrastructure-as-code**: 1 command + 1 skill for Terraform/AWS
 - **precise-technical-communication**: 1 skill for plain, exact, auditable technical writing, plus an optional output style distributed outside the plugin's skill directory
-- **conceptual-thought-partner**: 1 subagent (`agents/conceptual-thought-partner.md`) pinned to Claude Fable via `model: fable`. Acts as a senior engineering/research thought partner — pressure-tests approaches, reviews architecture, and reasons through ambiguous problems conversationally. Restricted to read-only tools (`Read`, `Grep`, `Glob`) so it never implements, edits, or runs state-changing commands
+- **conceptual-thought-partner**: 1 subagent (`agents/conceptual-thought-partner.md`) pinned to Claude Fable via `model: fable`, plus 1 user-invoked skill (`skills/think/SKILL.md`, `disable-model-invocation: true`). Both act as a senior engineering/research thought partner — pressure-testing approaches, reviewing architecture, and reasoning through ambiguous problems conversationally. The subagent is a one-shot delegated worker with fresh context; the `think` skill is an interactive, multi-turn discussion meant to run inside a branched session (`/branch` then `/model fable`) so it inherits the working session's full context, and it can end by writing a single handoff document to `docs/thinking/` when the user explicitly asks. The subagent is restricted to read-only tools (`Read`, `Grep`, `Glob`). The skill declares the same `allowed-tools` but relies on plan mode for enforcement: the discussion runs in plan mode (entered manually with `Shift+Tab` as part of the activation ritual, since a skill cannot set its own permission mode), which hard-blocks every file edit; when the user says they are done and asks for the handoff, the skill calls `ExitPlanMode` — the approval prompt is the deliberate gate — then writes exactly one handoff file
 
 ## 8. Removed Content (Historical Note)
 
