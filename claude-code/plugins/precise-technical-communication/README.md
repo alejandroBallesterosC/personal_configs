@@ -49,7 +49,7 @@ Copy the optional file to the personal output styles directory:
 
 ```bash
 mkdir -p ~/.claude/output-styles
-cp optional/precise-technical-communication-output-style.md ~/.claude/output-styles/
+cp output-styles/precise-technical-communication-output-style.md ~/.claude/output-styles/
 ```
 
 Open `/config`, select `Precise technical communication` as the output style, then start a new session or run `/clear`.

@@ -4,13 +4,14 @@ description: Summarize all changes pushed by collaborators across every remote b
 disable-model-invocation: true
 argument-hint: <date-time> [timezone]
 allowed-tools: Read, Grep, Glob, Bash, Agent
+effort: xhigh
 ---
 
 # Explain All Changes Since
 
-Fetch every remote branch and synthesize what other collaborators (not you) have changed or added across ALL of them since a given date/time.
+Fetch every remote branch and synthesize what collaborators other than you have changed across all of them since a given date/time.
 
-## IMPORTANT: DO NOT EDIT ANY CODE, CHANGE ANY FILES, CHECK OUT ANY BRANCH, MERGE, OR MAKE ANY GIT ADDITIONS, COMMITS, OR PUSHES WHILE CARRYING OUT THESE INSTRUCTIONS.
+This is strictly read-only: no checkout, no merge, no push, no file edits, no commits.
 
 ## STEP 0: VALIDATE ARGUMENTS
 
@@ -51,7 +52,9 @@ git diff <oldest-qualifying-commit>^..<remote-branch>
 
 ## STEP 4: LAUNCH PARALLEL SUMMARIZATION AGENTS
 
-Launch one `subagent_type: "Explore"` agent per branch-with-qualifying-commits, in parallel (single message, multiple Agent tool calls). Give each agent:
+The user invoked this skill to get a parallel sweep, so delegate rather than reading every branch serially. Launch one `subagent_type: "Explore"` agent per branch with qualifying commits, all in a single message — the branch count sets the agent count. If a great many branches qualify, batch several small ones per agent rather than spawning an agent per trivial branch.
+
+Give each agent:
 
 ```
 You are summarizing commits pushed to a remote git branch by collaborators (not the repository's current user).
@@ -63,13 +66,13 @@ Commits (hash, author, date, subject):
 Diff:
 [insert the diff for this branch from Step 3]
 
-Your analysis tasks:
-1. Summarize what changed at a high level — new features, fixes, refactors, config/infra changes.
-2. For each distinct piece of work (group by author or by logical change, whichever is clearer), explain WHAT changed and WHY it likely matters.
-3. Flag anything that looks risky, breaking, or worth the repo owner's attention (schema changes, new dependencies, security-relevant changes, config changes).
-4. Note which author(s) made each change.
+Report:
+1. What changed at a high level — features, fixes, refactors, config and infra changes.
+2. For each distinct piece of work (grouped by author or by logical change, whichever is clearer), what changed and why it matters.
+3. Anything risky, breaking, or worth the repo owner's attention: schema changes, new dependencies, security-relevant changes, config changes.
+4. Which author made each change.
 
-Produce a structured report. Do not speculate beyond what the diff and commit messages show.
+Cite `file:line`. Do not speculate beyond what the diff and commit messages show; where intent is unclear, say the intent is unclear rather than guessing at it. This is read-only — do not edit any files.
 ```
 
 ## STEP 5: SYNTHESIZE
@@ -94,11 +97,12 @@ Combine all agents' reports into one response to the user:
 (repeat per branch)
 
 ## Cross-Branch Observations
-[Any patterns across branches — e.g. multiple branches touching the same area, coordinated work, conflicting approaches]
+[Patterns across branches — multiple branches touching the same area, coordinated work, conflicting approaches]
 ```
 
-## IMPORTANT NOTES
+Keep each branch's entry to a short paragraph plus its noteworthy changes. The reader wants to know what moved while they were away and what affects their own work, so lead with that rather than an exhaustive per-commit account.
 
-- This skill is strictly read-only: no checkout, no merge, no push, no file edits.
-- If the diff for a branch is extremely large, note that it was summarized rather than fully analyzed line-by-line.
-- If a commit's author name/email doesn't clearly match or exclude the current user (e.g. multiple emails), err on the side of including it and note the ambiguity in the report rather than silently dropping it.
+## Notes
+
+- If a branch's diff is very large, say it was summarized rather than analyzed line by line.
+- If a commit's author name or email does not clearly match or exclude the current user (for example the user has multiple emails), include it and note the ambiguity rather than dropping it silently.

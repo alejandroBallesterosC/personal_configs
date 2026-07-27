@@ -60,9 +60,9 @@ Use for: test files committed to the repo, CI pipeline tests, complex multi-step
 
 ---
 
-## Critical Rules
+## The core rule
 
-**NEVER claim a visual or layout fix is correct without taking a fresh screenshot and reading the PNG.** Visual verification requires actual rendered output. After every CSS or layout change, the cycle is: apply fix → screenshot → Read PNG → evaluate. Skipping the screenshot step guarantees unreliable results.
+**Do not claim a visual or layout fix is correct without taking a fresh screenshot and reading the PNG.** You cannot tell from the CSS whether a layout renders correctly — only the rendered output shows that. After every CSS or layout change the cycle is: apply fix, screenshot, Read the PNG, evaluate. Reasoning about the change instead of looking at it is how confidently-wrong layout claims happen.
 
 ---
 
@@ -194,10 +194,10 @@ playwright-cli run-code "await page.setViewportSize({width: WIDTH, height: HEIGH
 
 When writing `@playwright/test` files, these rules are non-negotiable:
 
-- **Tests MUST fail when the feature they test is broken.** If a test passes regardless of whether the feature works, the test is useless.
-- **NEVER inject JavaScript into tests that modifies app behavior.** Tests observe and assert — they do not patch the application.
-- **NEVER modify the DOM, inject styles, or override API responses inside test code to make assertions pass.** If a test requires changes to pass, make those changes in application code.
-- **NEVER delete or skip existing tests to make a test suite pass.** Fix the code, not the tests.
+- **A test must fail when the feature it tests is broken.** A test that passes either way measures nothing.
+- **Do not inject JavaScript that modifies application behavior.** Tests observe and assert; they do not patch the app.
+- **Do not modify the DOM, inject styles, or override API responses inside test code to make assertions pass.** If something must change for the test to pass, change the application code.
+- **Do not delete, skip, or weaken existing tests to get a green suite.** Fix the code instead. A suite made green this way is worse than a failing one, because it also destroys the signal.
 
 For writing formal test files committed to the repo and run in CI, use `@playwright/test`. See [API_REFERENCE.md](./API_REFERENCE.md) for:
 

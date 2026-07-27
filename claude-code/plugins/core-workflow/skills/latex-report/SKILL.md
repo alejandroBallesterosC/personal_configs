@@ -7,8 +7,6 @@ description: Argument-driven LaTeX report writing and compilation — single-voi
 
 Guidance for writing an argument-driven research report in LaTeX and compiling it to PDF. Covers three things: the report's structure, the single-voice writing discipline, and the compile pipeline. Apply directly — no separate agents or phases needed.
 
-**Announce at start:** "I'm using the latex-report skill for this report."
-
 ## Structure
 
 Use `references/report-template.tex` as the starting skeleton. It defines an argument-driven structure:
@@ -29,7 +27,7 @@ Before writing, decide (and write down, even briefly) the voice: audience, forma
 Writing rules:
 - Every paragraph makes a claim and cites evidence *for* that claim. A paragraph that's just sequential cite-statements ("Source X says Y. Source Z says W.") is notes, not writing — rewrite it to lead with the claim.
 - Every section/chapter closes with an interpretive paragraph, not a summary — state the judgment, the so-what.
-- Maximum 4-5 sentences per paragraph.
+- Maximum 4-5 sentences per paragraph. Length comes from the number of claims the evidence supports, not from elaborating each one — a chapter that has earned four claims should be four tight arguments, not four padded ones.
 - Use itemize/enumerate for any list of 3+ items — don't inline lists as comma-separated prose.
 - Every factual claim has an inline `\cite{key}`.
 - Preserve qualifications and evidence-gap ratings from your research (see the `research-methodology` skill) — if a finding only supports a claim with a MODERATE or WIDE gap, the prose must reflect that, not round it up to certainty.

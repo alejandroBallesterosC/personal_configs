@@ -236,8 +236,11 @@ printf 'print("hello")\n' >"$tmp/app.py"
 session_suffix=$(basename "$tmp")
 github_output=$(run_hook_in_repo "$tmp" claude "{\"cwd\":\"$tmp\",\"session_id\":\"github-mcp-test-$session_suffix\",\"tool_name\":\"mcp__github__create_pull_request\",\"tool_input\":{\"title\":\"Docs\"}}")
 rm -rf "$tmp"
-printf '%s' "$github_output" | grep -q '"decision":"block"' || fail "github MCP PR creation should block"
-printf '%s' "$github_output" | grep -q '"permissionDecision":"deny"' || fail "github MCP block should include Claude/Codex permissionDecision"
+printf '%s' "$github_output" | grep -q '"permissionDecision":"deny"' || fail "github MCP PR creation should block via permissionDecision"
+printf '%s' "$github_output" | grep -q '"hookEventName":"PreToolUse"' || fail "claude block should name the PreToolUse event"
+if printf '%s' "$github_output" | grep -q '"decision":"block"'; then
+  fail "claude block should not emit the deprecated top-level decision field"
+fi
 
 # Detection must key on command position, not substring. A plain space is not a shell command
 # separator, so `git`/`gh` appearing as an argument to another command must NOT trigger the guard.

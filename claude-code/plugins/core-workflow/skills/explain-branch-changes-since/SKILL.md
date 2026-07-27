@@ -4,74 +4,70 @@ description: Summarize changes pushed by collaborators to the remote version of 
 disable-model-invocation: true
 argument-hint: <date-time-or-commit-hash> [timezone]
 allowed-tools: Read, Grep, Glob, Bash, Agent
+effort: xhigh
 ---
 
 # Explain Branch Changes Since
 
-Fetch the remote tracking branch of the branch you currently have checked out, and synthesize what other collaborators (not you) have pushed to it since a given date/time or commit hash.
+Fetch the remote tracking branch of the currently checked-out branch and synthesize what collaborators other than you have pushed to it since a given date/time or commit.
 
-## IMPORTANT: DO NOT EDIT ANY CODE, CHANGE ANY FILES, CHECK OUT ANY BRANCH, MERGE, OR MAKE ANY GIT ADDITIONS, COMMITS, OR PUSHES WHILE CARRYING OUT THESE INSTRUCTIONS.
+This is strictly read-only: no checkout, no merge, no push, no file edits, no commits.
 
-## STEP 0: VALIDATE ARGUMENTS AND STATE
+## Step 0: Validate arguments and state
 
 The user's arguments are: **$ARGUMENTS**
 
-- If no cutoff was provided (neither a date/time nor a commit hash), respond with "Usage: /core-workflow:explain-branch-changes-since <date-time-or-commit-hash> [timezone]  You must specify a cutoff." and stop.
-- Determine whether the cutoff is a commit hash or a date/time:
-  - If it resolves via `git cat-file -e <cutoff>^{commit}`, treat it as a commit hash.
-  - Otherwise treat it as a date/time. If a timezone was also provided, use it; if not, **assume Eastern Time (America/New_York)** — use the IANA timezone name so daylight saving is handled automatically.
-- Check the current branch has an upstream: `git rev-parse --abbrev-ref --symbolic-full-name @{upstream}`. If this fails, respond with "Current branch '<branch>' has no upstream tracking branch configured — nothing to compare against." and stop.
+- If no cutoff was provided, respond with "Usage: /core-workflow:explain-branch-changes-since <date-time-or-commit-hash> [timezone]  You must specify a cutoff." and stop.
+- Determine whether the cutoff is a commit or a date/time: if `git cat-file -e <cutoff>^{commit}` succeeds, it is a commit. Otherwise treat it as a date/time, using the provided timezone or defaulting to Eastern Time. Use the IANA name (`America/New_York`) rather than a fixed offset so daylight saving is handled.
+- Check for an upstream: `git rev-parse --abbrev-ref --symbolic-full-name @{upstream}`. If it fails, respond with "Current branch '<branch>' has no upstream tracking branch configured — nothing to compare against." and stop.
 
-## STEP 1: FETCH AND IDENTIFY THE USER
+## Step 1: Fetch and identify the user
 
-Run in parallel:
+Run in parallel: `git fetch`; `git config user.email` and `git config user.name`; `git rev-parse --abbrev-ref HEAD` and `git rev-parse --abbrev-ref --symbolic-full-name @{upstream}`.
 
-1. `git fetch`
-2. `git config user.email` and `git config user.name` (to exclude the user's own commits later)
-3. `git rev-parse --abbrev-ref HEAD` and `git rev-parse --abbrev-ref --symbolic-full-name @{upstream}` (current branch and its upstream)
+## Step 2: Collect qualifying commits
 
-## STEP 2: COLLECT QUALIFYING COMMITS
-
-If the cutoff is a **commit hash**:
+For a commit cutoff:
 ```bash
 git log <cutoff>..@{upstream} --pretty=format:'%H%x09%an%x09%ae%x09%aI%x09%s'
 ```
 
-If the cutoff is a **date/time**:
+For a date/time cutoff:
 ```bash
-TZ="<IANA timezone, e.g. America/New_York>" git log @{upstream} --since="<date-time>" \
-  --pretty=format:'%H%x09%an%x09%ae%x09%aI%x09%s'
+TZ="<IANA timezone>" git log @{upstream} --since="<date-time>" --pretty=format:'%H%x09%an%x09%ae%x09%aI%x09%s'
 ```
 
-From the results, **exclude any commit whose author name or email matches the current user** (from Step 1). What remains are candidate commits from other collaborators.
+Exclude commits whose author name or email matches the current user. If a commit's authorship is ambiguous (for example the user has several emails), include it and flag the ambiguity rather than dropping it silently.
 
 If nothing remains, report "No changes found on <upstream branch> since <cutoff> by collaborators other than you." and stop.
 
-## STEP 3: GET THE ACTUAL DIFF
+## Step 3: Get the diff
 
 ```bash
 git diff <oldest-qualifying-commit>^..@{upstream}
-```
-
-Also capture:
-```bash
 git diff --stat <oldest-qualifying-commit>^..@{upstream}
 git diff --name-status <oldest-qualifying-commit>^..@{upstream}
 ```
 
-## STEP 4: LAUNCH PARALLEL ANALYSIS AGENTS
+## Step 4: Launch parallel analysis agents
 
-Launch agents in parallel (single message, multiple Agent tool calls) mirroring the `/core-workflow:compare-branch-to-another` structure, scoped to just the qualifying commits:
+The user invoked this skill to get a parallel multi-angle review, so delegate rather than reading the diff serially. Launch one agent per focus area, all in a single message, scoped to the qualifying commits. Five focus areas means up to five agents; combine them when the diff is small.
 
-- **Agent 1** (`subagent_type: "Explore"`) — Structural & Architectural Impact: what files/modules are touched, categorize by type, dependency changes.
-- **Agent 2** (`subagent_type: "Explore"`) — Logic & Behavior Changes: what the changes actually do, new/removed behavior, API/contract changes.
-- **Agent 3** (`subagent_type: "Explore"`) — Testing Changes: test coverage added/removed, gaps.
-- **Agent 4** (`subagent_type: "general-purpose"`, prompted as a code reviewer) — Code Quality: style, complexity, duplication, confidence-scored findings (>=80% confidence only).
-- **Agent 5** (`subagent_type: "general-purpose"`, prompted as a risk reviewer) — Risk & Impact: security, performance, breaking changes, confidence-scored findings (>=80% confidence only).
+Give every agent the qualifying commit list (author, date, subject), the full diff, and this shared brief:
 
-Give every agent the qualifying commit list (author, date, subject) and the full diff from Step 3.
+> This is read-only: do not edit any files. Report everything you find in your focus area, most significant first, with `file:line` citations. Note your confidence in each finding rather than omitting the uncertain ones — the synthesis step decides what surfaces.
 
-## STEP 5: SYNTHESIZE
+Focus areas, mirroring `/core-workflow:compare-branch-to-another`:
+
+1. **Structural and architectural impact** (`Explore`) — files and modules touched, categorized by type; dependency changes.
+2. **Logic and behavior changes** (`Explore`) — what the changes do; new and removed behavior; API and contract changes.
+3. **Testing changes** (`Explore`) — coverage added or removed, and gaps where implementation changed without tests.
+4. **Code quality** (`general-purpose`, prompted as a code reviewer) — style, complexity, duplication.
+5. **Risk and impact** (`general-purpose`, prompted as a risk reviewer) — security, performance, breaking changes, with a severity per risk.
+
+If the diff is too large to pass whole, give each agent the portion for its area and note the truncation in the report.
+
+## Step 5: Synthesize
 
 ```markdown
 # Changes on <upstream branch> Since <cutoff>
@@ -79,29 +75,21 @@ Give every agent the qualifying commit list (author, date, subject) and the full
 ## Overview
 - Current branch: <branch> (tracking <upstream>)
 - Qualifying commits: [count]
-- Collaborators: [list of authors]
+- Collaborators: [authors]
 
 ## Structural Changes
-[Agent 1]
 
 ## Behavior Changes
-[Agent 2]
 
 ## Testing Changes
-[Agent 3]
 
 ## Code Quality Assessment
-[Agent 4, >=80% confidence findings]
 
 ## Risk Assessment
-[Agent 5, >=80% confidence findings]
+[With severity per risk]
 
 ## Summary
-[Bullet-point summary of what collaborators pushed and why it matters, e.g. whether to pull before continuing local work]
+[What collaborators pushed and what it means for your local work — in particular whether to pull before continuing]
 ```
 
-## IMPORTANT NOTES
-
-- This skill is strictly read-only: no checkout, no merge, no push, no file edits.
-- If the diff is extremely large, summarize the most impactful changes and note truncation.
-- If a commit's author name/email doesn't clearly match or exclude the current user, err on the side of including it and flag the ambiguity rather than silently dropping it.
+Keep each section to a few paragraphs. The reader's real question is usually whether they need to pull and what will surprise them if they do, so lead with that. Keep uncertain findings and label them as uncertain.

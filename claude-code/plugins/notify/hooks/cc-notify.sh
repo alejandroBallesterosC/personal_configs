@@ -31,7 +31,7 @@ if command -v terminal-notifier > /dev/null 2>&1; then
         -activate com.mitchellh.ghostty
       ;;
   esac
-else
+elif command -v osascript > /dev/null 2>&1; then
   case "$kind" in
     input)
       osascript -e 'display notification "Claude Code needs your input" with title "Claude Code" sound name "Funk"'
@@ -41,3 +41,7 @@ else
       ;;
   esac
 fi
+
+# Banners are macOS-only. On other platforms the bell above is the whole
+# notification, so exit successfully rather than reporting a hook failure.
+exit 0

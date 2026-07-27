@@ -27,7 +27,3 @@ The `infrastructure-as-code` skill auto-activates when:
 - Managing infrastructure state
 
 It provides best practices for safety, review-before-apply workflows, and environment separation.
-
-## Version
-
-1.0.0

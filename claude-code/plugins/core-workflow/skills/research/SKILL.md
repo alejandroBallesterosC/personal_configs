@@ -4,6 +4,8 @@ description: Conduct thorough internet research on a topic using waves of parall
 disable-model-invocation: true
 argument-hint: <question or topic to research>
 allowed-tools: Agent, Read
+disallowed-tools: Edit, Write, NotebookEdit, Bash
+effort: xhigh
 ---
 
 # Thorough Internet Research
@@ -12,30 +14,28 @@ You will conduct thorough internet research to answer the following question or 
 
 **$ARGUMENTS**
 
-## Rules
-
-- **DO NOT** edit any files
-- **DO NOT** make any git commits or changes
-- **DO NOT** modify any code
-- This is a **research-only** task — your only output is a well-sourced answer
+This is a research-only task: the only output is a well-sourced answer. `disallowed-tools` blocks edits and shell access for the duration.
 
 ## Research Strategy
 
-You will conduct research in **waves** of 4-6 parallel `web-researcher` subagents, each assigned a different angle or focus area. After each wave, synthesize findings and determine if more research is needed.
+Research runs in waves of parallel `web-researcher` subagents, each assigned a different angle. The user invoked this skill to get a wide, parallel sweep, so delegate rather than researching serially yourself.
 
 ### Wave Planning
 
-Before each wave, analyze the question and identify 4-6 distinct research angles. Good angles include:
-- Different facets of the question (e.g., performance, security, developer experience)
+Before each wave, identify the distinct research angles the question needs. One subagent per angle — the angles set the count, not a fixed number. Four to six angles is typical; use fewer for a narrow question and more when the question genuinely spans more ground. Angles worth considering:
+
+- Different facets of the question (performance, security, developer experience)
 - Different source types (official docs, community experience, benchmarks, case studies)
 - Competing or alternative approaches
 - Known pitfalls, limitations, or controversies
 - Real-world production usage and lessons learned
 - Historical context and evolution of the topic
 
+Angles should not overlap. Two subagents assigned the same ground return the same sources twice.
+
 ### Wave Execution
 
-For each wave, launch **4-6 subagents in a single message** (all in parallel) using the Agent tool:
+Launch each wave's subagents in a single message (all in parallel) using the Agent tool:
 
 ```
 subagent_type: "web-researcher"
@@ -47,53 +47,35 @@ prompt: |
 
 ### Wave Synthesis
 
-After each wave completes:
-
-1. **Collect findings** from all subagents
-2. **Identify convergence** — where do multiple sources agree?
-3. **Identify conflicts** — where do sources disagree?
-4. **Identify gaps** — what important aspects haven't been covered yet?
-5. **Assess confidence** — are you confident enough to answer the question?
+After each wave: collect the findings, note where independent sources corroborate each other, note where they conflict, and identify which important aspects remain uncovered.
 
 ### Deciding When to Stop
 
-Continue launching waves until you are **confident** in your answer. You should feel confident when:
-- Multiple independent sources corroborate key findings
-- Major alternative viewpoints have been explored
-- Known pitfalls and limitations have been identified
-- You can clearly articulate trade-offs
-- Remaining gaps are minor or tangential
-
-Typically 1-3 waves are sufficient. Launch additional waves only if significant gaps remain.
+Launch another wave only when a significant gap remains — an uncovered facet, an unresolved conflict between sources, or a load-bearing claim resting on a single source. One to three waves is typical. Stop when the remaining gaps are minor or tangential, and say what they are rather than launching a wave to close them.
 
 ## Final Output
 
-Once confident, present your findings to the user as a clear, well-organized answer:
+Present findings directly in your response:
 
 ```markdown
 # Research: [Topic/Question]
 
 ## Answer
-[Direct, clear answer to the question — lead with the recommendation or conclusion]
+[Direct answer — lead with the recommendation or conclusion]
 
 ## Key Findings
 
-### [Category 1]
-- [Finding] ([source URL])
-- [Finding] ([source URL])
-
-### [Category 2]
-- [Finding] ([source URL])
+### [Category]
 - [Finding] ([source URL])
 
 ## Trade-offs and Considerations
-[Important nuances, trade-offs, or caveats the user should know about]
+[Nuances, trade-offs, and caveats that affect the decision]
 
 ## Sources
-[Consolidated list of the most credible and relevant sources with URLs and dates]
+[The most credible and relevant sources, with URLs and dates]
 
 ## Confidence Level
-[High/Medium/Low — with brief explanation of what would increase confidence]
+[High/Medium/Low, and what would raise it]
 ```
 
-**Keep the final answer focused and actionable.** The user wants an answer, not a literature review. Lead with the conclusion, support it with evidence, and note important caveats.
+The user wants an answer, not a literature review. Lead with the conclusion and support it with evidence. Keep each finding to a sentence or two, and keep the whole answer to what a reader needs to act on — a couple of screens, not an exhaustive dump of everything the subagents returned. Attribute every factual claim to a source, and mark claims you could not verify as unverified rather than dropping or softening them.

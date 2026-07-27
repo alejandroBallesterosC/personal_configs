@@ -42,7 +42,3 @@ Standard Playwright test framework for writing test files committed to the repo.
 
 - `skills/playwright/SKILL.md`: Full usage guide with visual verification workflow, visual quality criteria, evaluation scoring rubric, test integrity rules, and multi-viewport testing
 - `skills/playwright/API_REFERENCE.md`: `@playwright/test` API reference (selectors, network interception, auth, visual regression, mobile emulation, CI/CD)
-
-## Version
-
-5.0.0

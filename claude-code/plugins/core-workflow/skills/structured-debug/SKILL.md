@@ -1,71 +1,52 @@
 ---
 name: structured-debug
-description: Hypothesis-driven debugging methodology with instrumentation and log tracing. Use when debugging errors, investigating bugs, diagnosing unexpected behavior, performing root cause analysis, adding debug logging, writing regression tests after fixes, or when tests fail for unclear reasons. Covers hypothesis generation, tagged instrumentation ([DEBUG-H1]), the 3-Fix Rule, git bisect, and anti-patterns to avoid.
+description: Hypothesis-driven debugging methodology with instrumentation and log tracing. Use when debugging errors, investigating bugs, diagnosing unexpected behavior, performing root cause analysis, adding debug logging, writing regression tests after fixes, or when tests fail for unclear reasons. Covers hypothesis generation, tagged instrumentation ([DEBUG-H1]), the 3-Fix Rule, and anti-patterns to avoid.
+effort: high
 ---
 
-# Structured Debugging Skill
+# Structured Debugging
 
-Hypothesis-driven debugging methodology using systematic exploration, instrumentation, and log tracing. Based on practices from Boris Cherny, Cursor's Debug Mode, Anthropic's engineering team, and the @obra/superpowers systematic debugging skill.
+Hypothesis-driven debugging: form theories from evidence, instrument to test them, and fix only once the root cause is proven.
 
-## When to Activate
+## The Iron Law
 
-Activate when:
-- User reports a bug or unexpected behavior
-- Error messages appear in logs or output
-- Tests fail for unclear reasons
-- Runtime behavior differs from expected
-- User asks to debug, trace, or investigate an issue
+**No fixes without root cause proven first.**
 
-**Announce at start:** "I'm using the structured-debug skill to debug this."
+A fix applied before the cause is proven is a guess. It may coincidentally pass the test and leave the real defect in place.
 
-## Core Philosophy
+## The 3-Fix Rule
 
-> "Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result." - Boris Cherny
+If three fixes have failed, stop and question the architecture. The problem is structural, not a detail of the implementation.
 
-> "AI doesn't fail because it's not smart enough. It fails because it can't see what you see." - Nathan Onn
+## Red flags
 
-### The Iron Law
+These thoughts mean you have left the method and are guessing:
 
-> **NO FIXES WITHOUT ROOT CAUSE PROVEN FIRST**
-
-### The 3-Fix Rule
-
-If 3+ fixes have failed, STOP and question the architecture. The problem is structural, not implementation.
-
-### Red Flags (Return to Investigation)
-
-If you catch yourself thinking any of these, STOP:
 - "Quick fix for now, investigate later"
 - "Just try changing X and see if it works"
-- "Add multiple changes, run tests"
+- "Add multiple changes, run the tests"
 - "Skip the test, I'll manually verify"
 - "It's probably X, let me fix that"
 
-## The Debugging Loop
+## The loop
 
 ```
-EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX -> VERIFY -> CLEAN
+EXPLORE -> DESCRIBE -> HYPOTHESIZE -> INSTRUMENT -> REPRODUCE -> ANALYZE -> FIX -> CLEAN
 ```
 
-Apply this loop directly as a checklist for the bug at hand — no separate workflow state or phase commands needed.
-
-## Hypothesis-Driven Approach
-
-The core of this methodology is forming hypotheses BEFORE making changes.
-
-### Generating Hypotheses
-
-Read the code. Base hypotheses on evidence, not guessing.
+Apply it as a checklist for the bug at hand. Generate several hypotheses rather than committing to the first, and let the evidence eliminate them:
 
 ```markdown
 ### H1: [Most likely cause]
-- **Theory**: [What you think is wrong]
-- **Evidence needed**: [What logs/data would confirm this]
+- **Theory**: [what you think is wrong]
+- **Evidence needed**: [what logs or data would confirm it]
 - **Confidence**: High/Medium/Low
-- **Instrumentation**: [Where to add logs]
+- **Instrumentation**: [where to add logs]
 ```
 
-### Common Root Cause Categories
+A hypothesis ends as CONFIRMED (the logs prove it, proceed to fix), REJECTED (the logs disprove it, move to the next), or INCONCLUSIVE (add more instrumentation). Do not treat INCONCLUSIVE as confirmation.
+
+Root cause categories worth walking when generating hypotheses:
 
 | Category | Examples |
 |----------|----------|
@@ -76,191 +57,47 @@ Read the code. Base hypotheses on evidence, not guessing.
 | **Environment** | Config, permissions, resources, versions |
 | **Timing** | Async ordering, timeout, debounce |
 
-### Verdict Definitions
+## Instrumentation
 
-| Verdict | Meaning | Next Action |
-|---------|---------|-------------|
-| **CONFIRMED** | Logs prove this hypothesis | Proceed to fix |
-| **REJECTED** | Logs disprove this hypothesis | Eliminate, try next |
-| **INCONCLUSIVE** | Not enough evidence | Add more instrumentation |
+The conventions that matter here:
 
-## Instrumentation Rules
+1. **Tag every log with its hypothesis ID**, e.g. `[DEBUG-H1]`, so log lines map back to the theory they test.
+2. **Mark each one** with a `DEBUG: Remove after fix` comment so cleanup is greppable.
+3. **Log at decision points**, not every line. Include variable names *and* values.
+4. **Write all debug output to `logs/debug-output.log`** at the repo root. The file is opened in overwrite mode at application startup, so it holds only the latest run. Read it directly after reproducing — never ask the user to copy and paste logs.
 
-### The 6 Rules
+Instrument function entries (parameters and relevant state), conditionals (which branch and why), loop iterations, return values, error paths (exception type and context), and external calls (request, response, timing).
 
-1. **Tag every log with hypothesis ID** (e.g., `[DEBUG-H1]`)
-2. **Mark as DEBUG** with `DEBUG: Remove after fix` for easy cleanup
-3. **Log at decision points**, not every line
-4. **Include context**: variable names AND values
-5. **Use structured format** for complex data
-6. **Write to `logs/debug-output.log`**: All debug output goes to this file (repo root). The file is **overwritten** at application startup so only the latest run's logs are present. Read this file directly after reproduction — the user does not need to copy/paste logs.
+The non-obvious part is the one-time entry point setup: create the `logs/` directory and open the file in overwrite mode (`w`), then have every instrumentation point append to it.
 
-### What to Log
-
-| Location | What to Capture |
-|----------|----------------|
-| Function entry | Parameters, relevant state |
-| Conditionals | Which branch taken and why |
-| Loop iterations | Item being processed, state |
-| Return values | Result being returned |
-| Error paths | Exception type, context |
-| External calls | Request data, response, timing |
-
-### Language Examples
-
-All debug logs write to `logs/debug-output.log`. Add a one-time entry point initialization that creates the `logs/` directory and opens the file in overwrite mode (`w`), then all debug log statements append to it during the run.
-
-**Python** (entry point adds FileHandler with `mode="w"`, instrumentation points use the logger):
+**Python** — entry point adds a `FileHandler` with `mode="w"`; instrumentation points use the logger:
 ```python
 # HYPOTHESIS: H1 - User object is null
 # DEBUG: Remove after fix
 logging.getLogger("debug_hypotheses").debug(f"[DEBUG-H1] user={user}, user_id={user_id}")
 ```
 
-**JavaScript/TypeScript** (entry point creates file + `globalThis._debugLog` helper):
+**JavaScript/TypeScript** — entry point creates the file and a `globalThis._debugLog` helper:
 ```javascript
 // HYPOTHESIS: H1 - Promise rejection not handled
 // DEBUG: Remove after fix
 globalThis._debugLog(`[DEBUG-H1] ${JSON.stringify({ userId, status, timestamp: Date.now() })}`);
 ```
 
-**Go** (entry point creates `debugLog` via `log.New` with `os.Create`):
-```go
-// HYPOTHESIS: H1 - Nil pointer dereference
-// DEBUG: Remove after fix
-debugLog.Printf("[DEBUG-H1] user=%+v config=%+v", user, config)
-```
+Other languages follow the same shape: open the log file in overwrite mode once at the entry point (`log.New` with `os.Create` in Go, `File::create` in Rust), then write tagged lines at instrumentation points.
 
-**Rust** (entry point creates `debug_file` via `File::create`):
-```rust
-// HYPOTHESIS: H1 - Ownership issue
-// DEBUG: Remove after fix
-writeln!(debug_file, "[DEBUG-H1] data={:?} state={:?}", data, state).ok();
-```
+For a bug that reproduces only under specific conditions, guard the log on those conditions rather than logging every call.
 
-## Anti-Patterns to Avoid
+## Anti-patterns
 
-### 1. Shotgun Debugging
-- **Bad**: Add logs everywhere and hope something shows up
-- **Good**: Form hypotheses first, instrument surgically
+- **Shotgun debugging** — logs everywhere hoping something shows up. Hypothesize first, then instrument surgically.
+- **Fixing without understanding** — random changes until the symptom disappears. That leaves the cause in place.
+- **A single hypothesis** — assuming the first guess is right. Generate several and let evidence decide.
+- **Leaving debug code** — instrumentation must come out before the work is committed.
+- **Stating a guess as a cause** — "it's probably a race condition" is a hypothesis, not a finding. Add timing logs and confirm it.
 
-### 2. Fixing Without Understanding
-- **Bad**: Try random changes until it works
-- **Good**: Understand root cause before changing code
+## After the fix
 
-### 3. Leaving Debug Code
-- **Bad**: Commit code with debug logs
-- **Good**: Always clean up instrumentation
+Write a regression test that would have caught the bug, and add it before applying the fix so you watch it fail first. Commit the test and the fix together. Name the root cause in the test's docstring, since that is what makes the test legible a year later.
 
-### 4. Single Hypothesis
-- **Bad**: Assume first guess is correct
-- **Good**: Generate multiple hypotheses, let evidence decide
-
-### 5. Skipping Verification
-- **Bad**: Assume fix works after code change
-- **Good**: Always reproduce and verify
-
-### 6. Guessing Without Evidence
-- **Bad**: "It's probably a race condition" → fix race condition
-- **Good**: "It might be a race condition" → add timing logs → confirm/reject
-
-## Advanced Techniques
-
-### Git Bisect for Regressions
-
-```bash
-git bisect start
-git bisect bad HEAD
-git bisect good <known-good-commit>
-# Test each commit until culprit found
-```
-
-### Conditional Instrumentation
-
-For hard-to-reproduce bugs:
-```python
-if user_id == "problem_user":
-    logging.debug(f"[DEBUG-H1] triggered: {state}")
-```
-
-### State Snapshots
-
-```python
-import json
-# DEBUG: Remove after fix
-with open('/tmp/debug-state.json', 'w') as f:
-    json.dump({'user': user.__dict__}, f, default=str)
-```
-
-### Timing Measurement
-
-```python
-import time
-start = time.time()
-result = slow_operation()
-logging.debug(f"[DEBUG-H2] elapsed={time.time()-start:.3f}s")
-```
-
-### ASCII Diagrams for Complex Bugs
-
-For multi-layer bugs where even the error message is misleading, use ASCII diagrams to map the error chain:
-
-```
-Error Chain:
-  [Symptom: 500 error]
-    <- [Trigger: null user profile]
-      <- [Root: cache TTL expired during request]
-```
-
-Forcing systematic diagramming before proposing fixes helps identify the real root cause.
-
-## Integration with TDD
-
-After fixing a bug:
-
-1. **Write a regression test** that would have caught this bug
-2. **Add the test FIRST** (it should fail without the fix)
-3. **Apply the fix** (test should pass)
-4. **Commit both** test and fix together
-
-```python
-def test_regression_issue_123():
-    """Regression test for bug where X happened.
-
-    Root cause: [explanation]
-    """
-    # Arrange - reproduce exact conditions
-    data = setup_bug_conditions()
-
-    # Act
-    result = function_that_was_buggy(data)
-
-    # Assert - fix handles this case
-    assert result == expected
-```
-
-## CLAUDE.md Integration
-
-After fixing a recurring bug type, consider adding to CLAUDE.md:
-
-```markdown
-## Gotchas
-- Always check for null before accessing user.profile
-- API responses may have trailing whitespace in category field
-```
-
-This prevents the same bug class from recurring.
-
-## Quick Reference
-
-| Phase | Action | Output |
-|-------|--------|--------|
-| EXPLORE | Understand relevant code | Context for hypotheses |
-| DESCRIBE | Gather bug details | Clear reproduction steps |
-| HYPOTHESIZE | Generate 3-5 theories | Ranked hypotheses |
-| INSTRUMENT | Add targeted logs | Tagged debug statements |
-| REPRODUCE | User triggers bug | Log output |
-| ANALYZE | Match logs to hypotheses | Confirmed root cause |
-| FIX | Minimal code change | Proposed fix |
-| VERIFY | User confirms fix | Bug resolved |
-| CLEAN | Remove instrumentation | Clean codebase |
+If a bug class recurs, record it under a "Gotchas" heading in the project's AGENTS.md so the next session starts with it.

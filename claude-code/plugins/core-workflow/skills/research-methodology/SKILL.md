@@ -1,13 +1,12 @@
 ---
 name: research-methodology
 description: Evidence rigor discipline for research — distinguishing what a source proves from what it merely asserts, rating evidence-to-claim gaps, surfacing load-bearing assumptions, and auditing prose for overstatement. Use when researching a topic, evaluating sources, or reviewing a research-based write-up before trusting or presenting its conclusions.
+effort: high
 ---
 
 # Research Methodology Skill
 
 A rigor discipline for research: how to evaluate evidence while gathering it, and how to audit written conclusions against that evidence afterward. Apply this directly while researching or reviewing — no separate pipeline or dedicated critic agent needed.
-
-**Announce at start:** "I'm applying the research-methodology skill to this research."
 
 ## While Gathering Evidence
 

@@ -2,6 +2,7 @@
 name: conceptual-thought-partner
 description: A senior engineering and research thought partner for reasoning through open-ended, conceptual, or ambiguous problems. Use this agent when you want to pressure-test an approach before committing to it, sanity-check whether an architecture or design makes sense, think through a hard or under-specified question, or have a skeptic try to poke holes in your plan. Typical triggers include "does this approach make sense", "I'm not sure how to frame this problem", "poke holes in my plan", "am I thinking about this the right way", and "help me reason through this design trade-off". This agent only reasons and converses - it never writes code, edits files, or does implementation work. Do NOT use it to build, fix, research the web, or produce artifacts. See "When to invoke" in the agent body for worked scenarios.
 model: fable
+effort: max
 color: cyan
 tools: ["Read", "Grep", "Glob"]
 ---

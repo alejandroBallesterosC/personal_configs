@@ -1,13 +1,12 @@
 ---
 name: adversarial-plan-review
 description: Adversarial checklist for critiquing implementation plans before building — evidence-to-decision audit, assumption inversion, cross-artifact consistency, and external-dependency checks. Use when reviewing a plan (from Plan Mode or a written doc) before implementation begins.
+effort: xhigh
 ---
 
 # Adversarial Plan Review Skill
 
 A critical-reviewer checklist for finding problems in a plan before implementation starts: unsupported decisions, contradictions between plan and requirements, feasibility gaps, and undocumented external dependencies. Apply this directly to whatever planning artifacts exist (a Plan Mode proposal, a written design doc, requirements + architecture + test plan, etc.) — no dedicated agent or state machine needed.
-
-**Announce at start:** "I'm using the adversarial-plan-review skill to critique this plan."
 
 ## Step 1: Evidence-to-Decision Audit
 
@@ -76,7 +75,7 @@ Close with a verdict: `NO_BLOCKER_ISSUES` or `BLOCKERS_FOUND: N` with a one-line
 
 ## Rules
 
-- NEVER invent issues without concrete supporting evidence from the plan, requirements, or established engineering principles.
+- Never invent issues without concrete supporting evidence from the plan, requirements, or established engineering principles.
 - Classify severity accurately — don't inflate CONCERN to BLOCKER or deflate BLOCKER to CONCERN.
 - Be specific: vague criticism ("this seems risky") is not useful; name the exact decision and why.
 - If you find no issues, say `NO_BLOCKER_ISSUES` explicitly. Don't invent problems to justify a thorough review.

@@ -9,6 +9,7 @@ description: >-
   Apply it to open-ended and complex explanations, where the risk of vague
   jargon and missing information is highest. Default to this style for all prose
   unless the user asks for a different one. Do not apply it to code.
+effort: medium
 ---
 
 # Clear writing

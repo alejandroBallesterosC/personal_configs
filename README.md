@@ -20,8 +20,6 @@ personal_configs/
 │       └── conceptual-thought-partner/ # 1 Fable subagent (conceptual sparring/architecture review; never implements)
 ├── .claude-plugin/                  # Marketplace manifest (marketplace.json)
 ├── .vscode/                         # VS Code tasks
-├── docs/
-│   └── CODEBASE.md                  # Comprehensive codebase analysis
 ├── AGENTS.md                        # Canonical shared agent instructions (source of truth)
 └── CLAUDE.md                        # Import-only wrapper: @AGENTS.md
 ```
@@ -97,8 +95,8 @@ Then install plugins:
 
 ## Documentation
 
-- `docs/CODEBASE.md` - Comprehensive codebase analysis (architecture, plugins, open questions)
-- `claude-code/plugins/core-workflow/README.md` - Core workflow plugin reference
+- `AGENTS.md` - Architecture, design decisions, interface contracts, and conventions (canonical; `CLAUDE.md` imports it)
+- Each plugin's own `README.md` - that plugin's components, mechanics, and dependencies
 
 ---
 

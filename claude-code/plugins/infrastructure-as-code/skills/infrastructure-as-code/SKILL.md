@@ -5,50 +5,35 @@ description: Best practices for Terraform and AWS infrastructure management. Use
 
 # Infrastructure as Code (Terraform + AWS)
 
-Best practices for managing AWS infrastructure with Terraform. Emphasizes safety, review-before-apply, and environment separation.
+Managing AWS infrastructure with Terraform: safety, review before apply, and environment separation.
 
-## When to Activate
+## The safety gate
 
-Activate when:
-- Creating or modifying Terraform files (*.tf)
-- Deploying AWS resources
-- Managing infrastructure state
-- Setting up new environments (dev/staging/prod)
-- Discussing cloud architecture
+**Never run `terraform apply` without first running `terraform plan` and having the user review all proposed changes.**
 
-**Announce at start:** "I'm using the infrastructure-as-code skill."
+This is an interlock, not a style preference. The plan output is the only place a destructive change is visible before it happens.
 
-## CRITICAL SAFETY RULES
+1. Plan to a file: `terraform plan -var-file=<env>.tfvars -out=plan.tfplan`
+2. Review the output with the user.
+3. Call out destructive operations explicitly.
+4. Explain the impact: which resources change, what downtime, what data loss is possible.
+5. Get explicit confirmation, then `terraform apply plan.tfplan`.
 
-### The Golden Rule
+Applying a saved plan file rather than re-planning at apply time is deliberate: it guarantees the user approved exactly what runs.
 
-```
-NEVER run `terraform apply` without first running `terraform plan`
-and having the user review ALL proposed changes.
-```
+### Destructive change alerts
 
-### Before ANY Apply
+| Symbol | Meaning | Risk |
+|--------|---------|------|
+| `-/+` | Destroy and recreate | HIGH — data loss possible |
+| `-` | Destroy | HIGH — resource deleted |
+| `~` | Update in place | MEDIUM — check what changes |
+| `+` | Create | LOW — new resource |
 
-1. **Run plan first**: `terraform plan -var-file=<env>.tfvars -out=plan.tfplan`
-2. **Review the output** with the user
-3. **Alert on destructive changes**: Look for `destroy`, `replace`, or `-/+` operations
-4. **Explain impact**: What resources change, potential downtime, data loss risks
-5. **Get explicit approval**: User must confirm before apply
+Warn in this shape, so the consequence is stated rather than left for the user to infer from resource names:
 
-### Destructive Change Alerts
-
-**ALWAYS WARN** the user when plan shows:
-
-| Symbol | Meaning | Risk Level |
-|--------|---------|------------|
-| `-/+` | Destroy and recreate | 🔴 HIGH - Data loss possible |
-| `-` | Destroy | 🔴 HIGH - Resource deleted |
-| `~` | Update in-place | 🟡 MEDIUM - Check what changes |
-| `+` | Create | 🟢 LOW - New resource |
-
-**Example warning:**
 ```markdown
-⚠️ DESTRUCTIVE CHANGES DETECTED
+DESTRUCTIVE CHANGES DETECTED
 
 The plan shows:
 - 1 resource to DESTROY: aws_db_instance.main
@@ -61,9 +46,9 @@ This will cause:
 Do you want to proceed? Please confirm explicitly.
 ```
 
-## Directory Structure
+## Directory layout
 
-### Standard Layout
+Preferred structure, environment-per-directory:
 
 ```
 infrastructure/
@@ -74,63 +59,37 @@ infrastructure/
 │   │   │   ├── terraform.tfvars # Dev variables (gitignored)
 │   │   │   └── backend.tf       # Dev state backend
 │   │   ├── staging/
-│   │   │   └── ...
 │   │   └── prod/
-│   │       └── ...
-│   │
-│   ├── modules/                  # Reusable modules
-│   │   ├── vpc/
-│   │   ├── eks/
-│   │   ├── rds/
-│   │   └── ...
-│   │
+│   ├── modules/                  # Reusable modules (vpc, eks, rds, ...)
 │   ├── main.tf                   # Root module
-│   ├── providers.tf              # Provider configuration
-│   ├── variables.tf              # Input variables
-│   ├── outputs.tf                # Output values
+│   ├── providers.tf
+│   ├── variables.tf
+│   ├── outputs.tf
 │   ├── versions.tf               # Terraform/provider versions
-│   │
-│   ├── terraform.tfvars.example  # Example variables (committed)
-│   └── terraform.tfvars          # Actual values (gitignored)
-│
-├── manifests/                    # Kubernetes manifests (if using K8s)
+│   ├── terraform.tfvars.example  # Committed
+│   └── terraform.tfvars          # Gitignored
+├── manifests/                    # Kubernetes manifests, if using K8s
 │   ├── base/
-│   └── overlays/
-│       ├── dev/
-│       └── prod/
-│
+│   └── overlays/{dev,prod}/
 └── docs/
     ├── INFRASTRUCTURE.md
     └── RUNBOOK.md
 ```
 
-### Alternative: Workspace-Based
+The workspace-based alternative (one root module, `dev.tfvars`/`staging.tfvars`/`prod.tfvars`, selected via `terraform workspace select`) is acceptable for smaller setups. Follow whichever the repo already uses.
 
-```
-infrastructure/
-├── terraform/
-│   ├── main.tf
-│   ├── providers.tf
-│   ├── variables.tf
-│   ├── outputs.tf
-│   │
-│   ├── dev.tfvars               # terraform workspace select dev
-│   ├── staging.tfvars           # terraform workspace select staging
-│   └── prod.tfvars              # terraform workspace select prod
-```
-
-### File Header Convention
-
-Every .tf file should start with ABOUTME comment:
+Every `.tf` file starts with ABOUTME comments:
 
 ```hcl
 # ABOUTME: EKS cluster configuration with private endpoint
 # ABOUTME: Includes OIDC provider for IRSA, managed node groups
 ```
 
-## State Management
+When using Kubernetes: infrastructure in Terraform, applications in Kubernetes manifests.
 
-### Remote State Setup (REQUIRED)
+## State management
+
+Remote state is required, with locking:
 
 ```hcl
 # backend.tf
@@ -145,207 +104,54 @@ terraform {
 }
 ```
 
-### State Backend Resources
+The backend resources themselves are created once, separately from the infrastructure that uses them — a bucket with `prevent_destroy = true` and versioning enabled, plus a DynamoDB table keyed on `LockID` for the lock. Versioning and `prevent_destroy` are what let you recover from a corrupted or truncated state file.
 
-```hcl
-# Create these ONCE, manually or via separate terraform
-resource "aws_s3_bucket" "terraform_state" {
-  bucket = "company-terraform-state"
+Only ever `terraform force-unlock` after confirming no other terraform process is running. A forced unlock during a live apply corrupts state.
 
-  lifecycle {
-    prevent_destroy = true
-  }
-}
+## Environment separation
 
-resource "aws_s3_bucket_versioning" "terraform_state" {
-  bucket = aws_s3_bucket.terraform_state.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "aws_dynamodb_table" "terraform_lock" {
-  name         = "terraform-state-lock"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-}
-```
-
-### State Lock Handling
-
-```bash
-# Check if terraform is running elsewhere
-ps aux | grep terraform
-
-# View lock info
-terraform state pull | jq '.lineage'
-
-# Force unlock ONLY if certain no other process running
-terraform force-unlock <lock-id>
-```
-
-## Environment Separation
-
-### Variable Files Per Environment
+Vary environments through tfvars, not through separate copies of the code:
 
 ```hcl
 # dev.tfvars
-environment = "dev"
-instance_type = "t3.small"
-min_nodes = 1
-max_nodes = 2
+environment                = "dev"
+instance_type              = "t3.small"
+min_nodes                  = 1
+max_nodes                  = 2
 enable_deletion_protection = false
 
 # prod.tfvars
-environment = "prod"
-instance_type = "m6i.large"
-min_nodes = 2
-max_nodes = 10
+environment                = "prod"
+instance_type              = "m6i.large"
+min_nodes                  = 2
+max_nodes                  = 10
 enable_deletion_protection = true
 ```
 
-### Conditional Resources
+Gate environment-specific resources on `count = var.environment == "dev" ? 1 : 0` rather than commenting blocks in and out.
 
-```hcl
-# Only create in dev
-resource "aws_instance" "bastion" {
-  count = var.environment == "dev" ? 1 : 0
-  # ...
-}
+## Security
 
-# Different config per environment
-resource "aws_rds_cluster" "main" {
-  deletion_protection = var.environment == "prod" ? true : false
-  # ...
-}
-```
-
-## Standard Workflow
-
-### Daily Operations
-
-```bash
-# 1. Initialize (first time or after backend changes)
-cd infrastructure/terraform
-terraform init
-
-# 2. Select workspace (if using workspaces)
-terraform workspace select dev
-
-# 3. ALWAYS plan first
-terraform plan -var-file=dev.tfvars -out=plan.tfplan
-
-# 4. Review plan output carefully
-
-# 5. Apply only after review
-terraform apply plan.tfplan
-
-# 6. Verify in AWS console
-```
-
-### Making Changes
-
-```bash
-# 1. Edit .tf files
-# 2. Format
-terraform fmt -recursive
-
-# 3. Validate syntax
-terraform validate
-
-# 4. Plan and review
-terraform plan -var-file=dev.tfvars
-
-# 5. Apply
-terraform apply -var-file=dev.tfvars
-```
-
-### Targeted Operations
-
-```bash
-# Apply only specific resources (ONLY USE WHEN ABSOLUTELY NECESSARY)
-terraform apply -target=aws_iam_role.api_role -var-file=dev.tfvars
-
-# Refresh state without changes
-terraform apply -refresh-only -var-file=dev.tfvars
-
-# Import existing resource
-terraform import aws_s3_bucket.data my-existing-bucket
-```
-
-## Security Best Practices
-
-### NEVER COMMIT
+Never commit these:
 
 ```gitignore
-# .gitignore
 *.tfvars           # Contains secrets
 !*.tfvars.example  # Keep examples
-*.tfstate          # State files
+*.tfstate
 *.tfstate.*
-.terraform/        # Provider cache
-*.tfplan           # Plan files
+.terraform/
+*.tfplan
 ```
 
-### Secrets Handling
+Create secrets as empty `aws_secretsmanager_secret` resources and populate the values out of band, so the value never enters state or version control.
 
-```hcl
-# Create empty secret, populate manually
-resource "aws_secretsmanager_secret" "api_key" {
-  name = "${var.project}-api-key"
-}
+Write IAM policies with specific actions and specific resource ARNs. No wildcards.
 
-# Reference in other resources
-data "aws_secretsmanager_secret_version" "api_key" {
-  secret_id = aws_secretsmanager_secret.api_key.id
-}
-```
-
-### IAM Least Privilege
-
-```hcl
-# Specific permissions, not wildcards
-resource "aws_iam_policy" "s3_read" {
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "s3:GetObject",
-        "s3:ListBucket"
-      ]
-      Resource = [
-        aws_s3_bucket.data.arn,
-        "${aws_s3_bucket.data.arn}/*"
-      ]
-    }]
-  })
-}
-```
-
-## Common Patterns
-
-### Naming Convention
+Name and tag from locals so the convention holds across the whole config:
 
 ```hcl
 locals {
   name_prefix = "${var.project}-${var.environment}"
-}
-
-resource "aws_s3_bucket" "data" {
-  bucket = "${local.name_prefix}-data-${data.aws_caller_identity.current.account_id}"
-}
-```
-
-### Tags
-
-```hcl
-locals {
   common_tags = {
     Project     = var.project
     Environment = var.environment
@@ -353,67 +159,20 @@ locals {
     Repository  = "github.com/company/repo"
   }
 }
-
-resource "aws_instance" "app" {
-  # ...
-  tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-app"
-  })
-}
 ```
 
-## Troubleshooting
+## Workflow and troubleshooting
 
-### Common Errors
+Making a change: edit, `terraform fmt -recursive`, `terraform validate`, plan, review, apply.
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| "Error acquiring state lock" | Another terraform running | Wait or `force-unlock` |
-| "ResourceAlreadyExists" | Resource exists but not in state | `terraform import` |
-| "InvalidParameterValue" | Wrong parameter | Check AWS docs for valid values |
-| "AccessDenied" | Missing IAM permissions | Add required permissions |
+`-target` exists but should be a last resort — it applies a subset and leaves state partially converged. Use `terraform import` to bring an existing resource under management, and `terraform plan -refresh-only` to detect drift.
 
-### Debugging
+| Error | Cause | Fix |
+|-------|-------|-----|
+| Error acquiring state lock | Another terraform is running | Wait; `force-unlock` only if certain |
+| ResourceAlreadyExists | Resource exists but is not in state | `terraform import` |
+| AccessDenied | Missing IAM permissions | Add the required permissions |
 
-```bash
-# Enable debug logging
-TF_LOG=DEBUG terraform plan
+For debugging: `TF_LOG=DEBUG terraform plan`, `aws sts get-caller-identity` to confirm which credentials are in play, and `terraform state list` / `terraform state show <addr>` to inspect state.
 
-# Check AWS credentials
-aws sts get-caller-identity
-
-# Inspect state
-terraform state list
-terraform state show aws_instance.app
-
-# Check for drift
-terraform plan -refresh-only
-```
-
-### Rule of Thumb (When Using Kubernetes)
-
-```
-Infrastructure in Terraform → Applications in Kubernetes manifests
-```
-
-## Quick Reference
-
-### Essential Commands
-
-```bash
-terraform init              # Initialize
-terraform fmt -recursive    # Format all files
-terraform validate          # Check syntax
-terraform plan -out=p.tfplan -var-file=dev.tfvars  # Plan
-terraform apply p.tfplan    # Apply saved plan
-terraform destroy           # Destroy (CAREFUL!)
-```
-
-### Before Committing
-
-- [ ] `terraform fmt` passes
-- [ ] `terraform validate` passes
-- [ ] Plan reviewed, no unexpected changes
-- [ ] Tested in dev environment
-- [ ] Documentation updated if needed
-- [ ] No secrets in committed files
+Before committing: `fmt` and `validate` pass, the plan was reviewed with no unexpected changes, the change was tested in dev, no secrets are in committed files, and the docs are updated if behavior changed.

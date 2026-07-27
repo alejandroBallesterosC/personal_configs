@@ -22,7 +22,7 @@ achieving these goals, but they must be paired with runtime guarantees and not b
 **The prime directive:**
 
 ```
-Every unit of rigor you add must buy a real, runtime guarantee that makes the code more itentional and safer AND/OR make the codebase simpler and more readable to a human. If it buys neither, it is overengineering.
+Every unit of rigor you add must buy a real, runtime guarantee that makes the code more intentional and safer AND/OR make the codebase simpler and more readable to a human. If it buys neither, it is overengineering.
 ```
 
 The most common failure mode is *rigor theater*: machinery that looks disciplined

@@ -4,256 +4,82 @@ description: Compare the current git branch against another branch using paralle
 disable-model-invocation: true
 argument-hint: <other-branch>
 allowed-tools: Read, Grep, Glob, Bash, Agent
+effort: xhigh
 ---
 
 # Compare Current Git Branch to Another
 
-## Objective
+Compare the current git branch against `<OTHER_BRANCH>` using parallel subagents, producing a multi-angle analysis of the differences.
 
-Compare the current git branch against the branch the user has specified using **parallel subagents** to produce a thorough, multi-angle analysis of all differences between the two branches.
+If `<OTHER_BRANCH>` was not specified, respond with "Usage: /core-workflow:compare-branch-to-another <OTHER_BRANCH>  You must specify another branch to compare this one to" and stop. If it was specified but does not exist, respond with "I could not find the branch you wish to compare this one to" and stop, suggesting `git branch -a`.
 
-If `<OTHER_BRANCH>` was not specified by the user in this prompt respond with "Usage: /core-workflow:compare-branch-to-another <OTHER_BRANCH>  You must specify another branch to compare this one to" and stop.
+This is a read-only review. Do not edit files, stage, commit, or push at any point.
 
-If `<OTHER_BRANCH>` was specified by the user but doesn't exist, respond with "I could not find the branch you wish to compare this one to" and stop.
+## Step 1: Gather git context
 
-## IMPORTANT: DO NOT EDIT ANY CODE, CHANGE ANY FILES, OR MAKE ANY GIT ADDITIONS, COMMITS, or PUSHES WHILE CARRYING OUT THESE INSTRUCTIONS.
-
-## STEP 1: GATHER GIT CONTEXT
-
-Before spawning agents, collect the raw data they'll need.
-
-Run these **3 Bash commands in parallel**:
-
-1. **Detect current branch and merge base**:
-   ```bash
-   echo "CURRENT_BRANCH: $(git rev-parse --abbrev-ref HEAD)" && echo "MERGE_BASE: $(git merge-base HEAD <OTHER_BRANCH>)" && echo "COMMITS_AHEAD: $(git rev-list --count <OTHER_BRANCH>..HEAD)" && echo "COMMITS_BEHIND: $(git rev-list --count HEAD..<OTHER_BRANCH>)"
-   ```
-
-2. **Get diff stats (file-level summary)**:
-   ```bash
-   git diff --stat <OTHER_BRANCH>...HEAD
-   ```
-
-3. **Get list of changed files with status**:
-   ```bash
-   git diff --name-status <OTHER_BRANCH>...HEAD
-   ```
-
-Capture all outputs. You will pass this context to every agent below.
-
----
-
-## STEP 2: GET THE FULL DIFF
-
-Run this Bash command to get the full diff content:
+Run these three commands in parallel:
 
 ```bash
-git diff <OTHER_BRANCH>...HEAD
+echo "CURRENT_BRANCH: $(git rev-parse --abbrev-ref HEAD)" && echo "MERGE_BASE: $(git merge-base HEAD <OTHER_BRANCH>)" && echo "COMMITS_AHEAD: $(git rev-list --count <OTHER_BRANCH>..HEAD)" && echo "COMMITS_BEHIND: $(git rev-list --count HEAD..<OTHER_BRANCH>)"
+git diff --stat <OTHER_BRANCH>...HEAD
+git diff --name-status <OTHER_BRANCH>...HEAD
 ```
 
-Store the full diff output — you will include it in each agent prompt so they can analyze the actual code changes.
+Then get the full diff: `git diff <OTHER_BRANCH>...HEAD`
 
----
+The three-dot form shows changes since the branches diverged, which is what you want here. If the diff is too large to pass along whole, give each agent the stat and name-status output plus the diff for the files in its area, and say in the final report that the diff was truncated.
 
-## STEP 3: LAUNCH 5 PARALLEL ANALYSIS AGENTS
+## Step 2: Launch parallel analysis agents
 
-Launch all 5 agents **IN PARALLEL** (single message, multiple Agent tool calls).
+The user invoked this skill to get a parallel multi-angle review, so delegate rather than reviewing the diff serially yourself. Launch one agent per focus area below, all in a single message. Five focus areas means up to five agents; combine two if the diff is small enough that separate agents would report the same things.
 
-Pass each agent the **git context from Step 1**, the **full diff from Step 2**, and its specific focus instructions. Use `subagent_type: "Explore"` for Agents 1-3 (exploration-focused) and `subagent_type: "general-purpose"` for Agents 4-5 (review-focused, prompted explicitly to act as a code/risk reviewer).
+Give every agent the same shared brief:
 
-### Agent 1: Structural & Architectural Impact (Explore)
+> You are analyzing the difference between two git branches. Current branch: [insert]. Target branch: `<OTHER_BRANCH>`. Commits ahead: [insert]. Commits behind: [insert].
+>
+> CHANGED FILES: [insert name-status output]
+> DIFF STATS: [insert stat output]
+> FULL DIFF: [insert full diff]
+>
+> This is read-only: do not edit any files. Report everything you find in your focus area, ordered with the most significant first. Note how confident you are in each finding rather than dropping the ones you are unsure about — the synthesis step decides what surfaces. Cite `file:line` for each finding.
 
-```
-EXPLORATION FOCUS: Structural & Architectural Impact of Branch Differences
+Then add one focus area per agent:
 
-You are comparing two git branches. Analyze the structural and architectural differences.
+1. **Structural and architectural impact** (`subagent_type: "Explore"`) — Categorize changed files by type. Which modules are affected and how. Whether layers, boundaries, or data flows changed. Dependencies added or removed. Renames, moves, reorganizations. Whether the change is localized or spread out.
 
-Current branch: [insert current branch]
-Target branch: <OTHER_BRANCH>
-Commits ahead: [insert]
-Commits behind: [insert]
+2. **Logic and behavior changes** (`subagent_type: "Explore"`) — What each change does and why it matters, traced end-to-end. New and removed behavior. Changes to public APIs, interfaces, and contracts. Changes to error handling, logging, and observability. Changes to configuration and defaults. Anything affecting backwards compatibility.
 
-CHANGED FILES:
-[insert name-status output from Step 1]
+3. **Testing and quality changes** (`subagent_type: "Explore"`) — Test files added, modified, deleted, and what the new coverage validates. Implementation changes lacking corresponding test changes. Changes to fixtures, helpers, and test config. Any disabled, skipped, or weakened tests.
 
-DIFF STATS:
-[insert stat output from Step 1]
+4. **Code quality review** (`subagent_type: "general-purpose"`, prompted as a code reviewer) — Style and naming consistency with the surrounding codebase. Error handling patterns. Duplication introduced or removed. Function complexity and nesting depth. Readability of the changes. AGENTS.md/CLAUDE.md compliance where those files exist. Whether complex changes are explained.
 
-FULL DIFF:
-[insert full diff from Step 2]
+5. **Risk and impact** (`subagent_type: "general-purpose"`, prompted as a risk reviewer) — Security implications (attack surface, auth, input handling). Performance implications (algorithmic changes, new queries, resource usage). Breaking changes. Data migrations or schema changes needing coordination. Deployment-affecting config changes. External integration and API contract changes. Concurrency and race conditions. Unhandled error scenarios. Give each risk a severity.
 
-Your analysis tasks:
-1. Categorize all changed files by type (source, test, config, docs, build, etc.)
-2. Identify which modules/components are affected and how
-3. Assess architectural impact — are layers, boundaries, or data flows changed?
-4. Flag any new dependencies introduced or removed
-5. Identify file renames, moves, or reorganizations
-6. Map which parts of the codebase are touched vs untouched
-7. Assess whether changes are localized or spread across the codebase
+## Step 3: Synthesize
 
-Produce a structured report on the structural and architectural differences.
-```
-
-### Agent 2: Logic & Behavior Changes (Explore)
-
-```
-EXPLORATION FOCUS: Logic & Behavior Changes Between Branches
-
-You are comparing two git branches. Analyze what the code changes actually DO.
-
-Current branch: [insert current branch]
-Target branch: <OTHER_BRANCH>
-
-CHANGED FILES:
-[insert name-status output from Step 1]
-
-FULL DIFF:
-[insert full diff from Step 2]
-
-Your analysis tasks:
-1. For each changed file, explain WHAT changed and WHY it matters
-2. Trace behavior changes end-to-end (e.g., "this endpoint now validates X before Y")
-3. Identify new features, capabilities, or behaviors introduced
-4. Identify removed features or deprecated behaviors
-5. Document changes to public APIs, interfaces, or contracts
-6. Flag any changes to error handling, logging, or observability
-7. Note changes to configuration, environment variables, or defaults
-8. Identify any changes that could affect backwards compatibility
-
-Produce a structured report explaining the functional and behavioral differences in plain language.
-```
-
-### Agent 3: Testing & Quality Changes (Explore)
-
-```
-EXPLORATION FOCUS: Testing & Quality Impact of Branch Differences
-
-You are comparing two git branches. Analyze the testing and quality aspects of the differences.
-
-Current branch: [insert current branch]
-Target branch: <OTHER_BRANCH>
-
-CHANGED FILES:
-[insert name-status output from Step 1]
-
-FULL DIFF:
-[insert full diff from Step 2]
-
-Your analysis tasks:
-1. Identify all test file changes (added, modified, deleted)
-2. Analyze what new test coverage was added and what it validates
-3. Check if implementation changes have corresponding test changes
-4. Identify any test gaps — code changes without matching test updates
-5. Note changes to test infrastructure (fixtures, helpers, config)
-6. Assess whether test naming and organization follows existing conventions
-7. Flag any disabled, skipped, or weakened tests
-
-Produce a structured report on how testing and quality assurance differ between branches.
-```
-
-### Agent 4: Code Quality Review (general-purpose)
-
-```
-You are acting as a code reviewer. Review the differences between two git branches and assess the quality of the changes.
-
-Current branch: [insert current branch]
-Target branch: <OTHER_BRANCH>
-
-CHANGED FILES:
-[insert name-status output from Step 1]
-
-FULL DIFF:
-[insert full diff from Step 2]
-
-Review the diff for:
-1. Code style consistency with the rest of the codebase
-2. Naming conventions adherence
-3. Error handling patterns (proper vs missing vs inconsistent)
-4. Code duplication introduced or eliminated
-5. Function/method complexity (long functions, deep nesting)
-6. Readability and maintainability of the changes
-7. CLAUDE.md compliance (if present)
-8. Comment quality — are complex changes explained?
-
-Produce a confidence-scored review (only findings >=80% confidence) of the code quality in the branch differences. Do not edit any files — this is a read-only review.
-```
-
-### Agent 5: Risk & Impact Assessment (general-purpose)
-
-```
-You are acting as a risk reviewer. Review the differences between two git branches and assess risks and potential impact.
-
-Current branch: [insert current branch]
-Target branch: <OTHER_BRANCH>
-
-CHANGED FILES:
-[insert name-status output from Step 1]
-
-FULL DIFF:
-[insert full diff from Step 2]
-
-Assess the changes for:
-1. Security implications (new attack surfaces, auth changes, input handling)
-2. Performance implications (algorithmic changes, new queries, resource usage)
-3. Breaking changes that could affect other parts of the system
-4. Data migration or schema changes that need coordination
-5. Configuration changes that could affect deployment
-6. External service integration changes (API contracts, endpoints)
-7. Concurrency or race condition risks
-8. Error scenarios that may not be handled
-
-Produce a confidence-scored risk assessment (only findings >=80% confidence) with severity ratings and mitigation recommendations. Do not edit any files — this is a read-only review.
-```
-
----
-
-## STEP 4: SYNTHESIZE
-
-After all 5 agents complete, synthesize their findings into a comprehensive comparison report.
-
-Present the report directly to the user (do NOT write to a file unless asked):
+Present the report directly in your response, not to a file:
 
 ```markdown
 # Branch Comparison: [current branch] vs <OTHER_BRANCH>
 
 ## Overview
-- **Current branch**: [name] ([N] commits ahead, [M] commits behind <OTHER_BRANCH>)
-- **Target branch**: <OTHER_BRANCH>
-- **Files changed**: [count]
-- **Insertions**: [count] | **Deletions**: [count]
-
----
+- **Current branch**: [name] ([N] ahead, [M] behind <OTHER_BRANCH>)
+- **Files changed**: [count] | **Insertions**: [count] | **Deletions**: [count]
 
 ## Structural Changes
-[Synthesized from Agent 1 — what files/modules changed and how]
 
 ## Behavior Changes
-[Synthesized from Agent 2 — what the changes DO, explained clearly]
 
 ## Testing Changes
-[Synthesized from Agent 3 — test coverage, gaps, quality]
 
 ## Code Quality Assessment
-[Synthesized from Agent 4 — quality findings >=80% confidence]
 
 ## Risk Assessment
-[Synthesized from Agent 5 — risks >=80% confidence with severity]
-
----
+[With severity per risk]
 
 ## Summary of Key Differences
-[Bullet-point summary of the most important differences]
 
 ## Recommendations
-[Actionable recommendations based on findings]
 ```
 
----
-
-## IMPORTANT NOTES
-
-- All agents receive the **full diff** so they can analyze actual code, not just file names
-- Agents use **read-only tools** (no file modifications)
-- The three-dot diff (`<OTHER_BRANCH>...HEAD`) shows changes since the branches diverged, not the total difference
-- If the diff is extremely large, summarize the most impactful changes and note that the full diff was truncated
-- If `<OTHER_BRANCH>` does not exist as a branch, report the error clearly and suggest checking branch names with `git branch -a`
+Rank findings by significance and lead each section with what matters most. Keep each section to a few paragraphs or a short table — the reader wants to know what changed and what to worry about, not to read the diff again in prose. Where an agent flagged a finding as uncertain, keep it and say it is uncertain. Where agents disagree, say so.

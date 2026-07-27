@@ -70,9 +70,14 @@ deny_pretool() {
     printf '{"permission":"deny","user_message":"%s","agent_message":"%s"}\n' \
       "$(json_escape "$reason")" \
       "$(json_escape "$reason")"
+  elif [ "$PROVIDER" = "claude" ]; then
+    # Claude Code PreToolUse denies via hookSpecificOutput.permissionDecision. The
+    # top-level decision/reason pair is deprecated for this event, so it is omitted
+    # here rather than emitted alongside.
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"%s"}}\n' \
+      "$(json_escape "$reason")"
   else
-    printf '{"decision":"block","reason":"%s","hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"%s"}}\n' \
-      "$(json_escape "$reason")" \
+    printf '{"decision":"block","reason":"%s"}\n' \
       "$(json_escape "$reason")"
   fi
 }

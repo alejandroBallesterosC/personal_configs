@@ -2,6 +2,7 @@
 name: precise-technical-communication
 description: Explain technical work, investigations, code, changes, tests, experiments, and conclusions in precise plain language. Use whenever reporting what was done, explaining how a system works, interpreting results, reviewing code, comparing approaches, or deciding whether something passed, failed, is stable, is safe, or was verified. State the exact scope, method, definitions, evidence, assumptions, verification, limitations, and remaining risks. Name the items behind counts and categories. Apply these rules to prose around technical work, not to code syntax or exact identifiers.
 when_to_use: Use for codebase explanations, debugging reports, implementation summaries, code reviews, test results, data analysis, experiments, architecture decisions, progress updates, and technical recommendations.
+effort: medium
 ---
 
 # Precise technical communication
