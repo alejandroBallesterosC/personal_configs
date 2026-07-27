@@ -5,12 +5,13 @@
   },
   "autoMemoryEnabled": true,
   "hooks": {
-    "Stop": [
+    "PreToolUse": [
       {
+        "matcher": "Bash|functions.exec_command|exec_command|mcp__github__.*|github.*|GitHub.*|gh",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/document-learnings.sh"
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.agents/hooks/pre-git-documentation-check.sh --provider claude"
           }
         ]
       }
