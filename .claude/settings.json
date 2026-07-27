@@ -3,18 +3,5 @@
     "plugin-dev@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true
   },
-  "autoMemoryEnabled": true,
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash|functions.exec_command|exec_command|mcp__github__.*|github.*|GitHub.*|gh",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.agents/hooks/pre-git-documentation-check.sh --provider claude"
-          }
-        ]
-      }
-    ]
-  }
+  "autoMemoryEnabled": true
 }

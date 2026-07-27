@@ -21,7 +21,6 @@ AGENTS.md          # This file (canonical shared instructions; CLAUDE.md imports
 CLAUDE.md          # Import-only wrapper: @AGENTS.md
 .claude-plugin/    # Marketplace manifest (marketplace.json)
 .claude/           # This repo's own session config (settings.json, settings.local.json)
-.agents/hooks/     # Standalone copy of the codebase-hygiene guard, wired up by .claude/settings.json
 .vscode/           # VS Code tasks — leftover from a prior unrelated project
 .github/workflows/ # claude.yml, claude-code-review.yml
 ```
@@ -39,7 +38,7 @@ Two plugins have no README of their own, so their mechanics are recorded here:
 - **Skill activation**: Skills auto-activate when context matches their description, unless they set `disable-model-invocation: true` (user-invoked only, and excluded from the always-loaded skill listing)
 - **Version bumping**: Any time a change is made to a Claude Code plugin you MUST bump (increase) the version number in the plugin's `plugin.json` so that it registers as having been updated. Keep the version in exactly one place — do not add a `## Version` section to a plugin README, which drifts
 - **Hooks**: Event-driven automation — `notify` uses Stop/Notification hooks; `codebase-hygiene` uses a PreToolUse hook to guard commits
-- **Project-level hooks**: `.claude/settings.json` registers a PreToolUse guard for this repo's own sessions, pointing at `.agents/hooks/pre-git-documentation-check.sh` — a copy of the `codebase-hygiene` hook kept outside the plugin so it runs without the plugin installed. Keep that copy in sync with `claude-code/plugins/codebase-hygiene/hooks/`; it is a duplicate, so fixes to one must be applied to the other
+- **No project-level hooks**: `.claude/settings.json` registers none. The documentation guard reaches this repo through the installed `codebase-hygiene` plugin, so do not add a repo-local copy of it — a second copy has no sync mechanism and drifts from the plugin
 
 ## Design Decisions
 
