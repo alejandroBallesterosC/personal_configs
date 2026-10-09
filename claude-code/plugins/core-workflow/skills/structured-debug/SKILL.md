@@ -1,6 +1,6 @@
 ---
 name: structured-debug
-description: Hypothesis-driven debugging methodology with instrumentation and log tracing. Use when debugging errors, investigating bugs, diagnosing unexpected behavior, performing root cause analysis, adding debug logging, writing regression tests after fixes, or when tests fail for unclear reasons. Covers hypothesis generation, tagged instrumentation ([DEBUG-H1]), the 3-Fix Rule, and anti-patterns to avoid.
+description: Hypothesis-driven debugging methodology with instrumentation and log tracing. Use when debugging errors, investigating bugs, diagnosing unexpected behavior, performing root cause analysis, adding debug logging, writing regression tests after fixes, or when tests fail for unclear reasons.
 effort: high
 ---
 

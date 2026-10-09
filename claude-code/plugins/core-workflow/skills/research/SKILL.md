@@ -5,7 +5,7 @@ disable-model-invocation: true
 argument-hint: <question or topic to research>
 allowed-tools: Agent, Read
 disallowed-tools: Edit, Write, NotebookEdit, Bash
-effort: xhigh
+effort: high
 ---
 
 # Thorough Internet Research
@@ -14,7 +14,7 @@ You will conduct thorough internet research to answer the following question or 
 
 **$ARGUMENTS**
 
-This is a research-only task: the only output is a well-sourced answer. `disallowed-tools` blocks edits and shell access for the duration.
+This is a research-only task: the only output is a well-sourced answer. `disallowed-tools` blocks edits and shell access for this turn.
 
 ## Research Strategy
 

@@ -3,7 +3,7 @@
 Python-specific code-quality principles: a verification-first, runtime-validated, legible-artifact philosophy, with anti-overengineering guardrails that keep it pragmatic.
 
 ```
-/plugin install python-code-quality
+/plugin install python-code-quality --marketplace alejandroBallesterosC/personal_configs
 ```
 
 ## Components

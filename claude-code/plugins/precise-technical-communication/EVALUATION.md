@@ -1,6 +1,24 @@
 # Evaluation prompts
 
-Run each prompt in a fresh Claude Code session with the skill available. Run it again with the skill disabled. Compare whether the response satisfies the checks below.
+## Automated cases
+
+Prompts 1, 5, and 6 below run automatically as `claude plugin eval` cases in `evals/` (Claude Code 2.1.269 or later). Each case runs with and without the plugin, so the report shows how much of the behavior the plugin adds on top of the model's defaults. From the plugin root:
+
+```bash
+claude plugin eval . --model claude-opus-5-5 --no-publish
+```
+
+| Case | Prompt | Graders |
+| --- | --- | --- |
+| `evals/out-of-sample-summary` | 1. Summary result | LLM judge on criterion, full case list, count with total, and what the data does not show |
+| `evals/benchmark-claim` | 5. Benchmark | LLM judge on absolute and relative change, no unsupported "statistically significant", stated limits |
+| `evals/simple-question` | 6. Simple question | Regex: names the file; no report headings |
+
+Pin `--model` so a model release is not mistaken for a plugin regression. Results land in `evals/results/`, which is gitignored.
+
+## Manual prompts
+
+The remaining prompts need a real repository or an earlier conversation, so they stay manual. Run each prompt in a fresh Claude Code session with the plugin enabled, then again with it disabled, and compare the responses against the checks below.
 
 ## 1. Summary result
 

@@ -3,11 +3,11 @@
   "hooks": {
     "Notification": [
       {
-        "matcher": "permission_prompt|idle_prompt|elicitation_dialog",
+        "matcher": "permission_prompt|idle_prompt|elicitation_dialog|elicitation_url_dialog|agent_needs_input",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/cc-notify.sh input"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/cc-notify.sh\" input"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/cc-notify.sh done"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/cc-notify.sh\" done"
           }
         ]
       }

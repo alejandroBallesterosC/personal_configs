@@ -41,5 +41,5 @@ None required. `pdflatex`/MacTeX is an optional dependency for the `latex-report
 ## Installation
 
 ```
-/plugin install core-workflow
+/plugin install core-workflow --marketplace alejandroBallesterosC/personal_configs
 ```

@@ -1,12 +1,14 @@
 ---
 name: adversarial-plan-review
 description: Adversarial checklist for critiquing implementation plans before building — evidence-to-decision audit, assumption inversion, cross-artifact consistency, and external-dependency checks. Use when reviewing a plan (from Plan Mode or a written doc) before implementation begins.
-effort: xhigh
+effort: high
 ---
 
 # Adversarial Plan Review Skill
 
-A critical-reviewer checklist for finding problems in a plan before implementation starts: unsupported decisions, contradictions between plan and requirements, feasibility gaps, and undocumented external dependencies. Apply this directly to whatever planning artifacts exist (a Plan Mode proposal, a written design doc, requirements + architecture + test plan, etc.) — no dedicated agent or state machine needed.
+A critical-reviewer checklist for finding problems in a plan before implementation starts: unsupported decisions, contradictions between plan and requirements, feasibility gaps, and undocumented external dependencies. Apply this to whatever planning artifacts exist (a Plan Mode proposal, a written design doc, requirements + architecture + test plan, etc.).
+
+The plan is a document, so check it by reading: the plan itself, the code and docs it references, and the evidence it cites. Building or running the plan to test it is implementation, which is what this review comes before.
 
 ## Step 1: Evidence-to-Decision Audit
 
@@ -44,7 +46,7 @@ If only a single plan document exists (the common case), apply the spirit of the
 
 ## Step 4: External Dependencies Audit
 
-This is critical — it is what prevents mock/slop implementations later. For every external service, API, or credential the plan implies:
+This step catches the gap that most often turns into mock or placeholder implementations later, when the real dependency turns out to be unavailable. For every external service, API, or credential the plan implies:
 
 - Is it documented?
 - Is the credential/API key requirement identified?
@@ -52,8 +54,6 @@ This is critical — it is what prevents mock/slop implementations later. For ev
 
 ## Step 5: Practical Feasibility
 
-- Are all external API/service dependencies identified with clear integration plans?
-- Are API keys, credentials, or access requirements documented?
 - Is the total scope realistic for the described timeline?
 - Are there circular dependencies in the implementation sequence?
 
@@ -71,11 +71,11 @@ Severity definitions:
 - **CONCERN**: Implementation will be harder or riskier than necessary, but not fatal.
 - **SUGGESTION**: Would improve the plan but isn't critical.
 
-Close with a verdict: `NO_BLOCKER_ISSUES` or `BLOCKERS_FOUND: N` with a one-line summary of what must be resolved.
+Close with a one-line verdict: either no blockers, or how many blockers there are and what must be resolved before implementation.
 
 ## Rules
 
 - Never invent issues without concrete supporting evidence from the plan, requirements, or established engineering principles.
 - Classify severity accurately — don't inflate CONCERN to BLOCKER or deflate BLOCKER to CONCERN.
 - Be specific: vague criticism ("this seems risky") is not useful; name the exact decision and why.
-- If you find no issues, say `NO_BLOCKER_ISSUES` explicitly. Don't invent problems to justify a thorough review.
+- If you find no blockers, say so plainly. Don't invent problems to justify a thorough review.

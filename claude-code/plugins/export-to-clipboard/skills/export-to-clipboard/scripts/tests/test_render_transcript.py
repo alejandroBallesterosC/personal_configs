@@ -8,6 +8,7 @@ import json
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -311,6 +312,31 @@ class LocatorTests(unittest.TestCase):
             self._fake_home(home)
             with self.assertRaises(FileNotFoundError):
                 rt.locate_transcript("sess-missing", None)
+
+
+class SessionIdEnvTests(unittest.TestCase):
+    """Claude Code exports CLAUDE_CODE_SESSION_ID to Bash subprocesses; CLAUDE_SESSION_ID is
+    only a skill-content substitution, so the env lookup must prefer the exported name."""
+
+    def _env(self, **values):
+        patcher = unittest.mock.patch.dict(rt.os.environ, values, clear=False)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        for name in ("CLAUDE_CODE_SESSION_ID", "CLAUDE_SESSION_ID"):
+            if name not in values:
+                rt.os.environ.pop(name, None)
+
+    def test_prefers_exported_claude_code_session_id(self):
+        self._env(CLAUDE_CODE_SESSION_ID="sess-exported", CLAUDE_SESSION_ID="sess-legacy")
+        self.assertEqual(rt.default_session_id(), "sess-exported")
+
+    def test_falls_back_to_claude_session_id(self):
+        self._env(CLAUDE_SESSION_ID="sess-legacy")
+        self.assertEqual(rt.default_session_id(), "sess-legacy")
+
+    def test_none_when_unset(self):
+        self._env()
+        self.assertIsNone(rt.default_session_id())
 
 
 if __name__ == "__main__":

@@ -281,11 +281,11 @@ if [ -n "$STATUS" ]; then
   if [ ! -f "$MARKER" ]; then
     : >"$MARKER"
     if [ -n "$REQUIRED_DOCS_LIST" ]; then
-      REQUIRED_DOCS_EMPHASIS="In particular, it is very important that $REQUIRED_DOCS_LIST always be up to date. "
+      REQUIRED_DOCS_EMPHASIS="In particular, $REQUIRED_DOCS_LIST must stay current, because this repository declares them required in its .documentation-check manifest. "
     else
       REQUIRED_DOCS_EMPHASIS=""
     fi
-    deny_pretool "DOCUMENTATION PRE-COMMIT GUARD: **CRITICAL** Before committing please take a moment to ensure all documentation is up to date with the current state of the codebase. ${REQUIRED_DOCS_EMPHASIS}Ensure ALL README files, AGENTS.md files, and all other documentation files throughout the entire codebase are also up to date with the current state of the codebase. There should be no stale, obviously redundant, or inaccurate documentation in the entire codebase. Load the agents-md-improver skill if it's not already loaded this session. If you have reviewed docs and truly no documentation updates are needed (NOTE: this should be very rare) or you have already ensured all documentation is up to date please rerun your commit command; this guard will allow the unchanged diff on the second attempt provided all other documentation checks pass."
+    deny_pretool "DOCUMENTATION PRE-COMMIT GUARD: Before committing, ensure all documentation is up to date with the current state of the codebase. ${REQUIRED_DOCS_EMPHASIS}That covers every README, AGENTS.md file, and other documentation file in the repository: none should be stale, redundant, or inaccurate. Code changes usually leave some description, command, or file path behind, and the commit is the cheapest place to catch it. Load the agents-md-improver skill if it is not already loaded this session. Once the documentation is current, including when your review finds nothing to change, rerun the commit command; this guard allows the unchanged diff on the second attempt provided all other documentation checks pass."
     exit 0
   fi
 fi

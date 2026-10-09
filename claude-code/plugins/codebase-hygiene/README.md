@@ -3,7 +3,7 @@
 A lean set of skills and a hook for keeping a codebase well-organized, clean, and well documented — with documentation kept evergreen and agent instruction files (`AGENTS.md`/`CLAUDE.md`) correctly paired for cross-tool interoperability.
 
 ```
-/plugin install codebase-hygiene
+/plugin install codebase-hygiene --marketplace alejandroBallesterosC/personal_configs
 ```
 
 ## Components
@@ -46,6 +46,8 @@ When the contract holds, the guard denies the first commit attempt once per chan
 ## Cross-tool agent configuration
 
 The root `AGENTS.md` is the single source of truth for shared agent instructions. For interoperability across Codex, Cursor, Claude Code, and other agent CLIs, surface the same instructions under `.agents/`, `.codex/`, `.cursor/`, and `.claude/` by symlinking or importing back to the root `AGENTS.md`, rather than copying (copies drift). The `agents-md-improver` skill and the `codebase-hygiene` skill both describe this setup.
+
+Claude Code 2.1.277 and later reads `AGENTS.md` natively, but by default only in a project with no `CLAUDE.md`, and users can change that under "Project instructions" in `/config`. The guard still requires the `@AGENTS.md` wrapper because it loads `AGENTS.md` the same way under every setting and on older versions; Claude Code does not load an imported file twice. This is also the pattern the [Claude Code memory docs](https://code.claude.com/docs/en/memory) describe for sharing instructions across tools.
 
 ## Dependencies
 

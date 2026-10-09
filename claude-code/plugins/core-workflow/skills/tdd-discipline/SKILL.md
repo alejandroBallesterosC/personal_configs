@@ -29,16 +29,12 @@ RED → GREEN → REFACTOR → (repeat)
 
 ## Writing the tests
 
-Structure each test as arrange, act, assert, and let the phases be visible. A reader should be able to see the setup, the single action under test, and the claim.
-
 Cover the boundaries, since this is where defects actually live: zero items, one item, many, minimum and maximum values, invalid input, empty strings and nulls.
-
-Each test runs in isolation — no dependence on another test, no dependence on execution order, and it cleans up after itself.
 
 Test public behavior, not private methods. A test coupled to internals fails during honest refactors and stops meaning anything.
 
 ## Running them
 
-Run the project's test command after GREEN and after every refactor, as a normal part of the cycle rather than something a hook has to force. If the command is not obvious, check the README, `package.json` scripts, or the CI config.
+Run the project's test command after GREEN and after every refactor, and report a step as done only after a run that exercises it has passed.
 
 For visual and frontend verification, use the `playwright` plugin's skill.

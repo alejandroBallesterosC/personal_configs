@@ -19,7 +19,7 @@ Usage: export.sh [--last N] [--name NAME]
 
 Environment:
   CLAUDE_CODE_OBSIDIAN_EXPORT_PATH   Absolute path to the Obsidian vault (required when local).
-  CLAUDE_SESSION_ID / CLAUDE_PROJECT_DIR   Provided by Claude Code; used to locate the transcript.
+  CLAUDE_CODE_SESSION_ID             Exported by Claude Code; used to locate the transcript.
 EOF
 }
 
@@ -121,7 +121,7 @@ build_filename() {
   fi
   local stamp session_prefix suffix
   stamp="$(date -u +%Y%m%d-%H%M%S)"
-  session_prefix="${CLAUDE_SESSION_ID:-session}"
+  session_prefix="${CLAUDE_CODE_SESSION_ID:-${CLAUDE_SESSION_ID:-session}}"
   session_prefix="${session_prefix:0:8}"
   suffix=""
   [ -n "$LAST" ] && suffix="-last${LAST}"

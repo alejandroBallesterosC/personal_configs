@@ -1,7 +1,8 @@
 # ====================
 # Project-specific
 # ====================
-
+# `claude plugin eval` writes per-run reports here
+claude-code/plugins/*/evals/results/
 
 
 # ====================

@@ -2,18 +2,19 @@
 
 This package gives Claude Code standing rules for explaining technical work in plain, exact, and auditable language.
 
-The main skill is `skills/precise-technical-communication/SKILL.md`. Supporting files provide report structures and worked examples. The optional output style applies a shorter form of the same rules to every Claude Code response.
+The main skill is `skills/precise-technical-communication/SKILL.md`. Supporting files provide report structures and worked examples. The output style applies a shorter form of the same rules to every Claude Code response.
 
 ## Install as a plugin (recommended)
 
 This package is a Claude Code plugin in the `personal_configs` marketplace:
 
 ```text
-/plugin marketplace add alejandroBallesterosC/personal_configs
-/plugin install precise-technical-communication
+/plugin install precise-technical-communication --marketplace alejandroBallesterosC/personal_configs
 ```
 
-The skill loads automatically when the request matches its description, and can be invoked directly with `/precise-technical-communication`.
+The skill loads automatically when the request matches its description, and can be invoked directly with `/precise-technical-communication:precise-technical-communication`.
+
+Installing the plugin also turns on the output style. It sets `force-for-plugin: true`, so Claude Code applies it whenever the plugin is enabled, overriding your own `outputStyle` setting. It shapes the main conversation, not subagents. Its text is part of every request, so it costs context on every turn. To use only the skill, install it as a personal skill instead.
 
 ## Install as a personal skill
 
@@ -41,11 +42,9 @@ cp -R skills/precise-technical-communication/. .claude/skills/precise-technical-
 
 Commit the `.claude/skills/precise-technical-communication` directory when the whole team should use it.
 
-## Optional output style for every response
+## Output style for a personal install
 
-A skill loads when Claude or the user invokes it. An output style applies communication rules to every response.
-
-Copy the optional file to the personal output styles directory:
+A skill loads when Claude or the user invokes it. An output style applies communication rules to every response. The plugin applies the style automatically; for a personal install, copy the file to the personal output styles directory:
 
 ```bash
 mkdir -p ~/.claude/output-styles
@@ -54,11 +53,11 @@ cp output-styles/precise-technical-communication-output-style.md ~/.claude/outpu
 
 Open `/config`, select `Precise technical communication` as the output style, then start a new session or run `/clear`.
 
-The output style sets `keep-coding-instructions: true`, so Claude Code keeps its normal software engineering instructions.
+The output style sets `keep-coding-instructions: true`, which keeps Claude Code's built-in software engineering instructions when Claude Code uses its full system prompt. Current models (Opus 5.5, Sonnet 5.5, Haiku 5.5, and Fable) get a shorter system prompt by default that does not contain those instructions, so on them the field has no effect.
 
 ## Evaluate the skill
 
-Use the prompts and checks in `EVALUATION.md`. Test in fresh sessions with the skill enabled and disabled so prior conversation context does not hide gaps in the skill.
+`EVALUATION.md` lists the evaluation prompts and checks. Three of them run as automated `claude plugin eval` cases in `evals/`, each with and without the plugin; the rest stay manual because they need a real repository or session. Re-run the suite when a new model ships, pinning `--model`, to see which behaviors the model now does on its own and which still need the plugin.
 
 ## Design choices
 

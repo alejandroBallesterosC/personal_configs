@@ -160,6 +160,10 @@ emit_message() {
     # Pre-tool blocking shape for Cursor beforeShellExecution / beforeMCPExecution.
     # followup_message only continues a stop/subagentStop loop; it never blocks a tool call.
     printf '{"permission":"deny","user_message":"%s","agent_message":"%s"}\n' "$escaped" "$escaped"
+  elif [ "$provider" = "claude" ]; then
+    # The only Claude Code caller is the PreToolUse guard, which denies via
+    # hookSpecificOutput.permissionDecision; top-level decision/reason is deprecated there.
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"%s"}}\n' "$escaped"
   else
     printf '{"decision":"block","reason":"%s"}\n' "$escaped"
   fi

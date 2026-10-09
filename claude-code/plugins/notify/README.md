@@ -4,7 +4,7 @@ Terminal bell and macOS banner notifications when Claude Code needs input or fin
 
 ## What it does
 
-- Sends a BEL character to trigger Ghostty's `bell-features` (dock bounce, title indicator, border flash, system sound)
+- Sends a BEL character to trigger Ghostty's `bell-features` (dock bounce, title indicator, border flash, system sound). Hooks run without a controlling terminal, so the hook returns the BEL in its JSON `terminalSequence` field and Claude Code (2.1.141 or later) writes it to the terminal
 - Shows a macOS banner notification with project context and click-to-focus via `terminal-notifier`
 - Falls back to `osascript` if `terminal-notifier` is not installed
 
@@ -12,7 +12,7 @@ Terminal bell and macOS banner notifications when Claude Code needs input or fin
 
 | Event | Matcher | Trigger |
 |-------|---------|---------|
-| `Notification` | `permission_prompt\|idle_prompt\|elicitation_dialog` | Claude needs your input (permission, idle, or MCP dialog) |
+| `Notification` | `permission_prompt\|idle_prompt\|elicitation_dialog\|elicitation_url_dialog\|agent_needs_input` | Claude needs your input (permission, idle, an MCP form or link dialog, or a background agent waiting on you) |
 | `Stop` | (all) | Claude finished responding |
 
 ## Dependencies
@@ -56,5 +56,5 @@ System Settings > Notifications > terminal-notifier > change "Banners" to "Alert
 ## Installation
 
 ```
-/plugin install notify
+/plugin install notify --marketplace alejandroBallesterosC/personal_configs
 ```

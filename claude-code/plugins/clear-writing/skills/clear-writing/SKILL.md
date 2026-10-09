@@ -9,7 +9,6 @@ description: >-
   Apply it to open-ended and complex explanations, where the risk of vague
   jargon and missing information is highest. Default to this style for all prose
   unless the user asks for a different one. Do not apply it to code.
-effort: medium
 ---
 
 # Clear writing
@@ -21,7 +20,7 @@ point and hides behind generic high probability words. This skill exists to stop
 
 It combines two sources: a plain-writing style guide and the stop-slop pattern list.
 The core rules are below. The exhaustive lists of banned phrases and structures live in
-the files in reference/, which should be loaded when editing or reviewing a longer piece.
+the files in references/, which should be loaded when editing or reviewing a longer piece.
 
 ## When to use it
 
@@ -30,8 +29,7 @@ Use this skill for two jobs.
 1. Written artifacts. Any document, report, email, Slack post, README, documentation, or note you produce for a person.
 2. Communication. Any time you explain a complex or open-ended idea in chat, including plans, tradeoffs, and answers to hard questions.
 
-When you explain something, you should state the actual point, name the specific thing, and include the information the reader needs to act. You should NOT pad the explanation with words that sound smart but carry no meaning. This does not mean you should
-not use technical or complex words, it just means you need to be intentional and precise with your language. Use specific technical words when you are communicating a specific technical thing, dont use overly complex words all the time vaguely.
+When you explain something, state the actual point, name the specific thing, and include the information the reader needs to act. Do not pad the explanation with words that sound smart but carry no meaning. Technical words are fine when they are the precise term: use a specific technical word for a specific technical thing, and skip complex words that only make the text sound impressive.
 
 ## The rules
 
@@ -129,17 +127,6 @@ Run these checks on any prose before you deliver it. Fix what fails.
   Delete it.
 - Any three-item list padded for rhythm? Cut it to what is real.
 - Any fragment for drama, or a punchy one-liner ending? Make it a full sentence.
-
-## Scoring a draft
-
-For a longer artifact, rate the draft 1 to 10 on each dimension. Below 35 out of
-50 means revise before sending.
-
-- Directness. Does it state points, or announce that it will make them?
-- Clarity. Could a reader who is new to this understand it on one read?
-- Completeness. Is any critical number, tradeoff, or next step missing?
-- Plainness. Is it free of jargon, filler, and clever phrasing?
-- Density. Is there anything I can cut without losing meaning?
 
 ## Reference files
 

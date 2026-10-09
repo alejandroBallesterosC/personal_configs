@@ -4,7 +4,7 @@ description: Summarize all changes pushed by collaborators across every remote b
 disable-model-invocation: true
 argument-hint: <date-time> [timezone]
 allowed-tools: Read, Grep, Glob, Bash, Agent
-effort: xhigh
+effort: high
 ---
 
 # Explain All Changes Since
@@ -13,15 +13,15 @@ Fetch every remote branch and synthesize what collaborators other than you have 
 
 This is strictly read-only: no checkout, no merge, no push, no file edits, no commits.
 
-## STEP 0: VALIDATE ARGUMENTS
+## Step 0: Validate arguments
 
 The user's arguments are: **$ARGUMENTS**
 
 - If no date/time was provided, respond with "Usage: /core-workflow:explain-all-changes-since <date-time> [timezone]  You must specify a cutoff date/time." and stop.
-- If a timezone was provided, use it. If none was provided, **assume Eastern Time (America/New_York)** — use the IANA timezone name (not a fixed UTC offset) so daylight saving is handled automatically.
+- If a timezone was provided, use it. If none was provided, assume Eastern Time (America/New_York) — use the IANA timezone name (not a fixed UTC offset) so daylight saving is handled automatically.
 - Confirm a remote is configured: `git remote -v`. If empty, respond with "No git remote is configured for this repository." and stop.
 
-## STEP 1: FETCH AND IDENTIFY THE USER
+## Step 1: Fetch and identify the user
 
 Run in parallel:
 
@@ -29,7 +29,7 @@ Run in parallel:
 2. `git config user.email` and `git config user.name` (to exclude the user's own commits later)
 3. `git for-each-ref --format='%(refname:short)' refs/remotes | grep -v '/HEAD$'` (list every remote branch)
 
-## STEP 2: COLLECT QUALIFYING COMMITS PER REMOTE BRANCH
+## Step 2: Collect qualifying commits per remote branch
 
 For each remote branch found in Step 1, list commits since the cutoff, using the resolved IANA timezone so the date is interpreted correctly regardless of daylight saving:
 
@@ -38,11 +38,11 @@ TZ="<IANA timezone, e.g. America/New_York>" git log <remote-branch> --since="<da
   --pretty=format:'%H%x09%an%x09%ae%x09%aI%x09%s'
 ```
 
-From the results, **exclude any commit whose author name or email matches the current user** (from Step 1). What remains are candidate commits from other collaborators.
+From the results, exclude any commit whose author name or email matches the current user (from Step 1). What remains are candidate commits from other collaborators.
 
-Group the remaining commits by branch. If a branch has zero qualifying commits, drop it from further analysis. If NO branch has any qualifying commits, report "No changes found on any remote branch since <date-time> by collaborators other than you." and stop.
+Group the remaining commits by branch. If a branch has zero qualifying commits, drop it from further analysis. If no branch has any qualifying commits, report "No changes found on any remote branch since <date-time> by collaborators other than you." and stop.
 
-## STEP 3: GET THE ACTUAL DIFFS
+## Step 3: Get the actual diffs
 
 For each branch with qualifying commits, get the diff covering just those commits (not the whole branch history) — e.g. diff from the parent of the oldest qualifying commit to the branch tip, or `git show` per commit if the branch has only a few commits:
 
@@ -50,7 +50,7 @@ For each branch with qualifying commits, get the diff covering just those commit
 git diff <oldest-qualifying-commit>^..<remote-branch>
 ```
 
-## STEP 4: LAUNCH PARALLEL SUMMARIZATION AGENTS
+## Step 4: Launch parallel summarization agents
 
 The user invoked this skill to get a parallel sweep, so delegate rather than reading every branch serially. Launch one `subagent_type: "Explore"` agent per branch with qualifying commits, all in a single message — the branch count sets the agent count. If a great many branches qualify, batch several small ones per agent rather than spawning an agent per trivial branch.
 
@@ -75,7 +75,7 @@ Report:
 Cite `file:line`. Do not speculate beyond what the diff and commit messages show; where intent is unclear, say the intent is unclear rather than guessing at it. This is read-only — do not edit any files.
 ```
 
-## STEP 5: SYNTHESIZE
+## Step 5: Synthesize
 
 Combine all agents' reports into one response to the user:
 

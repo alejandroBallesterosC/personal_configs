@@ -44,7 +44,10 @@ Run this before committing.
 
 - Root `AGENTS.md` exists and is the single source of truth for shared agent
   instructions (Codex, Cursor, Claude Code, and other agent CLIs).
-- Root `CLAUDE.md` contains exactly `@AGENTS.md` and nothing else.
+- Root `CLAUDE.md` contains exactly `@AGENTS.md` and nothing else. Claude Code
+  2.1.277+ reads `AGENTS.md` natively when a project has no `CLAUDE.md`, but the
+  wrapper is still required: it loads `AGENTS.md` identically under every
+  "Project instructions" setting and on versions without native support.
 - In first-party directories, `AGENTS.md` and `CLAUDE.md` come in pairs: every
   `AGENTS.md` has a same-directory `CLAUDE.md` (an `@AGENTS.md` import) and vice
   versa. Substantive instructions live in `AGENTS.md`, never only in
