@@ -116,8 +116,11 @@ Two plugins also ship `claude plugin eval` suites (Claude Code 2.1.269+). They c
 ```bash
 claude plugin eval claude-code/plugins/clear-writing --model claude-opus-5-5 --no-publish
 claude plugin eval claude-code/plugins/precise-technical-communication --model claude-opus-5-5 --no-publish
-claude plugin validate .   # marketplace and plugin manifests
+claude plugin validate .   # marketplace manifest only
+for d in claude-code/plugins/*/; do claude plugin validate --strict "$d"; done   # each plugin, including hook checks
 ```
+
+Validating the marketplace root does not run the per-plugin checks, such as the warning for an unquoted `${CLAUDE_PLUGIN_ROOT}` in a hook command, so validate each plugin directory too.
 
 ## Dependencies
 
