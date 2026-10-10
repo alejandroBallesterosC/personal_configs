@@ -9,9 +9,9 @@ disallowed-tools: Edit, Write, NotebookEdit, Bash
 
 # Instructions:
 
-You are to carry out the following prompt thoroughly. If the following prompt is empty or blank, respond with "Usage: /core-workflow:readonly <prompt>" and stop.
+You are to carry out the following prompt. If the following prompt is empty or blank, respond with "Usage: /core-workflow:readonly <prompt>" and stop.
 
-This is a read-only investigation: report findings, do not change anything. `disallowed-tools` blocks edits and shell access for the duration, so answer from reading alone.
+This is a read-only investigation: report findings, do not change anything. `disallowed-tools` blocks edits and shell access for this turn, so answer from reading alone. If you delegate, use read-only agents such as `Explore`, so the delegated work stays read-only too.
 
 ## Prompt:
 $ARGUMENTS

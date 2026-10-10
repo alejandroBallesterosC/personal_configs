@@ -1,16 +1,19 @@
 #!/bin/sh
 # ABOUTME: Sends terminal bell and macOS banner notifications for Claude Code events.
-# ABOUTME: Uses terminal-notifier with click-to-focus if available, falls back to osascript.
+# ABOUTME: Bell via the hook JSON terminalSequence field; banners via terminal-notifier or osascript.
 
 kind="${1:-input}"
 
 # Drain stdin to prevent EPIPE errors from the hook runner
 cat > /dev/null
 
-# Send a BEL to the terminal/tmux client for Ghostty bell-features
-printf '\a' > /dev/tty 2>/dev/null || true
+# Hooks run without a controlling terminal, so writing BEL to /dev/tty fails. Instead the hook
+# asks Claude Code to emit the BEL on its own terminal, which reaches tmux and Ghostty's
+# bell-features the same way. This JSON must be the hook's only stdout.
+printf '{"terminalSequence":"\\u0007"}\n'
 
-# macOS banner notification with terminal-notifier (preferred) or osascript (fallback)
+# macOS banner notification with terminal-notifier (preferred) or osascript (fallback).
+# Their output is discarded so it cannot corrupt the JSON above.
 if command -v terminal-notifier > /dev/null 2>&1; then
   project="$(basename "$PWD")"
   case "$kind" in
@@ -20,7 +23,7 @@ if command -v terminal-notifier > /dev/null 2>&1; then
         -subtitle "$project" \
         -message "Needs your input" \
         -sound Funk \
-        -activate com.mitchellh.ghostty
+        -activate com.mitchellh.ghostty > /dev/null 2>&1
       ;;
     done)
       terminal-notifier \
@@ -28,16 +31,16 @@ if command -v terminal-notifier > /dev/null 2>&1; then
         -subtitle "$project" \
         -message "Finished responding" \
         -sound Glass \
-        -activate com.mitchellh.ghostty
+        -activate com.mitchellh.ghostty > /dev/null 2>&1
       ;;
   esac
 elif command -v osascript > /dev/null 2>&1; then
   case "$kind" in
     input)
-      osascript -e 'display notification "Claude Code needs your input" with title "Claude Code" sound name "Funk"'
+      osascript -e 'display notification "Claude Code needs your input" with title "Claude Code" sound name "Funk"' > /dev/null 2>&1
       ;;
     done)
-      osascript -e 'display notification "Claude finished responding" with title "Claude Code" sound name "Glass"'
+      osascript -e 'display notification "Claude finished responding" with title "Claude Code" sound name "Glass"' > /dev/null 2>&1
       ;;
   esac
 fi

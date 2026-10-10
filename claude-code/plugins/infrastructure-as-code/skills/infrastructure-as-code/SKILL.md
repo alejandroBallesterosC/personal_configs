@@ -95,16 +95,18 @@ Remote state is required, with locking:
 # backend.tf
 terraform {
   backend "s3" {
-    bucket         = "company-terraform-state"
-    key            = "project/environment/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "terraform-state-lock"
+    bucket       = "company-terraform-state"
+    key          = "project/environment/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true
   }
 }
 ```
 
-The backend resources themselves are created once, separately from the infrastructure that uses them — a bucket with `prevent_destroy = true` and versioning enabled, plus a DynamoDB table keyed on `LockID` for the lock. Versioning and `prevent_destroy` are what let you recover from a corrupted or truncated state file.
+`use_lockfile` (Terraform 1.11+) locks with a `<key>.tflock` object next to the state, so the bucket holds both state and lock and the lock needs `s3:GetObject`, `s3:PutObject`, and `s3:DeleteObject`. DynamoDB locking (`dynamodb_table`) is deprecated as of Terraform 1.11 and slated for removal. A repo still on it migrates by setting both `use_lockfile = true` and `dynamodb_table` for one rollout, so both locks are taken, then dropping `dynamodb_table`. OpenTofu supports both and has not deprecated DynamoDB, so follow whichever tool the repo pins.
+
+The backend bucket itself is created once, separately from the infrastructure that uses it, with `prevent_destroy = true` and versioning enabled. Versioning and `prevent_destroy` are what let you recover from a corrupted or truncated state file.
 
 Only ever `terraform force-unlock` after confirming no other terraform process is running. A forced unlock during a live apply corrupts state.
 

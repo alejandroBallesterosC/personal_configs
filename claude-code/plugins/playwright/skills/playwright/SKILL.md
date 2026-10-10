@@ -8,7 +8,7 @@ description: Browser automation with Playwright for testing websites, web apps, 
 ## When to Use Which Tool
 
 ### `playwright-cli` (default for interactive work)
-Use for: visual verification during development, screenshots, accessibility snapshots, form interaction, console/network checks, viewport testing. Token-efficient — saves all output to disk, read selectively via Read tool.
+Use for: visual verification during development, screenshots, accessibility snapshots, form interaction, console/network checks, viewport testing. Token-efficient — it writes screenshots and snapshots to disk so you read only what you need.
 
 ### `@playwright/test` (formal test files)
 Use for: test files committed to the repo, CI pipeline tests, complex multi-step test scenarios with assertions, test reports. See [API_REFERENCE.md](./API_REFERENCE.md) for the full API.
@@ -19,20 +19,23 @@ Use for: test files committed to the repo, CI pipeline tests, complex multi-step
 
 ## CLI Command Reference
 
+The CLI is young and its command set still changes between releases; `playwright-cli --help` is authoritative when this table and the installed version disagree.
+
 | Command | Description |
 |---------|-------------|
-| `playwright-cli open [url]` | Launch browser and navigate to URL |
+| `playwright-cli open [url]` | Launch browser and navigate to URL (`--device="iPhone 15"` or `--mobile` for device emulation) |
 | `playwright-cli goto <url>` | Navigate to URL in current session |
-| `playwright-cli snapshot` | Save accessibility snapshot as YAML to `.playwright-cli/` |
+| `playwright-cli snapshot [--filename <path>]` | Accessibility snapshot as YAML; prints to stdout unless `--filename` is given |
 | `playwright-cli screenshot` | Save screenshot as PNG to `.playwright-cli/` |
 | `playwright-cli click <ref>` | Click element by reference (e.g., `e21` from snapshot) |
 | `playwright-cli fill <ref> <text>` | Fill form field by reference |
 | `playwright-cli type <text>` | Type text into focused element |
 | `playwright-cli hover <ref>` | Hover over element by reference |
 | `playwright-cli press <key>` | Keyboard input (Enter, Tab, Escape, etc.) |
-| `playwright-cli run-code <code>` | Run raw Playwright script in page context |
+| `playwright-cli resize <width> <height>` | Set the viewport size |
+| `playwright-cli run-code "<function>"` | Run a Playwright function expression, e.g. `"async page => { ... }"` |
 | `playwright-cli console` | Show browser console messages |
-| `playwright-cli network` | List network requests |
+| `playwright-cli requests` | List network requests (`request <index>` for one) |
 | `playwright-cli tab-new` / `tab-list` | Tab management |
 | `playwright-cli list` | List active browser sessions |
 | `playwright-cli close-all` | Close all browser sessions |
@@ -42,17 +45,16 @@ Use for: test files committed to the repo, CI pipeline tests, complex multi-step
 
 ## Working with Snapshots and Screenshots
 
-- **Snapshots** are saved as YAML files in `.playwright-cli/` with element references like `e21`, `e35`
+- **Snapshots** are YAML with element references like `e21`, `e35`. Commands also save an automatic snapshot to `.playwright-cli/page-<timestamp>.yml`. For a large page, write the snapshot to a file with `--filename` and search it rather than printing it into context
 - **Screenshots** are saved as PNG files in `.playwright-cli/`
-- Read snapshots with the **Read tool** to understand page structure and get element refs for interaction
 - Read screenshots with the **Read tool** to visually evaluate the page (Read supports images)
 - Element refs from snapshots are used in `click`, `fill`, `hover` commands
 
 ### Workflow
 
 ```
-1. playwright-cli snapshot          → saves YAML with element refs
-2. Read the YAML file              → find the ref for your target element (e.g., e21)
+1. playwright-cli snapshot --filename .playwright-cli/snap.yml  → YAML with element refs
+2. Read or grep the YAML           → find the ref for your target element (e.g., e21)
 3. playwright-cli click e21        → interact using the ref
 4. playwright-cli screenshot       → saves PNG of current state
 5. Read the PNG file               → visually verify the result
@@ -68,47 +70,43 @@ Use for: test files committed to the repo, CI pipeline tests, complex multi-step
 
 ## Visual Verification Workflow
 
-Use this workflow when verifying that a frontend/UI looks and functions correctly. Only verify Mobile dimensions/viewports if the user explicitly asks, but always verify desktop dimensions/viewports, these are the most important to verify on.
+Use this workflow when verifying that a frontend/UI looks and functions correctly. Desktop is always verified, since it is the most important viewport. Run the tablet and mobile steps only when the user asks for responsive or mobile checks.
 
 ```
-1. Ensure dev server is running:
-   lsof -i :3000 -i :5173 -i :8080 -i :4200 -i :3001 | grep LISTEN
+1. Ensure dev server is running (see "Dev Server Detection" below)
 
 2. Open the page:
    playwright-cli open http://localhost:<port>/path
 
 3. Desktop verification (1280x800):
+   playwright-cli resize 1280 800
    playwright-cli screenshot
    → Read the saved PNG via Read tool → evaluate visually
 
 4. Take accessibility snapshot:
-   playwright-cli snapshot
+   playwright-cli snapshot --filename .playwright-cli/snap.yml
    → Read the YAML to understand page structure
 
-5. Mobile verification (375x812):
-   playwright-cli run-code "await page.setViewportSize({width: 375, height: 812})"
-   playwright-cli screenshot
-   → Read PNG → evaluate
+5. Only if responsive checks were requested — tablet (768x1024), then mobile (375x812):
+   playwright-cli resize 768 1024
+   playwright-cli screenshot     → Read PNG → evaluate
+   playwright-cli resize 375 812
+   playwright-cli screenshot     → Read PNG → evaluate
 
-6. Tablet verification (768x1024):
-   playwright-cli run-code "await page.setViewportSize({width: 768, height: 1024})"
-   playwright-cli screenshot
-   → Read PNG → evaluate
-
-7. Check for errors:
+6. Check for errors:
    playwright-cli console       → look for uncaught exceptions
-   playwright-cli network       → look for failed requests
+   playwright-cli requests      → look for failed requests
 
-8. Test interactive elements:
-   playwright-cli snapshot      → get element refs
+7. Test interactive elements:
+   playwright-cli snapshot --filename .playwright-cli/snap.yml  → get element refs
    playwright-cli click e21     → test buttons/links
    playwright-cli fill e35 "test input"  → test form fields
    playwright-cli screenshot    → verify result
 
-9. Fix issues → re-screenshot → confirm fix
+8. Fix issues → re-screenshot → confirm fix
 
-10. Close when done:
-    playwright-cli close-all
+9. Close when done:
+   playwright-cli close-all
 ```
 
 ---
@@ -155,25 +153,15 @@ When evaluating screenshots, check for:
 
 ---
 
-## Visual Evaluation Scoring
+## Evaluating a Screenshot
 
-After reading each screenshot, evaluate against these criteria. Rate each 1-5 (1=broken, 3=acceptable, 5=polished):
-
-| Criterion | What to check |
-|-----------|--------------|
-| **Layout** | Elements properly aligned? Spacing consistent? No overlap or overflow? |
-| **Typography** | Text hierarchy clear? Sizes appropriate? Line heights readable? |
-| **Responsiveness** | Layout adapts at this viewport? No horizontal scroll? Touch targets sized? |
-| **Functionality** | Interactive elements visible and accessible? Forms work? Navigation works? |
-| **Polish** | Visual artifacts? Clipping? Unexpected gaps? Loading states correct? |
-
-**If any criterion scores below 3, fix the issue before proceeding.** Take a fresh screenshot after the fix and re-evaluate.
+After reading each screenshot, check it against the Visual Quality Criteria above. For each criterion that fails, name the specific element at fault and where, for example "the nav overlaps the logo at 375px wide". A named failure can be fixed and re-checked; a score cannot. Fix failures before moving on, then take a fresh screenshot and check again.
 
 ---
 
 ## Multi-Viewport Testing
 
-Only verify Mobile dimensions/viewports if the user explicitly asks, but always verify desktop dimensions/viewports, these are the most important to verify on.
+Desktop is the default; tablet and mobile are verified only on request (see the workflow above).
 
 | Viewport | Width x Height | Use for |
 |----------|---------------|---------|
@@ -183,8 +171,10 @@ Only verify Mobile dimensions/viewports if the user explicitly asks, but always 
 
 To resize the viewport within a session:
 ```bash
-playwright-cli run-code "await page.setViewportSize({width: WIDTH, height: HEIGHT})"
+playwright-cli resize WIDTH HEIGHT
 ```
+
+`run-code` takes a function expression, not a bare statement, so the equivalent there is `playwright-cli run-code "async page => { await page.setViewportSize({ width: WIDTH, height: HEIGHT }); }"`. For real device emulation (user agent, touch, device scale factor), open with `--device="iPhone 15"` instead.
 
 ---
 
@@ -237,6 +227,8 @@ lsof -i :3000 -i :5173 -i :5174 -i :8080 -i :4200 -i :3001 | grep LISTEN
 ```bash
 npm install -g @playwright/cli@latest
 ```
+
+**A command from this skill is rejected as unknown:** the CLI renamed it. Check `playwright-cli --help` (for example, `network` became `requests`).
 
 **Browser doesn't open:**
 Run `playwright-cli open` to verify the CLI can launch a browser.

@@ -6,7 +6,7 @@ effort: high
 
 # Research Methodology Skill
 
-A rigor discipline for research: how to evaluate evidence while gathering it, and how to audit written conclusions against that evidence afterward. Apply this directly while researching or reviewing — no separate pipeline or dedicated critic agent needed.
+A rigor discipline for research: how to evaluate evidence while gathering it, and how to audit written conclusions against that evidence afterward. Apply it while researching or reviewing.
 
 ## While Gathering Evidence
 

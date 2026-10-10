@@ -88,6 +88,17 @@ rm -rf "$tmp"
 printf '%s' "$missing_jq_output" | grep -q '"decision":"block"' || fail "missing jq should block with hook error"
 printf '%s' "$missing_jq_output" | grep -q 'Required dependency `jq` is not available' || fail "missing jq reason should name jq"
 
+# Claude missing jq must also fail closed, in the PreToolUse permissionDecision shape rather
+# than the deprecated top-level decision field.
+tmp=$(make_repo)
+claude_missing_jq=$(run_hook_without_jq "$tmp" claude "{\"cwd\":\"$tmp\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git commit -m docs\"}}")
+rm -rf "$tmp"
+printf '%s' "$claude_missing_jq" | grep -q '"permissionDecision":"deny"' || fail "claude missing jq should deny via permissionDecision"
+printf '%s' "$claude_missing_jq" | grep -q 'Required dependency `jq` is not available' || fail "claude missing jq reason should name jq"
+if printf '%s' "$claude_missing_jq" | grep -q '"decision":"block"'; then
+  fail "claude missing jq should not emit the deprecated top-level decision field"
+fi
+
 # A non-commit git command must not emit blocking output.
 tmp=$(make_repo)
 non_commit_output=$(run_hook_in_repo "$tmp" codex "{\"cwd\":\"$tmp\",\"tool_name\":\"Bash\",\"tool_input\":{\"cmd\":\"git status --short\"}}")
@@ -114,7 +125,7 @@ input="{\"cwd\":\"$tmp\",\"session_id\":\"impl-no-docs-test-$session_suffix\",\"
 first_output=$(run_hook_in_repo "$tmp" codex "$input")
 printf '%s' "$first_output" | grep -q '"decision":"block"' || fail "valid contract should still block first commit attempt with the always-on reminder"
 printf '%s' "$first_output" | grep -q 'ensure all documentation is up to date' || fail "always-on reminder text missing"
-if printf '%s' "$first_output" | grep -q 'In particular, it is very important'; then
+if printf '%s' "$first_output" | grep -q 'In particular, '; then
   rm -rf "$tmp"
   fail "no .documentation-check should omit the required-docs emphasis sentence"
 fi
@@ -133,7 +144,7 @@ printf 'print("hello")\n' >"$tmp/app.py"
 session_suffix=$(basename "$tmp")
 manifest_input="{\"cwd\":\"$tmp\",\"session_id\":\"impl-with-docs-$session_suffix\",\"tool_name\":\"Bash\",\"tool_input\":{\"cmd\":\"git commit -m implementation\"}}"
 manifest_first=$(run_hook_in_repo "$tmp" codex "$manifest_input")
-printf '%s' "$manifest_first" | grep -q 'In particular, it is very important' || fail "declared .documentation-check should add the required-docs emphasis sentence"
+printf '%s' "$manifest_first" | grep -q 'In particular, ' || fail "declared .documentation-check should add the required-docs sentence"
 printf '%s' "$manifest_first" | grep -q 'docs/datamodel.md' || fail "always-on reminder should name the declared required docs"
 if printf '%s' "$manifest_first" | grep -q 'Required documentation file'; then
   rm -rf "$tmp"
@@ -361,7 +372,8 @@ rm -rf "$tmp"
 printf '%s' "$repeat_first" | grep -q 'Documentation contract checks failed' || fail "broken contract should block (first attempt)"
 printf '%s' "$repeat_second" | grep -q 'Documentation contract checks failed' || fail "broken contract should block REPEATEDLY (second attempt)"
 
-# Claude always-on reminder (valid contract): deny once (CRITICAL), then allow on rerun.
+# Claude always-on reminder (valid contract): deny once with a calm, reasoned reminder that says
+# how to proceed (no shouted emphasis, which current models over-apply), then allow on rerun.
 tmp=$(make_repo)
 add_valid_docs_contract "$tmp"
 printf 'print("hello")\n' >"$tmp/app.py"
@@ -369,7 +381,10 @@ session_suffix=$(basename "$tmp")
 claude_input="{\"cwd\":\"$tmp\",\"session_id\":\"claude-reminder-$session_suffix\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git commit -m implementation\"}}"
 claude_first=$(run_hook_in_repo "$tmp" claude "$claude_input")
 printf '%s' "$claude_first" | grep -q '"permissionDecision":"deny"' || fail "claude valid-contract commit should block first attempt"
-printf '%s' "$claude_first" | grep -q 'CRITICAL' || fail "claude always-on reminder should be CRITICAL"
+printf '%s' "$claude_first" | grep -q 'rerun the commit command' || fail "claude always-on reminder should say how to proceed"
+if printf '%s' "$claude_first" | grep -q 'CRITICAL'; then
+  fail "claude always-on reminder should state its reason rather than shout CRITICAL"
+fi
 printf '%s' "$claude_first" | grep -q 'ensure all documentation is up to date' || fail "claude always-on reminder text missing"
 claude_second=$(run_hook_in_repo "$tmp" claude "$claude_input")
 rm -rf "$tmp"

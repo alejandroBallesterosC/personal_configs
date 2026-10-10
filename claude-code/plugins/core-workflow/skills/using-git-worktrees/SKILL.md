@@ -34,8 +34,12 @@ A global directory outside the project needs no such check.
 ## Create and set up
 
 ```bash
+# Project-local (the directory chosen above, e.g. .worktrees)
+git worktree add ".worktrees/<branch-name>" -b "<branch-name>"
+
+# Global
 project=$(basename "$(git rev-parse --show-toplevel)")
-git worktree add "<path>/<branch-name>" -b "<branch-name>"
+git worktree add "$HOME/Documents/worktrees/$project/<branch-name>" -b "<branch-name>"
 ```
 
 Then install dependencies using whatever the project actually uses — detect it from the manifest present (`package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`) rather than assuming a toolchain. For Python, this means `uv sync`.

@@ -16,7 +16,7 @@ This skill writes to AGENTS.md and CLAUDE.md files. Report on quality first, get
 
 - `AGENTS.md` is the canonical shared instruction file for Codex, Cursor Agent CLI, and Claude Code. The root `AGENTS.md` is the single source of truth.
 - `CLAUDE.md` is import-only: its entire content is `@AGENTS.md`.
-- In first-party directories, the two files come in pairs — every `AGENTS.md` has a same-directory `CLAUDE.md` and vice versa. Substantive Claude-specific content moves into `AGENTS.md`. Ignore dependency, generated, and cache directories (`.git`, `node_modules`, `.venv`, `__pycache__`, `.pytest_cache`).
+- In first-party directories, the two files come in pairs — every `AGENTS.md` has a same-directory `CLAUDE.md` and vice versa. Substantive Claude-specific content moves into `AGENTS.md`. Ignore dependency, generated, and cache directories (`.git`, `node_modules`, `.venv`, `__pycache__`, `.mypy_cache`, `.pytest_cache`, `dist`, `build`, `coverage`), the same set the `find` below and the commit guard skip.
 - READMEs and other documentation stay accurate and free of stale or misleading content.
 
 Other agent CLIs can read the same source through `.agents/`, `.codex/`, `.cursor/`, and `.claude/` by symlinking or importing back to the root `AGENTS.md`. Prefer symlinks or minimal import wrappers over copies, since copies drift.
@@ -43,7 +43,7 @@ With entries present, keep every listed file current on each pass and create any
 **Discover.** Find the instruction files, pruning dependency and build directories rather than guessing at project paths:
 
 ```bash
-find . \( -name .git -o -name node_modules -o -name .venv -o -name __pycache__ -o -name .mypy_cache -o -name .pytest_cache -o -name dist -o -name build -o -name coverage \) -prune -o \( -name "AGENTS.md" -o -name "CLAUDE.md" -o -name ".claude.md" -o -name ".claude.local.md" \) -print 2>/dev/null | head -50
+find . \( -name .git -o -name node_modules -o -name .venv -o -name __pycache__ -o -name .mypy_cache -o -name .pytest_cache -o -name dist -o -name build -o -name coverage \) -prune -o \( -name "AGENTS.md" -o -name "CLAUDE.md" -o -name "CLAUDE.local.md" \) -print 2>/dev/null | head -50
 ```
 
 Read `.documentation-check` too, if it exists.
@@ -54,13 +54,13 @@ The files you may find, and what each is for:
 |------|----------|---------|
 | Project root shared | `./AGENTS.md` | Canonical shared context for Codex, Cursor, and Claude |
 | Claude import | `./CLAUDE.md` | Import-only pointer to same-directory AGENTS.md |
-| Local overrides | `./.claude.local.md` | Personal settings, gitignored, not shared |
+| Local overrides | `./CLAUDE.local.md` | Personal settings, gitignored, not shared |
 | Global defaults | `~/.claude/CLAUDE.md` | User-wide defaults across projects |
 | Package-specific | `./packages/*/AGENTS.md` | Module-level context in monorepos |
 
-Claude auto-discovers CLAUDE.md files in parent directories, which is what makes monorepo setups work without per-package duplication.
+Claude auto-discovers CLAUDE.md files in parent directories, which is what makes monorepo setups work without per-package duplication. Claude Code 2.1.277 and later also reads `AGENTS.md` natively, but by default only in a project with no `CLAUDE.md` of its own, and the "Project instructions" setting in `/config` changes or disables that. The `@AGENTS.md` wrapper still matters: it loads `AGENTS.md` the same way under every setting, and Claude Code does not load an imported file twice.
 
-**Assess.** Judge each file against the criteria in [references/quality-criteria.md](references/quality-criteria.md): whether build/test/deploy commands are present and correct, whether the architecture description matches the actual structure, whether non-obvious gotchas are captured, whether it is concise rather than padded with the obvious, whether it reflects the current state of the code, and whether instructions are executable rather than vague.
+**Assess.** Judge each file against the criteria in [references/quality-criteria.md](references/quality-criteria.md): whether build/test/deploy commands are present and correct, whether the architecture description matches the actual structure, whether non-obvious gotchas are captured, whether it is concise rather than padded with the obvious, whether it reflects the current state of the code, and whether instructions are executable rather than vague. Length matters because every line loads into every session: aim for under about 200 lines per file, and for each line ask whether removing it would cause an agent to make a mistake.
 
 Check claims against the codebase rather than judging the prose on its own. A confidently-worded stale command is worse than a missing one.
 
@@ -78,6 +78,7 @@ Stale build commands, required tools that go unmentioned, architecture descripti
 
 ## Tips worth passing to the user
 
-- Pressing `#` during a session has Claude fold a learning into the instruction file.
-- `.claude.local.md` holds personal preferences not shared with the team — gitignore it.
+- To fold a learning into the instruction file mid-session, ask Claude to add it to `AGENTS.md`.
+- `CLAUDE.local.md` holds personal preferences not shared with the team — gitignore it.
 - `~/.claude/CLAUDE.md` holds preferences that should apply across all projects.
+- `/doctor prompt-audit [path]` (Claude Code 2.1.283 and later) audits instruction files, rules, skills, and agents for wording written for older models, references to files that no longer exist, and files that contradict each other.

@@ -10,8 +10,8 @@ property holds" at F1 of 0.94 to 0.96 for coherent features.
 
 After: We ran the scoring again with new model calls and no caching. The
 average scores changed by less than 0.004, so caching is not the cause. For
-most features, the description agrees with how the feature behaves, at an F1 of
-about 0.94 to 0.96.
+most features, the description agrees with how the feature behaves, at an F1
+score (a standard accuracy measure) of about 0.94 to 0.96.
 
 ## 2. Filler
 
@@ -88,15 +88,14 @@ After: In our benchmark, this approach handled a million rows.
 
 Before: Upload the document. The file is parsed, and the record is saved.
 
-After: Upload the document. The document is parsed and saved.
+After: Upload the document. The service parses the document and saves it.
 
 ## 13. Throat-clearing and binary contrast
 
 Before: Here's the thing: building products is hard. Not because the technology
 is complex. Because people are complex. Let that sink in.
 
-After: Building products is hard. The technology is manageable. The people are
-not.
+After: Building products is hard because people are complex.
 
 ## 14. Jargon stack
 
@@ -111,4 +110,4 @@ want.
 Before: What if I told you that the best teams don't optimize for productivity?
 Here's what I mean: they optimize for learning. Think about it.
 
-After: The best teams optimize for learning, not for output per hour.
+After: The best teams optimize for learning.

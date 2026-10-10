@@ -1,6 +1,6 @@
 ---
 name: export-to-clipboard
-description: Export the current Claude Code session transcript (full, or the last N turns) as Markdown into the user's clipboard. User-invoked only.
+description: Export the current Claude Code session transcript (full, or the last N turns) as Markdown, written to the Obsidian vault when local or copied to the clipboard over SSH. User-invoked only.
 disable-model-invocation: true
 argument-hint: "[N]  (optional: export only the last N turns)"
 allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/export.sh *)

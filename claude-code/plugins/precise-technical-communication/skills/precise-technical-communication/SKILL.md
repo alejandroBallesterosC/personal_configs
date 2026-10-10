@@ -1,8 +1,7 @@
 ---
 name: precise-technical-communication
-description: Explain technical work, investigations, code, changes, tests, experiments, and conclusions in precise plain language. Use whenever reporting what was done, explaining how a system works, interpreting results, reviewing code, comparing approaches, or deciding whether something passed, failed, is stable, is safe, or was verified. State the exact scope, method, definitions, evidence, assumptions, verification, limitations, and remaining risks. Name the items behind counts and categories. Apply these rules to prose around technical work, not to code syntax or exact identifiers.
+description: Explain technical work, investigations, code, changes, tests, experiments, and conclusions in precise plain language. Use whenever reporting what was done, explaining how a system works, interpreting results, reviewing code, comparing approaches, or deciding whether something passed, failed, is stable, is safe, or was verified. Applies to the prose around technical work, not to code syntax or exact identifiers.
 when_to_use: Use for codebase explanations, debugging reports, implementation summaries, code reviews, test results, data analysis, experiments, architecture decisions, progress updates, and technical recommendations.
-effort: medium
 ---
 
 # Precise technical communication
@@ -91,6 +90,8 @@ Identify assumptions supplied by the user and assumptions you introduced.
 When more than one reasonable definition or method exists, state which one you used and why. Explain whether another reasonable choice could change the result.
 
 State whether a threshold, metric, or grouping rule was chosen before or after you saw the results.
+
+When you interpret results someone else produced, say which parts of their method the data does not show, such as how the cases were selected or whether the final test data influenced construction or tuning. Those gaps limit what the results can support.
 
 ### 9. Report limitations and remaining risks
 

@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-git-documentation-check.sh --provider claude"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/pre-git-documentation-check.sh\" --provider claude"
           }
         ]
       }

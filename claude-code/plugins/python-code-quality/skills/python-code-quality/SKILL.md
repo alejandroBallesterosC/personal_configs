@@ -30,7 +30,7 @@ The most common failure mode is *rigor theater*: machinery that looks discipline
 catches nothing at runtime and makes nothing clearer. Reject it.
 
 ## When to Use
-- When writing any new code, to make sure it is high quality.
+- When writing any new Python code, to make sure it is high quality.
 - When reviewing code.
 - Refactoring or cleaning up an existing codebase ("strip the frankenstein code",
   "make this safer", "tighten the types", "make the prompts legible").
@@ -41,7 +41,7 @@ catches nothing at runtime and makes nothing clearer. Reject it.
 
 ### 1. Contract-Driven Design: Runtime validation at boundaries
 
-Obsesses over interface contracts: what IS guaranteed, what is NOT, ordering semantics, atomicity.
+Obsesses over interface contracts: what is guaranteed, what is not, ordering semantics, atomicity.
 Contracts are the source of truth; implementations must comply.
 
 Put the guarantee where data actually enters the system: request models, LLM wire
@@ -67,9 +67,8 @@ holds at runtime. That is the kind of rigor that pays for itself.
   a `Literal` field or a small model over a discriminated-union refactor, unless the
   union genuinely prevents a bug that is otherwise reachable.
 
-- Fail loudly when contracts are not upheld. Treat silent failures as the worst imaginable thing.
+- Fail loudly when contracts are not upheld. A silent failure is worse than a crash: a crash gets noticed and fixed, while a silent failure keeps corrupting results until someone happens to look.
 
-  
 ### 2. Expect tests / golden oracles — build them FIRST
 
 Before touching code you intend to preserve the behavior of, capture a byte-exact (or
@@ -121,7 +120,7 @@ dead. Trace actual consumers before deleting.
 
 | Anti-pattern | Why we rejected it |
 |---|---|
-| **Static type-checker CI gate (mypy/basedpyright ratchet)** | Allowlist maintenance, checker-only `cast()`s, config gymnastics, and CI flakes (e.g. `failOnWarnings` behaving differently local vs CI) — all for zero *runtime* guarantee. The IDE + Pydantic already give the signal that matters. Removing the gate lost no safety. |
+| **Static type-checker CI gate (mypy/basedpyright ratchet)** | Allowlist maintenance, checker-only `cast()`s, config gymnastics, and CI flakes, all for zero *runtime* guarantee. The IDE + Pydantic already give the signal that matters. |
 | **Annotations that don't bite at runtime, treated as guarantees** | A type hint Python never enforces is documentation, not a contract. Keep them for legibility, but do not pretend they protect anything, and do not add ceremony around them. The best practice is to use type hints of models/classes validated at run time. |
 | **Byte-identity migration that cleans plumbing but not the readable output** | Effort spent on the wrong layer. If the human still can't see the final artifact in one place, the legibility goal was not met. |
 | **Discriminated-union / abstraction refactors with no concrete bug to prevent** | "What if we need to switch X later" complexity. Quote the real cost; prefer the cheapest representation until a concrete need appears. |
@@ -144,7 +143,7 @@ For "make it safe": reach for a boundary model + a golden/expect test, not a typ
 For "make it legible": build and pin the artifact a reviewer opens, not a tidier internal API.
 For "clean it up": prove dead before deleting; preserve behavior with a golden first.
 
-## Red Flags — STOP and reconsider
+## Red flags: stop and reconsider
 
 - "Let's add a type-checking gate to CI" → re-justify against the Decision Guide; default is no.
 - Writing a `cast()` or `# type: ignore` purely to satisfy a checker → the checker is the problem.
@@ -159,7 +158,7 @@ For "clean it up": prove dead before deleting; preserve behavior with a golden f
 |---|---|
 | "Types make it safer" | Only if enforced at runtime. In Python that means Pydantic at boundaries, not annotations a checker reads. |
 | "A type-check gate is just good hygiene" | It is carrying cost (allowlists, casts, CI flakes) for no runtime guarantee here. Use the IDE; gate on ruff + tests + goldens. |
-| "The Jinja/abstraction cleanup makes it legible" | Legibility is the artifact a human opens. If you didn't build/pin that, you cleaned plumbing, not legibility. |
+| "The templating/abstraction cleanup makes it legible" | Legibility is the artifact a human opens. If you didn't build/pin that, you cleaned plumbing, not legibility. |
 | "We might need this abstraction later" | Quote the real cost now; build it when the concrete need appears. |
 | "It's obviously dead, delete it" | Prove it from consumers (including other repos). Obvious-looking code is often load-bearing. |
 | "Add the production-grade version while we're here" | Prototype paths get the simplest thing that works; rigor is opt-in per need. |
@@ -170,7 +169,7 @@ A reference for the bar: typed `Literal`s + Pydantic models. The best practice i
 This does two things:
 1. Implements strong runtime guarantees that are aligned with the code's intent and fail loudly otherwise.
 2. Makes the codebase far more readable and understandable by a human. Pydantic models / classes make it easy to reason about the core abstractions in the code.
-   Type hints that use pydantic models make the inputs and outpus of functions easy to understand, where as using Any types and Dicts (especially nested dicts) as type hints
+   Type hints that use pydantic models make the inputs and outputs of functions easy to understand, whereas using Any types and Dicts (especially nested dicts) as type hints
    achieves nothing, it remains extremely unclear to a human reading the code what the expected inputs and outputs of a function or component are in the codebase.
 
 Enforcing these guarantees via runtime validation on classes is even more important at boundaries between components and boundaries between systems (APIs etc).

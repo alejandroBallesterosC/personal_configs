@@ -3,7 +3,7 @@
 Export the current Claude Code session's transcript — the full log, or just the last N turns — as Markdown: written straight into an Obsidian vault when running locally, or copied to your clipboard when running remotely over SSH. The skill is **user-invoked only**: Claude can never trigger it on its own.
 
 ```
-/plugin install export-to-clipboard
+/plugin install export-to-clipboard --marketplace alejandroBallesterosC/personal_configs
 ```
 
 Invoke with:
@@ -25,7 +25,7 @@ Invoke with:
 
 A "turn" is one user prompt plus the assistant's response to it, including tool calls.
 
-The current session's transcript is located by **session identity, not by a path formula**: Claude Code names each transcript `<session-id>.jsonl`, so the script globs `~/.claude/projects/*/` for that filename (using `$CLAUDE_SESSION_ID`). This is deliberate — the parent directory is a lossy slug of the working directory (`/`, `_`, `.`, and spaces all collapse to `-`) and is branch-derived for git worktrees, so reconstructing the path from the cwd is unreliable.
+The current session's transcript is located by **session identity, not by a path formula**: Claude Code names each transcript `<session-id>.jsonl`, so the script globs `~/.claude/projects/*/` for that filename, using the `CLAUDE_CODE_SESSION_ID` variable Claude Code exports to Bash-tool subprocesses. (`${CLAUDE_SESSION_ID}` is a substitution inside skill text, not an environment variable, so it is only a fallback.) This is deliberate — the parent directory is a lossy slug of the working directory (`/`, `_`, `.`, and spaces all collapse to `-`) and is branch-derived for git worktrees, so reconstructing the path from the cwd is unreliable. With no session id at all, the script falls back to the newest transcript recorded for the current working directory.
 
 ### Local vs. remote
 
@@ -56,7 +56,7 @@ This needs no local helper script, no staging directory, and no explicit pull st
 | Variable | Where | Purpose |
 |----------|-------|---------|
 | `CLAUDE_CODE_OBSIDIAN_EXPORT_PATH` | local machine | Absolute path to the Obsidian vault. Required for a local export. |
-| `CLAUDE_SESSION_ID`, `CLAUDE_PROJECT_DIR` | provided by Claude Code | Used to locate the current transcript. |
+| `CLAUDE_CODE_SESSION_ID` | exported by Claude Code | Used to locate the current transcript. |
 
 ## Dependencies
 

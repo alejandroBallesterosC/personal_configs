@@ -1,90 +1,50 @@
 # AGENTS.md Quality Criteria
 
-## Scoring Rubric
+Judge each file on these six criteria. For each one, report whether the file meets it and, where it falls short, the specific gap: the missing command, the stale path, the padded section. A named gap can be fixed and re-checked; a point score cannot.
 
-### 1. Commands/Workflows (20 points)
+## 1. Commands and workflows
 
-**20 points**: All essential commands documented with context
-- Build, test, lint, deploy commands present
+All essential commands are documented with context:
+- Build, test, lint, and deploy commands present
 - Development workflow clear
 - Common operations documented
 
-**15 points**: Most commands present, some missing context
+## 2. Architecture clarity
 
-**10 points**: Basic commands only, no workflow
-
-**5 points**: Few commands, many missing
-
-**0 points**: No commands documented
-
-### 2. Architecture Clarity (20 points)
-
-**20 points**: Clear codebase map
+A clear codebase map:
 - Key directories explained
 - Module relationships documented
 - Entry points identified
 - Data flow described where relevant
 
-**15 points**: Good structure overview, minor gaps
+## 3. Non-obvious patterns
 
-**10 points**: Basic directory listing only
-
-**5 points**: Vague or incomplete
-
-**0 points**: No architecture info
-
-### 3. Non-Obvious Patterns (15 points)
-
-**15 points**: Gotchas and quirks captured
+Gotchas and quirks captured:
 - Known issues documented
 - Workarounds explained
 - Edge cases noted
 - "Why we do it this way" for unusual patterns
 
-**10 points**: Some patterns documented
+## 4. Conciseness
 
-**5 points**: Minimal pattern documentation
-
-**0 points**: No patterns or gotchas
-
-### 4. Conciseness (15 points)
-
-**15 points**: Dense, valuable content
+Dense, valuable content:
 - No filler or obvious info
 - Each line adds value
 - No redundancy with code comments
 
-**10 points**: Mostly concise, some padding
+## 5. Currency
 
-**5 points**: Verbose in places
-
-**0 points**: Mostly filler or restates obvious code
-
-### 5. Currency (15 points)
-
-**15 points**: Reflects current codebase
+Reflects the current codebase:
 - Commands work as documented
 - File references accurate
 - Tech stack current
 
-**10 points**: Mostly current, minor staleness
+## 6. Actionability
 
-**5 points**: Several outdated references
-
-**0 points**: Severely outdated
-
-### 6. Actionability (15 points)
-
-**15 points**: Instructions are executable
+Instructions are executable:
 - Commands can be copy-pasted
 - Steps are concrete
 - Paths are real
-
-**10 points**: Mostly actionable
-
-**5 points**: Some vague instructions
-
-**0 points**: Vague or theoretical
 
 ## Assessment Process
 
@@ -93,10 +53,8 @@
    - Run documented commands (mentally or actually)
    - Check if referenced files exist
    - Verify architecture descriptions
-3. Score each criterion
-4. Calculate total and assign grade
-5. List specific issues found
-6. Propose concrete improvements
+3. For each criterion, note whether the file meets it and the specific gaps where it does not
+4. Propose concrete improvements
 
 ## Red Flags
 

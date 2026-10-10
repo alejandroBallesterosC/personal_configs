@@ -4,7 +4,7 @@ description: Summarize changes pushed by collaborators to the remote version of 
 disable-model-invocation: true
 argument-hint: <date-time-or-commit-hash> [timezone]
 allowed-tools: Read, Grep, Glob, Bash, Agent
-effort: xhigh
+effort: high
 ---
 
 # Explain Branch Changes Since

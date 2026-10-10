@@ -5,11 +5,11 @@
 """Render a Claude Code session transcript (JSONL) to Markdown.
 
 The Claude Code CLI stores each session as an append-only JSONL file at
-``~/.claude/projects/<slug>/<session-id>.jsonl`` where ``<slug>`` is the
-absolute working directory with every ``/`` replaced by ``-``. A user-invoked
-skill receives ``CLAUDE_SESSION_ID`` and ``CLAUDE_PROJECT_DIR`` (but not the
-transcript path), so this script reconstructs the path deterministically from
-those, with a most-recently-modified fallback.
+``~/.claude/projects/<slug>/<session-id>.jsonl``, where ``<slug>`` is a lossy
+encoding of the working directory. Claude Code exports the session id to
+Bash-tool subprocesses as ``CLAUDE_CODE_SESSION_ID`` (but not the transcript
+path), so this script finds the transcript by that id, with a
+most-recently-modified fallback when no id is available.
 
 A "turn" is one genuine user prompt plus the assistant activity that follows it
 (assistant text, thinking, tool calls, and the tool results fed back). A JSONL
@@ -349,6 +349,16 @@ def render_markdown(turns: list[dict], transcript_path: Path, note: str | None =
     return "\n".join(lines).rstrip() + "\n"
 
 
+def default_session_id() -> str | None:
+    """The current session's id from the environment.
+
+    Claude Code exports ``CLAUDE_CODE_SESSION_ID`` to Bash-tool subprocesses.
+    ``CLAUDE_SESSION_ID`` is a skill-content substitution, not an environment
+    variable, so it is only a fallback for callers that export it themselves.
+    """
+    return os.environ.get("CLAUDE_CODE_SESSION_ID") or os.environ.get("CLAUDE_SESSION_ID")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -360,12 +370,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--session-id",
-        default=os.environ.get("CLAUDE_SESSION_ID"),
-        help="Session id (defaults to $CLAUDE_SESSION_ID).",
+        default=default_session_id(),
+        help="Session id (defaults to $CLAUDE_CODE_SESSION_ID, then $CLAUDE_SESSION_ID).",
     )
     parser.add_argument(
         "--project-dir",
-        default=os.environ.get("CLAUDE_PROJECT_DIR"),
+        default=os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd(),
         help="Session working directory (defaults to $CLAUDE_PROJECT_DIR, then cwd).",
     )
     parser.add_argument(

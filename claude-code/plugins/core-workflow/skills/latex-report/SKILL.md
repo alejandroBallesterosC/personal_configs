@@ -5,7 +5,7 @@ description: Argument-driven LaTeX report writing and compilation — single-voi
 
 # LaTeX Report Skill
 
-Guidance for writing an argument-driven research report in LaTeX and compiling it to PDF. Covers three things: the report's structure, the single-voice writing discipline, and the compile pipeline. Apply directly — no separate agents or phases needed.
+Guidance for writing an argument-driven research report in LaTeX and compiling it to PDF. Covers three things: the report's structure, the single-voice writing discipline, and the compile pipeline.
 
 ## Structure
 
